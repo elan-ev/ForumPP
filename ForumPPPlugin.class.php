@@ -18,7 +18,7 @@
  * @version   $Id: TGForumPlugin.class.php 632 2008-04-11 10:48:38Z tgloeggl $
  */
 
-//require ( "sphinxapi.php" );
+//require_once ( "sphinxapi.php" );
  
 class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
@@ -464,109 +464,128 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * Shows as well the button to delete an area.
 	 * @param string $part one of main / area / thread, depending on were we are
 	 */
-	function show_menubar($part = 'main') {
+	function show_menubar($part = 'main', $area_name = '', $thread_name = '') {
 		global $_REQUEST;
 
 		$has_rights = $this->rechte;
 
 		switch ($part) {
-			case 'main':
-				$title = _("Neuen Bereich erstellen");
-				$name = _("Bereichsname");
-				$content = _("Beschreibung");
-				$subcmd = 'create_area';
-				$rows = 10;
-				break;
+		case 'main':
+			$title = _("Neuen Bereich erstellen");
+			$name = _("Bereichsname");
+			$content = _("Beschreibung");
+			$subcmd = 'create_area';
+			$rows = 10;
+			break;
 
-			case 'area':
-				$has_rights = true;		// Themen erstellen darf jeder
-				$title = _("Neues Thema erstellen");
-				$name = _("Titel");
-				$content = _("Inhalt");
-				$subcmd = 'create_thread';
-				$rows = 10;
-				break;
+		case 'area':
+			$has_rights = true;		// Themen erstellen darf jeder
+			$title = _("Neues Thema erstellen");
+			$name = _("Titel");
+			$content = _("Inhalt");
+			$subcmd = 'create_thread';
+			$rows = 10;
+			break;
 
-			case 'thread':
-				$has_rights = true;		// Antworten darf auch jeder
-				$title = _("Neuen Beitrag erstellen");
-				$name = _("Titel");
-				$content = _("Inhalt");
-				$subcmd = 'create_posting';
-				$rows = 10;
+		case 'thread':
+			$has_rights = true;		// Antworten darf auch jeder
+			$title = _("Neuen Beitrag erstellen");
+			$name = _("Titel");
+			$content = _("Inhalt");
+			$subcmd = 'create_posting';
+			$rows = 10;
 
-				$inhalt = '';
+			$inhalt = '';
 
-				$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['thread_id'] ."'");
-				$db->next_record();
-				$name_value = 'Re: '. htmlReady($db->f('name'));
+			$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['thread_id'] ."'");
+			$db->next_record();
+			$name_value = 'Re: '. htmlReady($db->f('name'));
 
-				if ($_REQUEST['subcmd'] == 'cite_posting') {
-					## TODO: request-Variable nicht ungeprüft übernehmen!
-					$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
+			if ($_REQUEST['subcmd'] == 'cite_posting') {
+				## TODO: request-Variable nicht ungeprüft übernehmen!
+				$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
 
-					if ($db->next_record()) {
-						$content_value = htmlReady(quotes_encode($this->forumKillEdit($db->f('description')), $db->f('author')));
-						$content_value .= "\n\n";
-					}
+				if ($db->next_record()) {
+					$content_value = htmlReady(quotes_encode($this->forumKillEdit($db->f('description')), $db->f('author')));
+					$content_value .= "\n\n";
 				}
-				break;
+			}
+			break;
 
 		}
 
 
-	ob_start();
-	
-    echo '<center>';
-    if ($has_rights && $_REQUEST['section'] == $subcmd) { ?>
-		<a name="<?= $subcmd ?>"></a>
-    <form action="" method="post">		
+		ob_start();
+		
+		// show navigation
+		?>
+		<span class="areaname">
+			&nbsp;&nbsp;<a href="<?= PluginEngine::getLink($this, array('source' => 'va')) ?>">Forum</a>
+			<? if ($_REQUEST['root_id']) : ?>
+				&bull;&nbsp;<a href="<?= PluginEngine::getLink($this, array('root_id' => $_REQUEST['root_id'])) ?>"><?= $area_name ?></a>
+			<? endif; if ($_REQUEST['thread_id']) : ?>
+				&bull;&nbsp;<a href="<?= PluginEngine::getLink($this, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'])) ?>"><?= $thread_name ?></a>
+			<? endif; ?>
+		</span>
+		<br/>
+		<br/>
+		<center>
+		<?
+		if ($has_rights && $_REQUEST['section'] == $subcmd) { ?>
+			<a name="<?= $subcmd ?>"></a>
+			<form action="" method="post">		
 			<input type="hidden" name="section" value="">
-      <input type="hidden" name="cmd" value="show">
+			<input type="hidden" name="cmd" value="show">
 			<input type="hidden" name="subcmd" value="<?= $subcmd ?>">
 			<div class="posting bg2">
-				<span class="corners-top"><span></span></span>
+			<span class="corners-top"><span></span></span>
 
-				<div class="postbody">				
-					<span class="title"><?= $title ?></span><br/>
+			<div class="postbody">				
+			<span class="title"><?= $title ?></span><br/>
 
-					<p class="content" style="margin-bottom: 0pt">
-						<strong><?= $name ?>:</strong><br/>
-						<input type="text" name="title" style="width: 100%" value="<?= $name_value ?>"><br/>
-						<br/>
+			<p class="content" style="margin-bottom: 0pt">
+			<strong><?= $name ?>:</strong><br/>
+			<input type="text" name="title" style="width: 100%" value="<?= $name_value ?>"><br/>
+			<br/>
 
-						<?= $this->show_textedit_buttons() ?>
-					</p>
-				</div>
+			<?= $this->show_textedit_buttons() ?>
+			</p>
+			</div>
 
-				<div class="postbody">
-          	<textarea id="inhalt" name="data" style="width: 100%" rows="<?= $rows ?>"><?= $content_value ?></textarea><br/>
-				</div>
+			<div class="postbody">
+			<textarea id="inhalt" name="data" style="width: 100%" rows="<?= $rows ?>"><?= $content_value ?></textarea><br/>
+			</div>
 
-				<dl class="postprofile">
-					<dt>
-						<?= $this->show_smiley_favorites() ?>
-					</dt>
-				</dl>
+			<dl class="postprofile">
+			<dt>
+			<?= $this->show_smiley_favorites() ?>
+			</dt>
+			</dl>
 
-				<div class="buttons">				
-					<input type="image" <?= makebutton('erstellen', 'src') ?>>
-					<a href="<?= PluginEngine::getLink($this, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'])) ?>"><img border="0" <?= makebutton('abbrechen', 'src') ?>></a>
-				</div>
+			<div class="buttons">				
+			<input type="image" <?= makebutton('erstellen', 'src') ?>>
+			<?
+			if ($_REQUEST['thread_id']) $params['thread_id'] = $_REQUEST['thread_id'];
+			if ($_REQUEST['root_id']) $params['root_id'] = $_REQUEST['root_id'];
+			$link = PluginEngine::getLink($this, array_merge($params, array('page' => $_REQUEST['page'])));
+			?>
+			<a href="<?= $link ?>"><img border="0" <?= makebutton('abbrechen', 'src') ?>></a>
+			</div>
 
-				<span class="corners-bottom"><span></span></span>
+			<span class="corners-bottom"><span></span></span>
 			</div>
 			<?= $this->get_hidden_fields(array('thread_id', 'root_id', 'page', 'plugin_subnavi_params')) ?>
-    </form>
-    <?
-		} else {
+			</form>
+			<br/>
+			<?
+		}/* else {
 			if ($part == 'thread') {
 				$link = PluginEngine::getLink($this, array('section' => 'create_posting', 'thread_id' => $_REQUEST['thread_id'], 'root_id' => $_REQUEST['root_id'], 'page' => $_REQUEST['page'], 'time' => time()));
 				echo '<a href="'. $link .'#create_posting"><img border="0" '. makebutton('antworten', 'src') .'</a>';
 			}
-		}
+		}*/
 
-    echo '</center>';
+		echo '</center>';
 		return ob_get_clean();
 	}
 
@@ -672,7 +691,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		// the user-picture of the poster
 		//if ($this->avatar_class) {
 		if (is_callable(array('Avatar', 'getAvatar'))) {
-			$tmpl_picture = Avatar::getAvatar($entry['owner_id'])->getImageTag(Avatar::MEDIUM, get_username($entry['owner_id']));
+			$tmpl_picture = Avatar::getAvatar($owner_id)->getImageTag(Avatar::MEDIUM, get_username($owner_id));
 		} else {
 			if (!file_exists($GLOBALS['DYNAMIC_CONTENT_PATH'].'/user/'. $entry['owner_id'] .'.jpg')) {
 				if (file_exists($GLOBALS['DYNAMIC_CONTENT_PATH'].'/user/nobody.jpg')) {   // switch for backwards-compatibility
@@ -682,7 +701,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 				$tmpl_picture .= tooltip(_("kein persönliches Bild vorhanden")).'>';
 			} else {
-				$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/'. $entry['owner_id'] .'.jpg" border="0" width="75" ';
+				$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/'. $owner_id .'.jpg" border="0" width="75" ';
 				$tmpl_picture .= tooltip($GLOBALS['user']->name).'>';
 			}
 		}
@@ -694,7 +713,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			'owner_id' => $owner_id,
 			'datum' => 		$datum,
 			'username' => $username,
-			'real_username' => get_username($entry['owner_id']),
+			'real_username' => get_username($owner_id),
 			'userrights' => $this->translate_perm($GLOBALS['perm']->get_studip_perm($this->getId(), $owner_id)),
 			'userpicture' => $tmpl_picture,
 			'userpostings' => $this->count_userpostings($owner_id),
@@ -708,7 +727,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		$template->set_attribute('entry', $entry);
 		$template->set_attribute('plugin', $this);
-    echo $template->render();
+		echo $template->render();
 	}
 
 
@@ -1945,14 +1964,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$postings = $this->getDBData('get_last_postings', array('page' => $_REQUEST['page']));		
 		$num_postings = $this->getDBData('get_last_postings_count');		
 
-    $plugin = $this;
+		$plugin = $this;
 		$template =& $this->template_factory->open('show_posting_list');
 		$template->set_layout('layout');
-    $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox'));
+		$template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox'));
 		echo $template->render();
 	}
 
-  function forumShow() {
+	function forumShow() {
 		global $_REQUEST;
 
 		// show messages if any
@@ -1967,44 +1986,48 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$infobox->set_attribute('plugin', $this);
 
 
-    // postings
-    if (isset($_REQUEST['thread_id'])) {
-      $area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
-      $thread_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['thread_id']));
-      $data = $this->getDBData('get_postings_for_thread', array('thread_id' => $_REQUEST['thread_id']));
+		// postings
+		if (isset($_REQUEST['thread_id'])) {
+			$area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
+			$thread_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['thread_id']));
+			$data = $this->getDBData('get_postings_for_thread', array('thread_id' => $_REQUEST['thread_id']));
 			$postings = $data['postings'];
 			$postings_count = $data['postings_count'];
-      $plugin = $this;
-      $menubar = $this->show_menubar('thread');
+			$plugin = $this;
+			$menubar = $this->show_menubar('thread', $area_name, $thread_name);
 
+			if ($GLOBALS['section'] != 'create_posting') {
+				$answer_link = PluginEngine::getLink($this, array('section' => 'create_posting', 'thread_id' => $_REQUEST['thread_id'], 'root_id' => $_REQUEST['root_id'], 'page' => $_REQUEST['page'], 'time' => time()));
+			}
+			
 			$infobox->set_attribute('section', 'postings');
 			$infobox->set_attribute('area_name', $area_name);
 			$infobox->set_attribute('thread_name', $thread_name);
 
 			$template =& $this->template_factory->open('show_postings');
 			$template->set_layout('layout');
-			$template->set_attributes(compact('area_name', 'thread_name', 'postings', 'postings_count', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
+			$template->set_attributes(compact('area_name', 'thread_name', 'postings', 'postings_count', 'plugin', 'infobox', 'standard_infobox', 'menubar', 'answer_link'));
 			echo $template->render();
-    }
+		}
 
 
-    // threads
-    else if (isset($_REQUEST['root_id'])) {
-      $area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
-      $threads = $this->getDBData('get_threads_for_area', array('parent_id' => $_REQUEST['root_id']));
-      $plugin = $this;
-      $menubar = $this->show_menubar('area');
+		// threads
+		else if (isset($_REQUEST['root_id'])) {
+			$area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
+			$threads = $this->getDBData('get_threads_for_area', array('parent_id' => $_REQUEST['root_id']));
+			$plugin = $this;
+			$menubar = $this->show_menubar('area', $area_name);
 
 			if ($this->rechte) {
 				$aktionen[] = array(
-					'name' => 'Bereich löschen',
-					'link' => PluginEngine::getLink($this, array('subcmd' => 'delete_area', 'area_id' => $_REQUEST['root_id']))
+				'name' => 'Bereich löschen',
+				'link' => PluginEngine::getLink($this, array('subcmd' => 'delete_area', 'area_id' => $_REQUEST['root_id']))
 				);
 			}
 			$aktionen[] = array(
-				'name' => 'neues Thema',
-				'link' => PluginEngine::getLink($this, array('section' => 'create_thread', 'root_id' => $_REQUEST['root_id'])).'#create_thread',
-				'anchor' => 'create_thread'
+			'name' => 'neues Thema',
+			'link' => PluginEngine::getLink($this, array('section' => 'create_thread', 'root_id' => $_REQUEST['root_id'])).'#create_thread',
+			'anchor' => 'create_thread'
 			);
 
 			$infobox->set_attribute('section', 'threads');
@@ -2014,15 +2037,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$template =& $this->template_factory->open('show_threads');
 			$template->set_layout('layout');
 			$template->set_attributes(compact('area_name', 'threads', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
-      echo $template->render();
-    }
+			echo $template->render();
+		}
 
 
-    // areas
-    else {
-      $areas = $this->getDBData('get_areas', array('parent_id' => '0'));
-      $plugin = $this;
-      $menubar = $this->show_menubar();
+		// areas
+		else {
+			$areas = $this->getDBData('get_areas', array('parent_id' => '0'));
+			$plugin = $this;
+			$menubar = $this->show_menubar();
 
 			if ($this->_ENHANCED) {
 				$categories = $this->getDBData('get_categories');
@@ -2046,19 +2069,19 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			} else {
 				$categories = array (
-					array (
-						'name' => 'Allgemeine Kategorie',
-						'areas' => $areas
-					)
+				array (
+				'name' => 'Allgemeine Kategorie',
+				'areas' => $areas
+				)
 				);
 			}
 
 
 			if ($this->rechte) {
 				$aktionen[] = array(
-					'name' => 'Bereich erstellen',
-					'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
-					'anchor' => 'create_area'
+				'name' => 'Bereich erstellen',
+				'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
+				'anchor' => 'create_area'
 				);
 			}
 
@@ -2068,8 +2091,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$template =& $this->template_factory->open('show_areas');
 			$template->set_layout('layout');
 			$template->set_attributes(compact('categories', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
-      echo $template->render();
-    }
+			echo $template->render();
+		}
 
 		/*
 		require_once('lib/raumzeit/QueryMeasure.class.php');
@@ -2077,6 +2100,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			echo $GLOBALS['query_measure']->showDataCompact();
 		}
 		*/
-  }
+	}
 
 }

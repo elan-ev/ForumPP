@@ -29,7 +29,7 @@ img {
 	max-width: 600px;
 }
 
-img:hover {
+img:onClick {
 	max-width: 100%;
 }
 
