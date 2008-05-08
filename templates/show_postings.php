@@ -1,4 +1,9 @@
+<? if ($answer_link) : ?>
+<center>
+	<a href="<?= $answer_link ?>#create_posting"><?= makebutton('antworten') ?></a>
+</center>
 <br/>
+<? endif; ?>
 <form action="<?= PluginEngine::getLink($plugin, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'])) ?>" method="post">
 <input type="hidden" name="page" value="<?= $GLOBALS['_REQUEST']['page'] ?>">
 <table cellspacing="0" cellpadding="1" border="0" width="100%">
@@ -10,9 +15,9 @@
 				<br/>
 				<?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id'], $postings_count) ?>
 			</span>
-    </td>
-  </tr>
-  <?
+		</td>
+	</tr>
+	<?
 		$posting_num = 1;
 		$main_topic = '';
 		$last = sizeof($postings);
@@ -25,14 +30,19 @@
 			endif;
 
 			//if ((ceil($posting_num / $plugin->POSTINGS_PER_PAGE)) == $page) :
-	      $plugin->show_entry($post['author'], $post['chdate'], $post['name'], $post['description'], $post['topic_id'], $main_topic, $post['owner_id'], $post['raw_title'], $post['raw_description'], $post['fav'], ($posting_num == $last));
+			$plugin->show_entry($post['author'], $post['chdate'], $post['name'], $post['description'], $post['topic_id'], $main_topic, $post['owner_id'], $post['raw_title'], $post['raw_description'], $post['fav'], ($posting_num == $last));
 			//endif;
 
 			$posting_num++;
     endforeach;
-  ?>
+	?>
 </table>
 
 </form>
 <?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id'], $postings_count) ?>
 <br />
+<? if ($answer_link) : ?>
+<center>
+	<a href="<?= $answer_link ?>#create_posting"><?= makebutton('antworten') ?></a>
+</center>
+<? endif; ?>
