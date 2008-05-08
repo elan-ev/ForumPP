@@ -1,0 +1,2082 @@
+<?php
+
+/*
+ * Copyright (C) 2007 - Till Glöggler     <tgloeggl@uos.de>
+ *                      Marcus Lunzenauer <mlunzena@uos.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ */
+
+
+/**
+ * @author    mlunzena
+ * @author    tgloeggl
+ * @copyright (c) Authors
+ * @version   $Id: TGForumPlugin.class.php 632 2008-04-11 10:48:38Z tgloeggl $
+ */
+
+//require ( "sphinxapi.php" );
+ 
+class ForumPPPlugin extends AbstractStudIPStandardPlugin {
+
+  var $template_factory;
+	var $THREAD_PREVIEW_LENGTH = 100;
+	var $POSTINGS_PER_PAGE = 10;
+	var $avatar_class = false;
+	var $rechte = false;
+	var $lastlogin = 0;
+
+	var $_ENHANCED = false;
+
+  function ForumPPPlugin() {
+
+    parent::AbstractStudIPStandardPlugin();
+
+    $this->setPluginiconname("img/plugin.png");
+
+    # navigation
+    $navigation =& new PluginNavigation();
+    $navigation->setDisplayname(_("Forum"));
+    $this->setNavigation($navigation);
+
+    ## AbstractStudIPStandardPlugin specifics
+
+		$this->setPluginiconname("img/pages.png");
+    $this->setChangeIndicatorIconName('img/pages_red.png');
+
+    $this->setShownInOverview(TRUE);
+
+		//$this->seminar_class = $GLOBALS['SessSemName']['class'];
+    $this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
+		
+		$this->check_for_enhance();
+	}
+
+
+	function initialize() {
+		global $_include_additional_header;
+
+		// we want to display the dates in german
+		setlocale(LC_TIME, 'de_DE@euro', 'de_DE', 'de', 'ge');
+
+		// the default for displaying timestamps
+		$this->time_format_string = "%A %d. %B %Y, %H:%M";
+		$this->time_format_string_short = "%a %d. %B %Y, %H:%M";
+
+    $this->template_factory =
+	    new Flexi_TemplateFactory(dirname(__FILE__).'/templates');
+
+		// path to plugin-pictures
+		$this->picturepath =  $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] . $this->getPluginPath() . '/img';
+
+		$_include_additional_header = 
+			'<link rel="stylesheet" href="'. PluginEngine::getLink($this, array(), 'css') .'" type="text/css">'; 
+	}
+
+	function check_for_enhance() {
+		$db = new DB_Seminar("SHOW TABLES LIKE 'forumpp'");
+		if ($db->num_rows() == 1) $this->_ENHANCED = true;
+	}
+	
+	function getPluginname() {
+		return _("Forum++");
+	}
+
+	function getDisplaytitle() {
+		return $this->getPluginname();
+	}
+
+	function getDesigns() {
+		return array(
+			array('value' => 'web20', 'name' => 'Blue Star'),
+			array('value' => 'studip', 'name' => 'Safir&eacute; (Stud.IP)')
+		);
+	}
+
+	function setDesign($design) {
+		global $sess, $forumpp_template;
+
+		$sess->register('forumpp_template');
+		$forumpp_template[$this->getId()] = $design;
+	}
+
+	function getDesign() {
+		global $sess, $forumpp_template;
+
+		return $forumpp_template[$this->getId()];
+	}
+
+	function actionCss () {
+		if (!$this->getDesign()) {
+			$this->setDesign('web20');
+		}
+
+		if ($this->getDesign() == 'studip') {
+			$template_before = $this->template_factory->open('css/web20.css.php');
+			$template_before->set_attribute('picturepath', $this->picturepath);
+
+			$template = $this->template_factory->open('css/studip.css.php');
+			$template->set_attribute('picturepath', $GLOBALS['ASSETS_URL'] . '/images');
+		} else {
+			$template = $this->template_factory->open('css/'. $this->getDesign() .'.css.php');
+			$template->set_attribute('picturepath', $this->picturepath);
+		}
+
+		// this hack is necessary to disable the standard Stud.IP layout
+		ob_end_clean();
+		header('Content-Type: text/css');
+		//header('Cache-Control: private');
+
+		if (isset($template_before)) {
+			echo $template_before->render();
+		}
+		echo $template->render();
+		ob_start('discard_buffer');
+		die;
+	}
+
+  function actionShow() {
+
+		// check for SeminarSession and set visit
+		checkObject();
+		checkObjectModule("forum");
+
+		$this->last_visit = object_get_visit($this->getId(), "forum");
+		if (!$this->last_visit) $this->last_visit = time();
+
+		object_set_visit_module("forum");
+
+    if (isset($_REQUEST['subcmd'])) {
+      switch ($_REQUEST['subcmd']) {
+
+        case 'create_area':
+          $this->create_area();
+          break;
+
+        case 'create_thread':
+          $this->create_thread();
+          break;
+
+        case 'create_posting':
+          $this->create_posting();
+          break;
+
+        case 'delete':
+          $this->delete_posting();
+          break;
+
+				case 'do_edit_posting':
+					$this->edit_posting();
+					break;
+
+				case 'delete_area':
+					$this->delete_area();
+					break;
+
+				case 'fav':
+					object_switch_fav($_REQUEST['entryid']);
+					break;
+
+				case 'set_design':
+					$this->setDesign($_REQUEST['template']);
+					break;
+      }
+    }
+
+		echo '<div class="forumpp">';
+		if (isset($_REQUEST['plugin_subnavi_params'])) {
+			switch ($_REQUEST['plugin_subnavi_params']) {
+		
+				case 'last_postings':
+					$this->lastPostingsShow();
+					break;
+
+				case 'new_postings':
+					$this->newPostingsShow();
+					break;
+
+				case 'favorites':
+					$this->favoritesShow();
+					break;
+
+				case 'search':
+					$this->searchShow();
+					break;
+
+				case 'config':
+					$this->configShow();
+					break;
+
+				default:
+					$this->forumShow();
+					break;
+			}
+		} else {
+			if ($_REQUEST['source'] == 'va') {
+		    $this->forumShow();
+			} else {
+				if ($this->getDBData('get_new_postings_count') > 0 && sizeof($_REQUEST) == 1) {
+					$this->newPostingsShow();
+				} else {
+					$this->forumShow();
+				}
+			}
+		}
+		echo '</div>';
+
+  }
+
+
+	function setPluginPath($newpath) {
+		parent::setPluginPath($newpath);
+		$this->buildMenu();
+	}
+
+	function buildMenu() {
+		$navigation = new PluginNavigation();
+		$navigation->setDisplayname('Forum++');
+		$navigation->addLinkParam('source', 'va');
+		$navigation->setActive();
+
+		
+		if ($this->rechte) {
+			$sub_nav = new PluginNavigation();
+			$sub_nav->setDisplayname(_("Konfiguration"));
+			$sub_nav->addLinkParam('plugin_subnavi_params', 'config');
+			$navigation->addSubmenu($sub_nav);
+		}
+
+		$this->setNavigation($navigation);
+	}
+
+  function actionShowAdministrationPage() {
+    printf("in %s:%s\n", __CLASS__, __FUNCTION__);
+  }
+
+
+  // AbstractStudIPStandardPlugin specifics
+
+  function hasChanged($lastlogin) {
+		//echo date('d.m.Y H:i', $lastlogin);
+		$this->last_visit = object_get_visit($this->getId(), "forum");
+		if (!$this->last_visit) {
+			$this->last_visit = $lastlogin;
+		}
+		return $this->getDBData('get_new_postings_count');
+  }
+
+	function getOverviewMessage($has_changed) {
+		if ($has_changed) {
+			$c = $this->getDBData('get_new_postings_count');
+			if ($c == 1) {
+				return _("Ein neuer Beitrag vorhanden");
+			} else {
+				return sprintf(_("%s neue Beiträge vorhanden."), $c);
+			}
+		};
+
+		return _("Keine neuen Beiträge.");
+	}
+
+
+	/*
+	function getChangeMessages($lastlogin, $ids) {
+		return array();
+	}
+	*/
+
+	function getScore() {
+		return 200000;
+	}
+
+
+	/* * * * * * * * * * * * * * * * * * *
+	 * C O M M A N D - F U N C T I O N S *
+	 * * * * * * * * * * * * * * * * * * */
+
+	/**
+	 * creates a new entry in px_topics
+	 * @param array of values to overwrite the defaults with.
+	 * @returns the topic_id of the newly created entry
+	 */
+	function insert_entry($data) {
+		// first: we set some useful defaults
+		$topic_id = md5(uniqid(rand()));
+
+		$defaults = array (
+			'topic_id' => $topic_id,
+			'name' => 'Kein Titel',
+			'description' => 'Keine Beschreibung',
+			'parent_id' => 0,
+			'root_id' => $topic_id,
+			'author' => get_fullname($GLOBALS['user']->id),
+			'author_host' => getenv('REMOTE_ADDR'),
+			'Seminar_id' => $this->getId(),
+			'user_id' => $GLOBALS['user']->id,
+			'mkdate' => time(),
+			'chdate' => time()
+		);
+
+		// second: we overwrite the defaults with specified data
+		foreach ($data as $field => $value) {
+			$defaults[$field] = $value;
+		}
+
+		// third: we build the query and execute it
+		$query = "INSERT INTO px_topics (".implode(', ', array_keys($defaults)).") VALUES ('".implode("', '", $defaults)."')";
+
+		new DB_Seminar($query);
+
+		return $topic_id;
+	}
+
+	/**
+	 * creates a new top-level entry
+	 */
+  function create_area() {
+
+		if ($this->rechte) {
+			$data = array (
+				'name' => $GLOBALS['_REQUEST']['title'],
+				'description' => $GLOBALS['_REQUEST']['data']
+			);
+			$GLOBALS['_REQUEST']['root_id'] = $this->insert_entry($data);
+		}
+
+  }
+
+	/**
+	 * creates a new thread in an area
+	 */
+  function create_thread() {
+		global $_REQUEST;
+
+		$data = array (
+			'root_id' => $_REQUEST['root_id'],
+			'parent_id' => $_REQUEST['root_id'],
+			'name' => $_REQUEST['title'],
+			'description' => $_REQUEST['data']
+		);
+
+		$GLOBALS['_REQUEST']['thread_id'] = $this->insert_entry($data);
+  }
+
+
+	/**
+	 * add a posting to a thread
+	 */
+  function create_posting() {
+		global $_REQUEST;
+
+		$data = array (
+			'root_id' => $_REQUEST['root_id'],
+			'parent_id' => $_REQUEST['thread_id'],
+			'name' => $_REQUEST['title'],
+			'description' => $_REQUEST['data']
+		);
+
+		$this->insert_entry($data);
+  }
+
+
+	/**
+	 * is a helper function of {@link delete_posting()} to delete all childs of a posting (if any)
+	 * @param string $parent the parent-id, to find all childs with that parent
+	 */
+	function delete_child_postings($parent) {
+		$db = new DB_Seminar("SELECT * FROM px_topics WHERE parent_id = '$parent'");
+
+		while ($db->next_record()) {
+			$this->delete_child_postings($db->f('topic_id'));
+			new DB_Seminar($query = "DELETE FROM px_topics WHERE topic_id = '" .$db->f('topic_id'). "'");
+		}
+	}
+
+	/**
+	 * deletes a posting or a thread an all subpostings
+	 * @param string $posting_id optional, if not given $_REQUEST['entryid'] is used as posting-id.
+	 */
+	function delete_posting($posting_id = null) {
+
+		if ($this->rechte) {
+			if ($posting_id) {
+				$topic_id = $posting_id;
+			} else {
+				$topic_id = $GLOBALS['_REQUEST']['entryid'];
+			}
+
+			// unset these variables, because maybe we can't jump to that thread anymore
+			unset($GLOBALS['_REQUEST']['entryid']);
+			unset($GLOBALS['_REQUEST']['thread_id']);
+
+			$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '$topic_id'");
+			if (!$db->next_record() || $db->num_rows() == '0') return;
+
+			// this denotes the area we are in
+			$GLOBALS['_REQUEST']['root_id'] = $db->f('root_id');
+
+			if ($db->f('parent_id') == $db->f('root_id')) {
+				$this->delete_child_postings($db->f('topic_id'));
+			} else {
+				// we did not delete a thread, only a single posting (+childs), so we can jump to the thread
+				$GLOBALS['_REQUEST']['thread_id'] = $GLOBALS['_REQUEST']['jumpid'];
+			}
+
+			// don't forget to delete the main posting
+			new DB_Seminar($query = "DELETE FROM px_topics WHERE topic_id = '". $db->f('topic_id') ."'");
+		}
+  }
+
+	/**
+	 * deletes a whole area with all threads and postings in there
+	 */
+	function delete_area() {
+
+		if ($this->rechte) {
+			$db = new DB_Seminar("DELETE FROM px_topics WHERE root_id = '". $_REQUEST['area_id'] ."'");
+			$this->addMessage(sprintf(_("Es wurden %s Einträge gelöscht!"), $db->affected_rows()), 'msg');
+		}
+	}
+
+
+	/*
+	 * modifys an existing posting, setting the new title and the new description
+	 */
+	function edit_posting () {
+
+		$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
+		if ($db->next_record()) {
+			if ($this->rechte || $db->f('user_id') == $GLOBALS['user']->id) {
+				// add the new edit-remark
+				$inhalt = $this->forumAppendEdit($_REQUEST['posting_data']);
+
+				new DB_Seminar("UPDATE px_topics SET name = '". $_REQUEST['posting_title'] ."', description = '$inhalt' WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
+			}
+		}
+	}
+
+
+	/**
+	 * Shows buttons for the creation of areas/threads/postings or the respective input formula.
+	 * Shows as well the button to delete an area.
+	 * @param string $part one of main / area / thread, depending on were we are
+	 */
+	function show_menubar($part = 'main') {
+		global $_REQUEST;
+
+		$has_rights = $this->rechte;
+
+		switch ($part) {
+			case 'main':
+				$title = _("Neuen Bereich erstellen");
+				$name = _("Bereichsname");
+				$content = _("Beschreibung");
+				$subcmd = 'create_area';
+				$rows = 10;
+				break;
+
+			case 'area':
+				$has_rights = true;		// Themen erstellen darf jeder
+				$title = _("Neues Thema erstellen");
+				$name = _("Titel");
+				$content = _("Inhalt");
+				$subcmd = 'create_thread';
+				$rows = 10;
+				break;
+
+			case 'thread':
+				$has_rights = true;		// Antworten darf auch jeder
+				$title = _("Neuen Beitrag erstellen");
+				$name = _("Titel");
+				$content = _("Inhalt");
+				$subcmd = 'create_posting';
+				$rows = 10;
+
+				$inhalt = '';
+
+				$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['thread_id'] ."'");
+				$db->next_record();
+				$name_value = 'Re: '. htmlReady($db->f('name'));
+
+				if ($_REQUEST['subcmd'] == 'cite_posting') {
+					## TODO: request-Variable nicht ungeprüft übernehmen!
+					$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
+
+					if ($db->next_record()) {
+						$content_value = htmlReady(quotes_encode($this->forumKillEdit($db->f('description')), $db->f('author')));
+						$content_value .= "\n\n";
+					}
+				}
+				break;
+
+		}
+
+
+	ob_start();
+	
+    echo '<center>';
+    if ($has_rights && $_REQUEST['section'] == $subcmd) { ?>
+		<a name="<?= $subcmd ?>"></a>
+    <form action="" method="post">		
+			<input type="hidden" name="section" value="">
+      <input type="hidden" name="cmd" value="show">
+			<input type="hidden" name="subcmd" value="<?= $subcmd ?>">
+			<div class="posting bg2">
+				<span class="corners-top"><span></span></span>
+
+				<div class="postbody">				
+					<span class="title"><?= $title ?></span><br/>
+
+					<p class="content" style="margin-bottom: 0pt">
+						<strong><?= $name ?>:</strong><br/>
+						<input type="text" name="title" style="width: 100%" value="<?= $name_value ?>"><br/>
+						<br/>
+
+						<?= $this->show_textedit_buttons() ?>
+					</p>
+				</div>
+
+				<div class="postbody">
+          	<textarea id="inhalt" name="data" style="width: 100%" rows="<?= $rows ?>"><?= $content_value ?></textarea><br/>
+				</div>
+
+				<dl class="postprofile">
+					<dt>
+						<?= $this->show_smiley_favorites() ?>
+					</dt>
+				</dl>
+
+				<div class="buttons">				
+					<input type="image" <?= makebutton('erstellen', 'src') ?>>
+					<a href="<?= PluginEngine::getLink($this, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'])) ?>"><img border="0" <?= makebutton('abbrechen', 'src') ?>></a>
+				</div>
+
+				<span class="corners-bottom"><span></span></span>
+			</div>
+			<?= $this->get_hidden_fields(array('thread_id', 'root_id', 'page', 'plugin_subnavi_params')) ?>
+    </form>
+    <?
+		} else {
+			if ($part == 'thread') {
+				$link = PluginEngine::getLink($this, array('section' => 'create_posting', 'thread_id' => $_REQUEST['thread_id'], 'root_id' => $_REQUEST['root_id'], 'page' => $_REQUEST['page'], 'time' => time()));
+				echo '<a href="'. $link .'#create_posting"><img border="0" '. makebutton('antworten', 'src') .'</a>';
+			}
+		}
+
+    echo '</center>';
+		return ob_get_clean();
+	}
+
+
+	/**
+	 * displays one posting with all belonging gui-elements, like delete, edit, cite.
+	 * @param string $username this is the db-field author of px_topics
+	 * @param int $datum timestamp of posting-creation
+	 * @param string $titel the formatted thread/posting-title
+	 * @param string $inhalt the formatted text of the posting
+	 * @param string $entryid	the topic_id of the posting
+	 * @param string $jumpid is the area-id, if this is the first posting of the thread, the thread-id otherwise
+	 * @param string $owner_id the id of user who posted this
+	 * @param string $raw_title unformatted thread/posting-title
+	 * @param string $raw_description unformatted text of the posting
+	 */
+	function show_entry($username, $datum, $titel, $inhalt, $entryid, $jumpid, $owner_id, $raw_title, $raw_description, $fav = false, $last = false, $highlight = false) {
+		global $_REQUEST;
+
+		$template =& $this->template_factory->open('posting');
+
+		$tmpl_inhalt = '';
+		$tmpl_icons = '';
+		$tmpl_buttons = '';
+
+
+		// the posting itself
+		// if this posting is selected to edit, show edit fields
+		if ($_REQUEST['subcmd'] == 'edit_posting' && $entryid == $_REQUEST['posting_id']) {
+			$tmpl_inhalt .= '<input type="text" style="width: 100%;" name="posting_title" value="'. htmlReady($raw_title) .'"><br/>';
+			$tmpl_inhalt .= '<br/>' . $this->show_textedit_buttons() . '<br/>';
+			$tmpl_inhalt .= '<textarea id="inhalt" name="posting_data" style="width: 100%;" rows="8">'. htmlReady($raw_description) .'</textarea>';
+		} else {
+			if (is_array($highlight)) {
+				$inhalt = $this->highlight($inhalt, $highlight);
+				$titel = $this->highlight($titel, $highlight);
+			}
+
+     	//if ($titel) $tmpl_inhalt .= "<b>$titel</b><br/><br/>";
+     	$tmpl_inhalt .= quotes_decode($inhalt);
+		}
+
+		// the action icons
+		$tmpl_icons = array();
+
+		// icon dor deleting a post
+		if ($this->rechte && $_REQUEST['plugin_subnavi_params'] != 'last_postings') {
+			$icon = '';
+			$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'delete', 'entryid' => $entryid, 'jumpid' => $jumpid, 'page' => $_REQUEST['page']));
+			$icon['image'] = $this->picturepath .'/icons/delete.png';
+			$icon['title'] = _("Eintrag löschen!");
+			$tmpl_icons[4] = $icon;
+		}
+    
+		// icon for adding / removing a post to / from the favorites
+		$icon = '';
+		$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'fav', 'entryid' => $entryid, 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'], 'plugin_subnavi_params' => $_REQUEST['plugin_subnavi_params'])) .'#'. $entryid;
+		if (!$fav) {
+			$icon['image'] = $this->picturepath .'/icons/not_a_favorite.png';
+			$icon['title'] = _("zu den Favoriten hinzufügen");
+		} else {
+			$icon['image'] = $this->picturepath .'/icons/favorite.png';
+			$icon['title'] = _("aus den Favoriten entfernen");
+		}
+		$tmpl_icons[3] = $icon;
+
+
+		// the buttonbar
+		if ($_REQUEST['plugin_subnavi_params'] == 'last_postings' 
+				|| $_REQUEST['plugin_subnavi_params'] == 'new_postings'
+				|| $_REQUEST['plugin_subnavi_params'] == 'favorites') {
+			$tmpl_buttons = '';
+		} else {
+			if ($_REQUEST['subcmd'] == 'edit_posting' && $entryid == $_REQUEST['posting_id']) {
+				// posting is being edited right now
+				$tmpl_buttons .= '<input type="image" '. makebutton('speichern', 'src') .'>' . "\n&nbsp;&nbsp;&nbsp;\n";
+				$tmpl_buttons .= '<a href="'. PluginEngine::getLink($this, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'])) .'#'. $entryid .'">';
+				$tmpl_buttons .= '<img border="0" '. makebutton('abbrechen', 'src') .'></a>' . "\n";
+				$tmpl_buttons .= '<input type="hidden" name="subcmd" value="do_edit_posting">';
+				$tmpl_buttons .= '<input type="hidden" name="root_id" value="'. $_REQUEST['root_id'] .'">' ."\n";
+				$tmpl_buttons .= '<input type="hidden" name="thread_id" value="'. $_REQUEST['thread_id'] .'">' ."\n";
+				$tmpl_buttons .= '<input type="hidden" name="posting_id" value="'. $_REQUEST['posting_id'] .'">' ."\n";
+
+			} else {
+				// show icons for editing and citing
+				//if ($last && ($owner_id == $GLOBALS['user']->id || $this->rechte) && (is_array($highlight) === FALSE)) {
+				if (($owner_id == $GLOBALS['user']->id || $this->rechte) && (is_array($highlight) === FALSE)) {
+					$icon = '';
+					$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'edit_posting', 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'posting_id' => $entryid, 'page' => $_REQUEST['page'])) .'#'. $entryid;
+					$icon['image'] = $this->picturepath .'/icons/edit.png';
+					$icon['title'] = _("Eintrag bearbeiten");
+					$tmpl_icons[1] = $icon;
+				}
+
+				$icon = '';
+				$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'cite_posting', 'section' => 'create_posting', 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'posting_id' => $entryid, 'page' => $_REQUEST['page'])) .'#create_posting';
+				$icon['image'] = $this->picturepath .'/icons/quote.png';
+				$icon['title'] = _("Aus diesem Eintrag zitieren");
+				$tmpl_icons[2] = $icon;
+			}
+		}
+
+		// the user-picture of the poster
+		//if ($this->avatar_class) {
+		if (is_callable(array('Avatar', 'getAvatar'))) {
+			$tmpl_picture = Avatar::getAvatar($entry['owner_id'])->getImageTag(Avatar::MEDIUM, get_username($entry['owner_id']));
+		} else {
+			if (!file_exists($GLOBALS['DYNAMIC_CONTENT_PATH'].'/user/'. $entry['owner_id'] .'.jpg')) {
+				if (file_exists($GLOBALS['DYNAMIC_CONTENT_PATH'].'/user/nobody.jpg')) {   // switch for backwards-compatibility
+					$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/nobody.jpg" width="80" height="100" ';
+				} else {
+					$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/nobody_medium.png" ';
+				}
+				$tmpl_picture .= tooltip(_("kein persönliches Bild vorhanden")).'>';
+			} else {
+				$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/'. $entry['owner_id'] .'.jpg" border="0" width="75" ';
+				$tmpl_picture .= tooltip($GLOBALS['user']->name).'>';
+			}
+		}
+
+		ksort($tmpl_icons);
+
+		// fill values for the template and show it
+		$entry = array(
+			'owner_id' => $owner_id,
+			'datum' => 		$datum,
+			'username' => $username,
+			'real_username' => get_username($entry['owner_id']),
+			'userrights' => $this->translate_perm($GLOBALS['perm']->get_studip_perm($this->getId(), $owner_id)),
+			'userpicture' => $tmpl_picture,
+			'userpostings' => $this->count_userpostings($owner_id),
+			'inhalt' => 	$tmpl_inhalt,
+			'titel' =>		$titel,
+			'icons' => 		$tmpl_icons,
+			'buttons' =>	$tmpl_buttons,
+			'plugin_path' => 	$this->getPluginPath(),
+			'id' => $entryid
+		);
+
+		$template->set_attribute('entry', $entry);
+		$template->set_attribute('plugin', $this);
+    echo $template->render();
+	}
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * D A T A - R E T R I E V A L - F U N C T I O N S *
+	 * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	function _dbdataFillArray($db) {
+		$ret = array();
+		while ($db->next_record()) {
+			$thread_id = $this->getThreadIdCached($db->f('topic_id'));
+
+			$ret[] = array(
+				'author' => $db->f('author'),
+				'topic_id' => $db->f('topic_id'),
+				'thread_id' => $thread_id,
+				'root_id' => $db->f('root_id'),
+				'area_name' => $this->getDBData('entry_name', array('entry_id' => $db->f('root_id'))),
+				'thread_name' => $this->getDBData('entry_name', array('entry_id' => $thread_id)),
+				'name' => formatReady($db->f('name')),
+				'description' => formatReady($this->forumParseEdit($db->f('description'))),
+				'chdate' => $db->f('chdate'),
+				'owner_id' => $db->f('user_id'),
+				'raw_title' => $db->f('name'),
+				'raw_description' => $this->forumKillEdit($db->f('description')),
+				'fav' => ($db->f('fav') == 'fav')
+			);
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * this functions reads postings and returns them as an array
+	 * @param string $type type of retrieval, is one of get_all_for_parent / entry_name
+	 * @returns mixed
+	 */
+	function getDBData($type = null, $data = array()) {
+		static $count_postings;
+
+    if ($type == null) return FALSE;
+
+    $ret = array();
+
+    switch ($type) {
+			// count all postings under a specified range_id
+			case 'count_postings':
+				// return cached number if any
+				if ($count_postings[$data['range_id']]) return $count_postings[$data['range_id']];
+				
+				// instead of recursion we us a stack
+				$stack = array();
+				$count = 1;		// count the parent-posting itself as well
+
+				$db = new DB_Seminar($query = "SELECT pa.topic_id, pb.topic_id as child FROM px_topics as pa 
+					LEFT JOIN px_topics as pb ON (pa.topic_id = pb.parent_id)
+					WHERE pa.parent_id = '{$data['range_id']}'");
+					
+				while ($db->next_record()) {
+					if ($db->f('child')) {
+						$stack[] = $db->f('topic_id');
+					}
+					
+					$count++;
+				}
+
+				while ($id = array_pop($stack)) {				
+					$count++;
+					$db = new DB_Seminar("SELECT * FROM px_topics WHERE parent_id = '$id'");
+					while ($db->next_record()) {
+						$stack[] = $db->f('topic_id');
+					}
+				}
+				
+				// cache the number to speed up the process if called again
+				$count_postings[$data['range_id']] = $count;
+				return $count;
+				
+				break;
+
+			// retrieves all postings for one thread			
+      case 'get_postings_for_thread':
+				// we retrieve all postings for one area and take the ones belonging to our thread
+	
+				// instead of recursion we us a stack
+				$stack = array();
+				$postings = array();
+
+				$db = new DB_Seminar("SELECT pa.*, ou.flag as fav, pb.topic_id as child FROM px_topics as pa 
+					LEFT JOIN object_user as ou ON (ou.object_id = pa.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					LEFT JOIN px_topics as pb ON (pa.topic_id = pb.parent_id)
+					WHERE pa.parent_id = '{$data['thread_id']}' OR pa.topic_id ='{$data['thread_id']}'
+					ORDER BY mkdate, chdate");
+				while ($db->next_record()) {
+					$postings[$db->f('topic_id')] = $db->Record;
+
+					// only put on stack if it has child-postings
+					if ($db->f('child')) {
+						$stack[] = $db->f('topic_id');
+					} else {
+						$count++;
+					}
+				}
+
+				while ($id = array_pop($stack)) {
+					$db = new DB_Seminar("SELECT px.*, ou.flag as fav FROM px_topics as px
+						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+						WHERE parent_id = '$id' ORDER BY mkdate, chdate");
+					while ($db->next_record()) {
+						$postings[$db->f('topic_id')] = $db->Record;
+						$stack[] = $db->f('topic_id');
+					}
+				}
+
+				$parent_list = array();
+				$i = 1;
+				$page = 1;
+				
+				if ($GLOBALS['_REQUEST']['page']) {
+					$page = $GLOBALS['_REQUEST']['page'];
+				}
+				
+				if ($GLOBALS['_REQUEST']['jump_to']) {
+					$page = ceil(sizeof($postings) / $this->POSTINGS_PER_PAGE);
+				}
+				
+				$GLOBALS['_REQUEST']['page'] = $page;
+
+				foreach ($postings as $post) {
+					if ($i > ($page-1) * $this->POSTINGS_PER_PAGE && $i <= (($page-1) * $this->POSTINGS_PER_PAGE) + $this->POSTINGS_PER_PAGE) {
+	          $parent_list[$post['topic_id']] = array(
+	            'author' => $post['author'],
+	            'topic_id' => $post['topic_id'],
+	            'name' => formatReady($post['name']),
+	            'description' => formatReady($this->forumParseEdit($post['description'])),
+	            'chdate' => $post['chdate'],
+							'owner_id' => $post['user_id'],
+							'raw_title' => $post['name'],
+							'raw_description' => $this->forumKillEdit($post['description']),
+							'fav' => ($post['fav'] == 'fav')
+	          );
+					}
+					$i++;
+				}
+								
+        return array('postings' => $parent_list, 'postings_count' => sizeof($postings));
+				break;
+
+			// retrieves all threads for one area
+			case 'get_threads_for_area':
+			case 'get_areas':
+				if (!$data['parent_id']) $parent_id = 0; else $parent_id = $data['parent_id'];
+				$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE Seminar_id = '". $this->getId() ."' AND parent_id = '$parent_id'");
+				while ($db->next_record()) {
+					// count the postings in this area. all postings have the area_id as root_id in the database
+					if ($parent_id == '0') {
+						$db2 = new DB_Seminar("SELECT COUNT(*) as c FROM px_topics WHERE root_id = '". $db->f('topic_id') ."'");
+						$db2->next_record();
+						$num_postings = $db2->f('c');
+					} else {
+						$num_postings = $this->getDBData('count_postings', array('range_id' => $db->f('topic_id'))); 
+					}
+					
+					// get newest posting
+					if ($parent_id == '0') {
+						$db3 = new DB_Seminar("SELECT * FROM px_topics
+							WHERE root_id = '". $db->f('topic_id') ."' 
+							ORDER BY chdate DESC LIMIT 1");
+					} else {
+						$db3 = new DB_Seminar("SELECT * FROM px_topics 
+							WHERE parent_id = '". $db->f('topic_id') ."' OR topic_id = '". $db->f('topic_id') ."' 
+							ORDER BY chdate DESC LIMIT 1");
+					}
+
+					$sort_criteria = $db->f('mkdate');
+					if ($db3->next_record()) {
+						$sort_criteria = $db3->f('mkdate');
+						$last_posting['date'] = $db3->f('chdate');
+						$last_posting['user_id'] = $db3->f('user_id');
+						$last_posting['user_fullname'] = $db3->f('author');
+						$last_posting['username'] = get_username($db3->f('user_id'));
+
+						// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
+						$text = strip_tags($db3->f('description'));
+						$text = $this->br2space($text);
+						$text = kill_format($this->forumKillQuotes($text));
+
+						if (strlen($text) > 42) {
+							$text = substr($text ,0, 40) . '...';
+						}
+
+						$last_posting['link'] = PluginEngine::getLink($this, array('root_id' => $db3->f('root_id'), 'thread_id' => $this->getThreadIDCached($db3->f('topic_id')), 'jump_to' => $db3->f('topic_id'))) .'#'. $db3->f('topic_id');
+						$last_posting['text'] = $text;
+						//$text  = '<img src="'. $GLOBALS['ASSETS_URL'] .'/images/link_intern.gif">&nbsp;'. $text;
+					} else {
+						$last_posting = _("keine Beiträge");
+					}
+
+					// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
+					$desc_short = $this->br2space(kill_format(strip_tags($db->f('description'))));
+					if (strlen($desc_short) > ($this->THREAD_PREVIEW_LENGTH +2)) {
+						$desc_short = substr($desc_short, 0, $this->THREAD_PREVIEW_LENGTH) . '...';
+					} else {
+						$desc_short = $desc_short;
+					}
+
+					$ret[$db->f('topic_id')] = array(
+						'author' => $db->f('author'),
+						'entry_id' => $db->f('topic_id'),
+						'mkdate' => $db->f('mkdate'),
+						'name' => formatReady($db->f('name')),
+						'description' => formatReady($this->forumKillEdit($db->f('description'))),
+						'description_short' => $desc_short,
+						'num_postings' =>  $num_postings,
+						'last_posting' => $last_posting,
+						'owner_id' => $db->f('user_id'),
+						'sort_criteria' => $sort_criteria
+					);
+				}
+
+				usort($ret, array('ForumPPPlugin', 'sort_threads_by_date'));
+			return $ret;
+        break;
+
+			// retrieves the formatted title of one posting
+			case 'entry_name':
+				static $entry_name_cache;
+				if (!isset($entry_name_cache[$data['entry_id']])) {
+					$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE topic_id = '".$data['entry_id']."'");
+					$db->next_record();
+					$entry_name_cache[$data['entry_id']] = formatReady($db->f('name'));
+				}
+				return $entry_name_cache[$data['entry_id']];
+			break;
+
+
+			case 'get_last_postings':
+				if ($data['page'] && $data['page'] > 1) {
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+				} else {
+					$limit_start = 0;
+				}
+
+				$db = new DB_Seminar($query = "SELECT px.*, ou.flag as fav  FROM px_topics as px
+					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					WHERE Seminar_id =  '". $this->getId() ."' AND parent_id != '0'
+					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}");
+
+				return $this->_dbdataFillArray($db);
+				break;
+
+			case 'get_favorite_postings':
+				if ($data['page'] && $data['page'] > 1) {
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+				} else {
+					$limit_start = 0;
+				}
+
+				$db = new DB_Seminar("SELECT pt.*, ou.flag as fav FROM object_user as ou
+					LEFT JOIN px_topics as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					WHERE ou.user_id = '". $GLOBALS['user']->id ."' 
+					AND ou.flag = 'fav'
+					AND pt.Seminar_id = '". $this->getId() ."'
+					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}");
+
+				return $this->_dbdataFillArray($db);
+				break;
+
+			case 'get_new_postings':
+				if ($data['page'] && $data['page'] > 1) {
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+				} else {
+					$limit_start = 0;
+				}
+
+				$db = new DB_Seminar($query = "SELECT * FROM px_topics 
+					WHERE Seminar_id =  '". $this->getId() ."' AND mkdate >= {$this->last_visit}
+					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}");
+
+				return $this->_dbdataFillArray($db);
+				break;
+
+			case 'get_new_postings_count':
+				$db = new DB_Seminar("SELECT COUNT(*) as c FROM px_topics
+					WHERE Seminar_id =  '". $this->getId() ."' AND mkdate >= {$this->last_visit}");
+				$db->next_record();
+				return $db->f('c');
+			 	break;
+
+			case 'get_favorite_postings_count':
+				$db = new DB_Seminar("SELECT COUNT(*) as c FROM object_user as ou
+					LEFT JOIN px_topics as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					WHERE ou.user_id = '". $GLOBALS['user']->id ."' 
+					AND ou.flag = 'fav'
+					AND pt.Seminar_id = '". $this->getId() ."'");
+				$db->next_record();
+				return $db->f('c');
+			 	break;
+
+			case 'get_last_postings_count':
+				$db = new DB_Seminar("SELECT COUNT(*) as c FROM px_topics as px
+					WHERE Seminar_id =  '". $this->getId() ."' AND parent_id != '0'");
+				$db->next_record();
+				return $db->f('c');
+			 	break;
+
+			case 'search_indexed':
+				if ($data['page'] && $data['page'] > 1) {
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+				} else {
+					$limit_start = 0;
+				}
+
+				// parse searchstring
+				$_searchfor = stripslashes($data['searchfor']);
+
+				// if there are quoted parts, they should not be separated
+				$suchmuster = '/".*"/U';
+				preg_match_all($suchmuster, $_searchfor, $treffer);
+				
+				// remove the quoted parts from $_searchfor
+				$_searchfor = preg_replace($suchmuster, '', $_searchfor);
+
+				// split the searchstring $_searchfor at every space
+				$_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
+				
+				// make an SQL-statement out of the searchstring
+				$search_string = array();
+				foreach ($_searchfor as $key => $val) {
+					if (!$val) {
+						unset($_searchfor[$key]);
+					} else {
+						$_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
+						$val = str_replace('"', '', str_replace("'", '', $val));
+						
+						$search_string[] .= "name LIKE '%$val%'";
+						$search_string[] .= "description LIKE '%$val%'";
+						$search_string[] .= "author LIKE '%$val%'";
+					}
+				}
+
+				
+				$ids = array();
+				
+				$cl = new SphinxClient ();
+				$cl->SetMatchMode( SPH_MATCH_EXTENDED );
+
+				/*
+				$res = $cl->Query ( $data['searchfor'], 'seminare');
+				if ( !$res )
+				{
+					die ( "ERROR: " . $cl->GetLastError() . ".\n" );
+				} else
+				{
+				
+					foreach ($res['matches'] as $id => $data) {
+						$seminar = new DB_Seminar("SELECT VeranstaltungsNummer, Name, Untertitel FROM seminare WHERE num = '$id'");
+						$seminar->next_record();
+						echo '<div style="border: 1px solid black; background-color: #FFFFCC; padding: 10px;">';
+						echo 'VA-Nummer : ' . $seminar->f('VeranstaltungsNummer') . '<br/>';
+						echo 'Name : ' . $seminar->f('Name') . '<br/>';
+						echo 'Untertitel : ' . $seminar->f('Untertitel') . '<br/>';
+						echo '</div>';
+					}
+					
+					echo '<br/>';
+				}	
+				*/				
+				
+				
+				$res = $cl->Query ( $data['searchfor'], 'forum');
+				if ( !$res )
+				{
+					die ( "ERROR: " . $cl->GetLastError() . ".\n" );
+				} else
+				{
+				
+					foreach ($res['matches'] as $id => $data) {
+						$ids[] = $id;
+						//$db->query("SELECT * FROM px_topics WHERE num = '$id'");
+					}
+				}
+					
+				if (sizeof($ids) > 0) {
+					$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
+						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")
+						ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}";
+
+					$query2 = "SELECT COUNT(*) as c FROM px_topics as px
+						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")";
+						
+					$db = new DB_Seminar($query);
+					$db2 = new DB_Seminar($query2);
+					$db2->next_record();
+					
+					return array(
+						'highlight' => $_searchfor,
+						'num_postings' => $db2->f('c'),
+						'postings' => $this->_dbdataFillArray($db)
+					);
+				} else {
+					return array(
+						'highlight' => $_searchfor,
+						'num_postings' => 0,
+						'postings' => array()
+					);				
+				}
+				
+				break;
+				
+			case 'search':
+				if ($data['page'] && $data['page'] > 1) {
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+				} else {
+					$limit_start = 0;
+				}
+
+				// parse searchstring
+				$_searchfor = stripslashes($data['searchfor']);
+
+				// if there are quoted parts, they should not be separated
+				$suchmuster = '/".*"/U';
+				preg_match_all($suchmuster, $_searchfor, $treffer);
+				
+				// remove the quoted parts from $_searchfor
+				$_searchfor = preg_replace($suchmuster, '', $_searchfor);
+
+				// split the searchstring $_searchfor at every space
+				$_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
+				
+				// make an SQL-statement out of the searchstring
+				$search_string = array();
+				foreach ($_searchfor as $key => $val) {
+					if (!$val) {
+						unset($_searchfor[$key]);
+					} else {
+						$_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
+						$val = str_replace('"', '', str_replace("'", '', $val));
+						
+						$search_string[] .= "name LIKE '%$val%'";
+						$search_string[] .= "description LIKE '%$val%'";
+						//$search_string[] .= "author LIKE '%$val%'";
+					}
+				}
+				
+				// get the postings that match
+				$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
+					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")
+					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}";
+
+				$query2 = "SELECT COUNT(*) as c FROM px_topics as px
+					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")";
+
+				$db = new DB_Seminar($query);
+				$db2 = new DB_Seminar($query2);
+				$db2->next_record();
+
+				return array(
+					'highlight' => $_searchfor,
+					'num_postings' => $db2->f('c'),
+					'postings' => $this->_dbdataFillArray($db)
+				);
+				break;
+
+			// _ENHANCED
+			case 'get_categories':
+				$db = new DB_Seminar("SELECT * FROM forumpp WHERE entry_type = 'category' AND seminar_id = '". $this->getId() ."'");
+				if ($db->num_rows() == 0) {
+					return array(array('areas' => array()));
+				} 
+
+				$ret = array();
+				while ($db->next_record()) {
+					$zw = array();
+					$zw['name'] = $db->f('entry_name');
+					$zw['areas'] = array();
+					$db2 = new DB_Seminar("SELECT * FROM forumpp 
+						WHERE entry_type = 'area' AND seminar_id = '". $this->getId() ."' AND entry_id = '". $db->f('entry_id') ."'");
+					while ($db2->next_record()) {
+						$zw['areas'][] = $db2->f('topic_id');
+					}
+					$ret[$db->f('entry_id')] = $zw;
+				}
+
+				return $ret;
+				break;
+    }
+  }
+
+	/* the page chooser for ar list of postings */
+	function get_page_chooser_NP($num_postings) {
+		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
+		if ($pages <= 1) return;
+
+		if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
+
+		$run = true;
+		$add_dots = false;
+
+		// show additional text over thread-postings
+		$ret .= "$num_postings ". _("Beiträge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
+
+		for ($i = 1; $i <= $pages; $i++) {
+
+			if ($pages >= 6) {
+				$add_dots = false;
+				// show the two first and the two last pages
+				if ($cur_page == -1) {
+					if (($pages - 2) >= $i && (2 < $i)) {
+						$run = false;
+					} else {
+						$run = true;
+					}
+	
+					if ($i == 3) {
+						$add_dots = true;
+					}
+				} 
+				
+				// show the first and the last page, as well as the two pages before and after
+				else {
+					$run= false;
+
+					if ($cur_page < 3) {
+						$start = 1;
+						$end = 5;
+					} else if ($cur_page > ($pages - 3)) {
+						$start = $pages - 4;
+						$end = $pages;	
+					} else {
+						$start = $cur_page -2;
+						$end = $cur_page + 2;
+					}
+
+					if ($start != 1 && $i == 1) {
+						$run = true;
+					}
+
+					if ($start > 2 && $i == 2) $add_dots = true;
+
+					if ($end != $pages && $i == $pages) {
+						$run = true;
+						if ($end < $pages - 1) $add_dots = true;
+					}
+
+					if ($i >= $start && $i <= $end) {
+						$run = true;
+					}
+				}
+			}
+
+			if ($add_dots) {
+				$ret .= ' &hellip;';
+			}
+
+			// only show pages to choose if they are meant to be shown
+			if ($run) {
+
+				if ($i > 1) $ret .= '&nbsp;';
+				if ($cur_page == $i) {
+					//$ret .= ' <b>'. $i .'</b>';
+					$ret .= '<span class="page selected">'. $i.'</span>';
+				} else {
+					$ret .= '<span class="page"><a href="'. PluginEngine::getLink($this, array('plugin_subnavi_params' => $_REQUEST['plugin_subnavi_params'], 'page' => $i, 'searchfor' => $_REQUEST['searchfor'])) .'">'. $i .'</a></span>';
+				}
+			}
+		}
+
+		return $ret;
+	}
+
+	/*
+	 * the page chooser for the thread-overview */
+	function get_page_chooser($area_id, $thread_id, $num_postings = -1) {
+		$show_text = true;
+
+		if ($num_postings == -1) {
+			$num_postings = $this->getDBData('count_postings', array('range_id' => $thread_id, 'exact' => 'true'));
+			$cur_page = -1;
+			$show_text = false;
+		} else {
+			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
+		}
+
+		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
+		
+		if ($pages == 1) return;
+	
+		if ($show_text) {
+			// show additional text over thread-postings
+			$ret .= "$num_postings ". _("Beiträge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
+		} else {
+			// page icon in thread-overview
+			$info = _("Seite auswählen");
+			$ret .= '<img src="'. $this->picturepath .'/pages.png" align="absbottom" alt="'. $info .' title="'. $info .'"> ';
+		}
+
+		$run = true;
+		$add_dots = false;
+
+		for ($i = 1; $i <= $pages; $i++) {
+
+			if ($pages >= 6) {
+				$add_dots = false;
+				// show the two first and the two last pages
+				if ($cur_page == -1) {
+					if (($pages - 2) >= $i && (2 < $i)) {
+						$run = false;
+					} else {
+						$run = true;
+					}
+	
+					if ($i == 3) {
+						$add_dots = true;
+					}
+				} 
+				
+				// show the first and the last page, as well as the two pages before and after
+				else {
+					$run= false;
+
+					if ($cur_page < 3) {
+						$start = 1;
+						$end = 5;
+					} else if ($cur_page > ($pages - 3)) {
+						$start = $pages - 4;
+						$end = $pages;	
+					} else {
+						$start = $cur_page -2;
+						$end = $cur_page + 2;
+					}
+
+					if ($start != 1 && $i == 1) {
+						$run = true;
+					}
+
+					if ($start > 2 && $i == 2) $add_dots = true;
+
+					if ($end != $pages && $i == $pages) {
+						$run = true;
+						if ($end < $pages - 1) $add_dots = true;
+					}
+
+					if ($i >= $start && $i <= $end) {
+						$run = true;
+					}
+				}
+			}
+
+			if ($add_dots) {
+				$ret .= ' &hellip;';
+			}
+
+			// only show pages to choose if they are meant to be shown
+			if ($run) {
+				if ($i > 1) $ret .= '&nbsp;';
+				if ($cur_page == $i) {
+					//$ret .= ' <b>'. $i .'</b>';
+					$ret .= '<span class="page selected">'. $i.'</span>';
+				} else {
+					$ret .= '<span class="page"><a href="'. PluginEngine::getLink($this, array('root_id' => $area_id, 'thread_id' => $thread_id, 'page' => $i)) .'" '. tooltip(_("Gehe zu Seite")." $i") .'>'. $i .'</a></span>';
+				}
+			}
+		}
+
+		return $ret;
+	}
+
+	/* * * * * * * * * * * * * * * * * * *
+	 * H E L P E R - F U N C T I O N S *
+	 * * * * * * * * * * * * * * * * * * */
+
+	/**
+	 * this functions retrieves the topic-id of the belonging thread recursively
+	 * @param string $topic_id id of the topic we want the belonging thread for
+	 * @returns string
+	 */
+	function getThreadID($topic_id) {
+		$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE topic_id = '$topic_id'");
+		$db->next_record();
+
+		if ($db->f('parent_id') == $db->f('root_id')) {
+			return $db->f('topic_id');
+		} else {
+			return $this->getThreadID($db->f('parent_id'));
+		}
+	}
+
+	function getThreadIDCached($topic_id) {	
+		static $get_thread_id_cache;
+
+		if (!isset($get_thread_id_cache[$topic_id])) {
+			$get_thread_id_cache[$topic_id] = $this->getThreadID($topic_id);
+		}
+
+		return $get_thread_id_cache[$topic_id];
+	}
+
+	/**
+	 * callback-function for usort, sorts by array-field sort_criteria
+	 */
+	function sort_threads_by_date($a, $b) {
+		if ($a['sort_criteria'] == $b['sort_criteria']) return 0;
+
+		return ($a['sort_criteria'] < $b['sort_criteria']) ? 1 : -1;
+	}
+
+	/**
+	 * alternative makebutton-function, to enable use of buttons which are not included in Stud.IP
+	 * @param string $name name of the button
+	 * @param string $type one of full / src. full returns the button-image with button-tags surrounded
+	 * @returns string
+	 */
+	function makebutton($name, $type = 'full') {
+		$img = $this->getPluginPath() .'/buttons/'. $GLOBALS['_language_path'] .'/'. $name .'-button.png'; 
+		switch ($type) {
+			case 'src':
+				return ' src="'. $img .'" ';
+				break;
+
+			case ' full':
+			default:
+				return '<button><img src="'. $img .'"></button>';
+				break;
+		}
+	}
+
+	
+	/**
+	 * is used for posting-preview. replaces all newlines with spaces
+	 * @param string $text the text to work on
+	 * @returns string
+	 */
+	function br2space($text) {
+		return str_replace("\n", ' ', str_replace("\r", '', $text));
+	}
+
+
+	/**
+	 * add a message to the message stack. Is used to display informational- or error-messages.
+	 * @param string $msg the message to be added to the stack
+	 * @param string $type one of msg / info / error
+	 */
+	function addMessage($msg, $type) {
+		$this->messages[] = $type.'§'.$msg.'§';
+	}
+
+	/**
+	 * displays the messages laying on the message-stack.
+	 */
+	function showMessages() {
+		if (!is_array($this->messages)) return;
+		echo '<table>';
+		foreach ($this->messages as $msg) {
+			parse_msg($msg);
+		}
+		echo '</table>';
+	}
+
+
+  function forumKillEdit($description) {
+    // wurde schon mal editiert
+    if (preg_match('/^(.*)(<admin_msg.*?)$/s',$description, $match)) {
+      return $match[1];
+    }
+    return $description;
+  }
+
+
+  function forumAppendEdit($description) {
+    $edit = "<admin_msg autor=\"".addslashes(get_fullname())."\" chdate=\"".time()."\">";
+    return $description . $edit;
+  }
+
+
+  function forumParseEdit($description) {
+    // wurde schon mal editiert
+    if (preg_match('/^.*(<admin_msg.*?)$/s',$description, $match)) {
+      $tmp = explode('"',$match[1]);
+      $append = "\n\n%%["._("Zuletzt editiert von"). ' '.$tmp[1]." - ".date ("d.m.y - H:i", $tmp[3])."]%%";
+      $description = $this->forumKillEdit($description) . $append;
+    }
+    return $description;
+  }
+
+	function forumKillQuotes($description) {
+		return str_replace('[/quote]', '', preg_replace("/\[quote=.*\]/U", "", $description));
+	}
+ 
+	function show_textedit_buttons() {
+		// define the possible tags
+		$buttons = array (
+			array('name' => '<strong>B</strong>', 'open' => '**', 'close' => '**', 'info' => 'fett'),
+			array('name' => '<i>i</i>', 'open' => '%%', 'close' => '%%', 'info' => 'kursiv' ),
+			array('name' => '<u>u</u>', 'open' => '__', 'close' => '__', 'info' => 'unterstrichen'),
+			array('name' => '<del>u</del>', 'open' => '{-', 'close' => '-}', 'info' => 'durchgestrichen'),
+			array('name' => 'Code', 'open' => '[code]', 'close' => '[/code]', 'info' => 'Programmcode'),
+			array('name' => 'A+', 'open' => '++', 'close' => '++', 'info' => 'größere Schrift'),
+			array('name' => 'A-', 'open' => '--', 'close' => '--', 'info' => 'kleinere Schrift')
+		);
+
+		// get all open and close tags for ease of use
+		foreach ($buttons as $button) {
+			$tags[] = $button['open'];
+			$tags[] = $button['close'];
+		}
+
+		$ret = '<script>' . "\n";
+		$ret .= 'var tags = new Array(\''. implode("' , '", $tags) . '\');' . "\n";
+		$ret .= "
+			var browser = navigator.userAgent.toLowerCase();
+			var is_ie = ((browser.indexOf('msie') != -1) && (browser.indexOf('opera') == -1));
+
+			function addTag(num) {
+				doAddTag(tags[num], tags[num+1]);
+				return false;
+			}
+
+			function doAddTag(open, close) {
+				textarea = document.getElementById('inhalt');
+				textarea.focus();
+
+				if (is_ie) {
+					var selection = document.selection.createRange().text;
+
+					if (selection) {
+						document.selection.createRange().text = open + selection + close;
+						textarea.focus();
+						return;
+					}
+				}
+
+				addAroundSelected(textarea, open, close);
+				textarea.focus();
+
+				return;
+			}
+
+			function addAroundSelected(txtarea, open, close) {
+				var selLength = txtarea.textLength;
+				var selStart = txtarea.selectionStart;
+				var selEnd = txtarea.selectionEnd;
+				var scrollTop = txtarea.scrollTop;
+
+				if (selEnd == 1 || selEnd == 2)
+				{
+					selEnd = selLength;
+				}
+
+				var s1 = (txtarea.value).substring(0,selStart);
+				var s2 = (txtarea.value).substring(selStart, selEnd)
+					var s3 = (txtarea.value).substring(selEnd, selLength);
+
+				txtarea.value = s1 + open + s2 + close + s3;
+				txtarea.selectionStart = selEnd + open.length + close.length;
+				txtarea.selectionEnd = txtarea.selectionStart;
+				txtarea.focus();
+				txtarea.scrollTop = scrollTop;
+
+				return;
+			}
+		";
+
+		$ret .=  '</script>' . "\n";
+
+		foreach ($buttons as $key => $button) {
+			$ret .= '<button type="button" onClick="addTag('.($key*2).')" title="'. $button['info'] .'" alt="'. $button['info'] .'">';
+			$ret .= $button['name'];
+			$ret .= '</button>' . "\n";
+		}
+
+		return $ret;
+	}
+
+	function show_smiley_favorites() {
+		require_once('lib/classes/smiley.class.php');
+
+		if (get_config("EXTERNAL_HELP")) {
+			$help_url=format_help_url("Basis.VerschiedenesFormat");
+		} else {
+			$help_url="help/index.php?help_page=ix_forum6.htm";
+		}
+
+		echo '<center><div>';
+
+		$sm = new smiley(false);
+		if ($sm->read_favorite() && sizeof($sm->my_smiley) > 0) {
+			foreach ($sm->my_smiley as $smile => $value) {
+				echo '<img src="' . $GLOBALS['DYNAMIC_CONTENT_URL'] . '/smile/' . $smile . '.gif" ';
+				echo 'style="cursor: pointer;" onClick="$(\'inhalt\').value += \' :'. $smile .':\'">&nbsp;';
+			}
+		}
+
+		echo '<br/>';
+		echo '<a href="show_smiley.php" target="new">'. _("Smileys") .'</a> | ';
+		echo '<a href="'. $help_url .'" target="new">'. _("Formatierungshilfen") .'</a>';
+		echo '<br/>';
+
+		echo '</div></center>';
+	}
+
+
+	function translate_perm($perm) {
+		switch($perm) {
+			case 'root':
+			case 'admin':
+			case 'dozent': 
+			case 'tutor':
+				return _("Moderator/In");
+				break;
+
+			default:
+				return '';
+				break;
+		}
+	}
+
+	function get_hidden_fields($fields) {
+		global $_REQUEST;
+
+		foreach ($fields as $name) {
+			if (isset($_REQUEST[$name])) {
+				echo '<input type="hidden" name="'. $name .'" value="'. $_REQUEST[$name] .'">', "\n";
+			}
+		}
+	}
+
+	/**
+	 * Counts how many entries a user has posted.
+	 *
+	 * This function returns the number of entries a user has poste. The function caches the results in a static variable
+	 * @param $owner_id the id of the user for which shall be counted
+	 * @return int the number of postings
+	 */
+	function count_userpostings($owner_id) {
+		static $posting_counter;
+
+		if (!$posting_counter[$owner_id]) {
+			$db = new DB_Seminar("SELECT COUNT(*) as c FROM px_topics WHERE user_id = '$owner_id' AND Seminar_id = '". $this->getId() ."'");
+			$db->next_record();
+			$posting_counter[$owner_id] = $db->f('c');
+		}
+
+		return $posting_counter[$owner_id];
+	}
+
+	/*
+	 * helper_function for highlight($text, $highlight)
+	 */
+	function do_highlight($text, $highlight) {
+		$text = preg_replace($highlight, '####${1}####', $text);
+		$text = preg_replace('/####(.*)####/U', '<span class="highlight">${1}</span>', $text);
+		return $text;
+	}
+
+	/**
+	 * This function highlights Text HTML-safe 
+	 * (tags or words in tags are not highlighted, words between tags ARE highlighted)
+	 * @param string $text the text where to words shall be highlighted, may contain tags
+	 * @param array $highlight an array of words to be highlighted
+	 * @return string the highlighted text
+	 */
+	function highlight($text, $highlight) {
+		$unsafe_symbols = array('/\./', '/\*/', '/\?/', '/\+/');
+		$unsafe_replace = array('\\.', '\\*', '\\?', '\\+');
+
+		foreach ($highlight as $key => $val) {
+			$highlight[$key] = '/('. preg_replace($unsafe_symbols, $unsafe_replace, $val).')/i';
+		}
+
+		$data = array();
+		$treffer = array();
+
+		// split text at every tag
+		$pattern = '/<[^<]*>/U';
+		preg_match_all($pattern, $text, $treffer, PREG_OFFSET_CAPTURE);
+
+		if (sizeof($treffer[0]) == 0) {
+			return $this->do_highlight($text, $highlight);
+		}
+
+		$last_pos = 0;
+		foreach ($treffer[0] as $taginfo) {
+			$size = strlen($taginfo[0]);
+			if ($taginfo[1] != 0) {
+				$data[] = $this->do_highlight(substr($text, $last_pos, $taginfo[1] - $last_pos), $highlight);
+			}
+
+			$data[] = substr($text, $taginfo[1], $size); 
+			$last_pos = $taginfo[1] + $size;
+		}
+
+		// don't miss the last portion of a posting
+		if ($last_pos < strlen($text)) {
+			$data[] = substr($text, $last_pos, strlen($text) - $last_pos);
+		}
+
+		return implode('', $data);
+	}
+
+
+	function getInfobox($section) {
+		global $_REQUEST;
+
+		$infobox =& $this->template_factory->open('infobox');
+		$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
+		$infobox->set_attribute('standard_infobox', $standard_infobox);
+		$infobox->set_attribute('picture', 'sms3.jpg');
+		$infobox->set_attribute('plugin', $this);
+		$infobox->set_attribute('section', $section);
+		$infobox->set_attribute('_REQUEST', $_REQUEST);
+
+		return $infobox;
+	}
+	/* * * * * * * * * * * * * * * *
+	 * M A I N - F U N C T I O N S *
+	 * * * * * * * * * * * * * * * */
+	function configShow() {
+		if (!$this->rechte) return;
+
+		if ($_REQUEST['activate'] == 'activate') {
+			new DB_Seminar("
+				CREATE TABLE IF NOT EXISTS `forumpp` (
+					`entry_id` varchar(32) NOT NULL,
+					`seminar_id` varchar(32) NOT NULL,
+					`entry_type` varchar(30) NOT NULL,
+					`topic_id` varchar(32) NOT NULL,
+					`entry_name` varchar(255) NOT NULL,
+					KEY  (`entry_id`),
+					KEY `entry_type` (`entry_type`),
+					KEY `topic_id` (`topic_id`)
+					) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+			");
+
+			$this->_ENHANCED = true;
+		}
+
+		if ($_REQUEST['action']) {
+			/*
+			echo '<pre>';
+			print_r($_REQUEST);	
+			echo '</pre>';
+			*/
+
+			switch ($_REQUEST['action']) {
+				case 'administrate':
+					if (isset($_REQUEST['create_category'])) {
+						new DB_Seminar("INSERT INTO forumpp 
+							(entry_id, seminar_id, entry_type, topic_id, entry_name) 
+							VALUES ('". md5(uniqid(rand())) ."', '". $this->getId() ."', 'category', '', '{$_REQUEST['category']}')");
+					}
+
+					if (isset($_REQUEST['add_area'])) {
+						new DB_Seminar("INSERT INTO forumpp 
+							(entry_id, seminar_id, entry_type, topic_id, entry_name) 
+							VALUES ('{$_REQUEST['add_area']}', '". $this->getId() ."', 'area', '". $_REQUEST['cat_'.$_REQUEST['add_area']] ."', '')");
+					}
+					break;
+
+				case 'delete_area':
+					new DB_Seminar($query = "DELETE FROM forumpp WHERE entry_id = '{$_REQUEST['category_id']}' AND topic_id = '{$_REQUEST['area_id']}' AND seminar_id = '". $this->getId() ."'");
+					break;
+
+				case 'delete_category':
+					new DB_Seminar($query = "DELETE FROM forumpp WHERE entry_id = '{$_REQUEST['category_id']}' AND seminar_id = '". $this->getId() ."'");
+					break;
+			}
+
+			echo $query;
+		}
+
+		?>
+		<div class="posting bg2">
+			<span class="corners-top"><span></span></span>
+
+			<div class="postbody">
+				<span class="title" style="margin-bottom: 5px">Konfiguration der erweiterten Funktionen</span>
+				<p class="content">
+					<? if (!$this->_ENHANCED) : ?>
+					<font color="red"><b>Die erweiterten Funktionen sind momentan nicht eingeschaltet.</b></font>
+					&nbsp;&nbsp;
+					<a href="<?=PluginEngine::getLink($this, array('plugin_subnavi_params' => 'config', 'activate' => 'activate'))?>">
+						<button>Erweiterte Funktionen einschalten</button>
+					</a><br/>
+					<br/>
+					Für die erweiterten Funktionen wird die Tabelle 'forumpp' in der Datenbank benötigt.<br/>
+					Diese Tabelle wird automatisch angelegt, wenn sie die erweiterten Funktionen aktivieren.<br/>
+					<br/>
+					Die erweiterten Funktionen ermöglichen:<br/>
+					<ul>
+						<li>Bereiche in verschiedene Kategorien einzuordnen</li>
+						<li>Verschiedene Typen von Beiträgen (sticky, announcement)</li>
+					</ul>
+					<? else : ?>
+					<font color="green"><b>Die erweiterten Funktionen sind aktiviert!</b></font><br/>
+					<br/>
+					Für die erweiterten Funktionen wurde die Tabelle 'forumpp' in der Datenbank erstellt.<br/>
+					<br/>
+					<?
+						$categories = $this->getDBData('get_categories');
+      			$areas = $this->getDBData('get_threads_for_area', array('parent_id' => '0'));
+
+						// connect categories with areas
+						foreach($categories as $cat_id => $cat) {
+							$new_areas = array();
+							foreach ($cat['areas'] as $id) {
+								$new_areas[$id] = $areas[$id];
+								unset($areas[$id]);
+							}
+							$categories[$cat_id]['areas'] = $new_areas;
+						}
+
+						/*
+						// All ares which are not assigned to a predefined category are collected now
+						$unconnected['areas'] = $areas;
+						$unconnected['name'] = 'Keiner Kategorie zugeordnet';
+						$categories[] = $unconnected;
+						*/
+						
+						if (sizeof($areas) > 0) {
+							echo 'Keiner Kategorie zugeordnete Bereiche:<br/>';
+							foreach ($areas as $area) {
+								echo '&nbsp;&nbsp;'. $area['name'] .'<br/>';
+							}
+						}
+						echo '<hr>';
+
+						echo '<form action="" method="post">';
+						echo 'Bereiche:<br/>';
+						foreach($categories as $cat_id => $cat) {
+							echo '&nbsp;&nbsp;'. $cat['name'];
+							echo '&nbsp&nbsp;<a href="'. PluginEngine::getLink($this, array('plugin_subnavi_params' => 'config', 'action' => 'delete_category', 'category_id' => $cat_id)).'">X</a>';
+							echo '<br/>';
+
+							foreach($cat['areas'] as $area_id => $area) {
+								echo '&nbsp;&nbsp;&nbsp;&nbsp;'. $area['name'];
+								echo '&nbsp&nbsp;<a href="'. PluginEngine::getLink($this, array('plugin_subnavi_params' => 'config', 'action' => 'delete_area', 'area_id' => $area_id, 'category_id' => $cat_id)).'">X</a>';
+								echo '<br/>';
+							}
+							if (sizeof($areas) > 0) {
+								echo '&nbsp;&nbsp;&nbsp;&nbsp;';
+								echo '<select name="cat_'. $cat_id .'">';
+								foreach ($areas as $area_id => $area) {
+									echo '<option value="'. $area_id .'">'. $area['name'] .'</option>';
+								}
+								echo '</select>';
+								echo '&nbsp;&nbsp;<button name="add_area" value="'. $cat_id .'">hinzufügen</button>';
+								echo '<br/>';
+							}
+						}
+
+						echo '<input type="text" name="category">';
+						echo '&nbsp;&nbsp;<button name="create_category">Bereich erstellen</button>';
+						echo '<input type="hidden" name="plugin_subnavi_params" value="config">';
+						echo '<input type="hidden" name="action" value="administrate">';
+						echo '</form>';
+					?>
+					<? endif; ?>
+				</p>
+			</div>
+
+			<span class="corners-bottom"><span></span></span>
+		</div>
+		<?
+	}
+
+	function searchShow() {
+		global $_REQUEST;
+
+		$infobox = $this->getInfobox('search');
+
+		if (!$_REQUEST['searchfor']) {
+			$info_message = _("Bitte geben Sie einen oder mehrere Suchbegriffe ein!");
+		} else {
+			//$search = $this->getDBData('search_indexed', array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
+			//$search = $this->getDBData('search', array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
+			$search = $this->getDBData($_REQUEST['engine'], array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
+			$postings = $search['postings'];
+			$num_postings = $search['num_postings'];
+
+			if ($num_postings == 0) $info_message = _("Es wurden keine mit ihrer Suchanfrage übereinstimmenden Beiträge gefunden!");
+		}
+
+    $plugin = $this;
+		$template =& $this->template_factory->open('show_posting_list');
+		$template->set_layout('layout');
+    $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox', 'info_message'));
+		$template->set_attribute('highlight', $search['highlight']);
+
+		echo $template->render();
+	}
+
+	function favoritesShow() {
+		$infobox = $this->getInfobox('favorites');
+
+		$postings = $this->getDBData('get_favorite_postings', array('page' => $_REQUEST['page']));		
+		$num_postings = $this->getDBData('get_favorite_postings_count');		
+
+		if ($num_postings == 0) {
+			$info_message = _("Sie haben bisher keine Beiträge als Favoriten eingetragen!");
+		}
+
+    $plugin = $this;
+		$template =& $this->template_factory->open('show_posting_list');
+		$template->set_layout('layout');
+    $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox', 'info_message'));
+		echo $template->render();
+	}
+
+	function newPostingsShow() {
+		$infobox = $this->getInfobox('new_postings');
+
+		$postings = $this->getDBData('get_new_postings', array('page' => $_REQUEST['page']));		
+		$num_postings = $this->getDBData('get_new_postings_count');		
+
+		if ($num_postings == 0) {
+			$info_message = _("Seit ihrem letzten Besuch wurden keine neuen Beiträge erstellt!");
+		}
+
+    $plugin = $this;
+		$template =& $this->template_factory->open('show_posting_list');
+		$template->set_layout('layout');
+    $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox', 'info_message'));
+		echo $template->render();
+
+	}
+
+	function lastPostingsShow() {
+		$infobox = $this->getInfobox('last_postings');
+
+		$postings = $this->getDBData('get_last_postings', array('page' => $_REQUEST['page']));		
+		$num_postings = $this->getDBData('get_last_postings_count');		
+
+    $plugin = $this;
+		$template =& $this->template_factory->open('show_posting_list');
+		$template->set_layout('layout');
+    $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox'));
+		echo $template->render();
+	}
+
+  function forumShow() {
+		global $_REQUEST;
+
+		// show messages if any
+		$this->showMessages();
+
+		$aktionen = array();
+		
+		$infobox =& $this->template_factory->open('infobox');
+		$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
+		$infobox->set_attribute('standard_infobox', $standard_infobox);
+		$infobox->set_attribute('picture', 'sms3.jpg');
+		$infobox->set_attribute('plugin', $this);
+
+
+    // postings
+    if (isset($_REQUEST['thread_id'])) {
+      $area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
+      $thread_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['thread_id']));
+      $data = $this->getDBData('get_postings_for_thread', array('thread_id' => $_REQUEST['thread_id']));
+			$postings = $data['postings'];
+			$postings_count = $data['postings_count'];
+      $plugin = $this;
+      $menubar = $this->show_menubar('thread');
+
+			$infobox->set_attribute('section', 'postings');
+			$infobox->set_attribute('area_name', $area_name);
+			$infobox->set_attribute('thread_name', $thread_name);
+
+			$template =& $this->template_factory->open('show_postings');
+			$template->set_layout('layout');
+			$template->set_attributes(compact('area_name', 'thread_name', 'postings', 'postings_count', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
+			echo $template->render();
+    }
+
+
+    // threads
+    else if (isset($_REQUEST['root_id'])) {
+      $area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
+      $threads = $this->getDBData('get_threads_for_area', array('parent_id' => $_REQUEST['root_id']));
+      $plugin = $this;
+      $menubar = $this->show_menubar('area');
+
+			if ($this->rechte) {
+				$aktionen[] = array(
+					'name' => 'Bereich löschen',
+					'link' => PluginEngine::getLink($this, array('subcmd' => 'delete_area', 'area_id' => $_REQUEST['root_id']))
+				);
+			}
+			$aktionen[] = array(
+				'name' => 'neues Thema',
+				'link' => PluginEngine::getLink($this, array('section' => 'create_thread', 'root_id' => $_REQUEST['root_id'])).'#create_thread',
+				'anchor' => 'create_thread'
+			);
+
+			$infobox->set_attribute('section', 'threads');
+			$infobox->set_attribute('area_name', $area_name);
+			$infobox->set_attribute('aktionen', $aktionen);
+
+			$template =& $this->template_factory->open('show_threads');
+			$template->set_layout('layout');
+			$template->set_attributes(compact('area_name', 'threads', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
+      echo $template->render();
+    }
+
+
+    // areas
+    else {
+      $areas = $this->getDBData('get_areas', array('parent_id' => '0'));
+      $plugin = $this;
+      $menubar = $this->show_menubar();
+
+			if ($this->_ENHANCED) {
+				$categories = $this->getDBData('get_categories');
+				foreach($categories as $cat_id => $cat) {
+					$new_areas = array();
+					foreach ($cat['areas'] as $id) {
+						$new_areas[] = $areas[$id];
+						unset($areas[$id]);
+					}
+					if (sizeof($new_areas) == 0) {
+						unset($categories[$cat_id]);
+					} else {
+						$categories[$cat_id]['areas'] = $new_areas;
+					}
+				}
+
+				// All ares which are not assigned to a predefined category are collected now
+				$unconnected['areas'] = $areas;
+				$unconnected['name'] = 'Keiner Kategorie zugeordnet';
+				$categories[] = $unconnected;
+
+			} else {
+				$categories = array (
+					array (
+						'name' => 'Allgemeine Kategorie',
+						'areas' => $areas
+					)
+				);
+			}
+
+
+			if ($this->rechte) {
+				$aktionen[] = array(
+					'name' => 'Bereich erstellen',
+					'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
+					'anchor' => 'create_area'
+				);
+			}
+
+			$infobox->set_attribute('section', 'areas');
+			$infobox->set_attribute('aktionen', $aktionen);
+
+			$template =& $this->template_factory->open('show_areas');
+			$template->set_layout('layout');
+			$template->set_attributes(compact('categories', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
+      echo $template->render();
+    }
+
+		/*
+		require_once('lib/raumzeit/QueryMeasure.class.php');
+		if ($GLOBALS['query_measure']) {
+			echo $GLOBALS['query_measure']->showDataCompact();
+		}
+		*/
+  }
+
+}
