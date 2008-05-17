@@ -1,6 +1,4 @@
 pluginclassname=ForumPPPlugin
 pluginname=ForumPPPlugin
 origin=virtUOS
-version=1.1.2
-dbscheme=db/install.sql
-uninstalldbscheme=db/uninstall.sql
+version=$Id$

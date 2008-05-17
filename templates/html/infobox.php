@@ -127,7 +127,7 @@
       </tr>
 
 			<tr>
-				<td class="infobox" align="center" valign="center" width="1%">
+				<td class="infobox" align="center" width="1%" valign="top" style="padding-top: 10px">
 					<? if ($section == 'search') : ?>
            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_red.gif">
 					<? else : ?>
@@ -138,7 +138,10 @@
 					<font size="-1">
 						<form action="<?= PluginEngine::getLink($plugin, array()) ?>" method="post">
 							<input type="text" name="searchfor" value="<?= htmlReady(stripslashes($_REQUEST['searchfor']))?>">
-							<input type="image" src="<?= $plugin->getPluginPath()?>/img/suchen.gif" align="absbottom">
+							<input type="image" src="<?= $plugin->getPluginPath()?>/img/suchen.gif" align="absbottom"><br/>
+							<input type="checkbox" name="search_title" value="1" checked="checked"> <?= _("Titel") ?><br/>
+							<input type="checkbox" name="search_content" value="1" checked="checked"> <?= _("Inhalt") ?><br/>
+							<input type="checkbox" name="search_author" value="1" checked="checked"> <?= _("Autor") ?><br/>
 							<input type="hidden" name="plugin_subnavi_params" value="search">
 							<!--
 							<br/>Backend: <select name="engine">

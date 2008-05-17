@@ -6,7 +6,7 @@ if ($_REQUEST['thread_id']) {
 }
 
 // if now postings where loaded, check which feed has been requested and load the postings
-if (!$postings) {
+if (!$postings && $_REQUEST['plugin_subnavi_params'] != 'search') {
 
 	// feed for postings in one area
 	if ($_REQUEST['root_id']) {
@@ -18,7 +18,6 @@ if (!$postings) {
 	else {
 		$postings = $plugin->getDBData('get_postings_for_feed', array('id' => $plugin->getId()));
 	}
-
 }
 
 $format = $_REQUEST['format'];
