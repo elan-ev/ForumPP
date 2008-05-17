@@ -8,7 +8,7 @@
 		</td>
     <td class="forum_header" width="1%">
 			<span class="no-corner"></span>
-			<span class="heading"><?= _("BEITRÄGE") ?></span>
+			<span class="heading"><?= _("BEITRï¿½GE") ?></span>
 		</td>
     <td class="forum_header" width="30%" colspan="2">
 			<span class="corners-top-right"></span>
@@ -45,7 +45,7 @@
       </td>
 			<td class="areaborder">&nbsp;</td>
     </tr>
-  <? endforeach ?>
+  <? endforeach; ?>
 	<!-- bottom border -->
 	<tr>
 		<td class="areaborder" colspan="6">
