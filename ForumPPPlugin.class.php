@@ -21,11 +21,25 @@
 //require_once ( "sphinxapi.php" );
 require_once('db/ForumPPDB.class.php');
 
+if (!defined('FEEDCREATOR_VERSION')) {
+	require_once('vendor/feedcreator/feedcreator.class.php');
+}
+
 class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
-	const THREAD_PREVIEW_LENGTH = 100;
-	const POSTINGS_PER_PAGE = 10;
-	var   $OUTPUT_FORMATS = array('html' => 'html', 'atom' => 'atom');
+	var $THREAD_PREVIEW_LENGTH = 100;
+	var $POSTINGS_PER_PAGE = 10;
+	var $FEED_POSTINGS = 100;
+	var $OUTPUT_FORMATS = array('html' => 'html', 'feed' => 'feed');
+
+	var $FEED_FORMATS = array(
+		'RSS0.91' => 'application/rss+xml',
+		'RSS1.0'  => 'application/xml',
+		'RSS2.0'  => 'application/xml',
+		'ATOM0.3' => 'application/atom+xml',
+		'ATOM1.0' => 'application/atom+xml'
+	);
+
 
   var $template_factory;
 	var $avatar_class = false;
@@ -74,14 +88,51 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$this->time_format_string = "%A %d. %B %Y, %H:%M";
 		$this->time_format_string_short = "%a %d. %B %Y, %H:%M";
 
-    $this->template_factory =
-	    new Flexi_TemplateFactory(dirname(__FILE__).'/templates');
+		$this->template_factory =
+			new Flexi_TemplateFactory(dirname(__FILE__).'/templates');
 
 		// path to plugin-pictures
 		$this->picturepath =  $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] . $this->getPluginPath() . '/img';
 
 		$_include_additional_header = 
-			'<link rel="stylesheet" href="'. PluginEngine::getLink($this, array(), 'css') .'" type="text/css">'; 
+			'<link rel="stylesheet" href="'. PluginEngine::getLink($this, array(), 'css') .'" type="text/css">' . "\n"; 
+
+		$include_links = true;
+
+		if (isset($_REQUEST['plugin_subnavi_params'])) 
+			switch ($_REQUEST['plugin_subnavi_params']) {
+		
+				case 'last_postings':
+					$include_links = true;
+					break;
+
+				case 'new_postings':
+				case 'favorites':
+				case 'search':
+				case 'config':
+				default:
+					$include_links = false;
+					break;
+
+		}
+
+		if ($include_links) {
+			// set autodiscovery links
+			$link_params = $_REQUEST;
+			unset($link_params['source']);
+			unset($link_params['Seminar_Session']);
+
+			$params = array(
+					'formats' => $this->FEED_FORMATS,
+					'plugin'  => $this,
+					'link_params' => $link_params
+					);
+
+			//'token'   => $token);
+
+			$GLOBALS['_include_additional_header'] .= $this->template_factory->render('feed/links', $params);
+
+		}
 	}
 
 	function check_for_enhance() {
@@ -146,14 +197,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		die;
 	}
 
-	function actionAtom() {
+	function actionFeed() {
 		// this hack is necessary to disable the standard Stud.IP layout
 		ob_end_clean();
-		//header('Content-Type: application/atom+xml');
 		
 		$this->last_visit = time();
-		$this->output_format = 'atom';
-
+		$this->output_format = 'feed';
+		$this->POSTINGS_PER_PAGE = $this->FEED_POSTINGS;
+		
 		$this->loadView();
 	}
 
@@ -782,6 +833,34 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		return $ret;
 	}
 
+	function appendEntry(&$list, $post) {
+			$thread_id = $this->getThreadIdCached($post['topic_id']);
+
+			if (!$_REQUEST['root_id'] && !$_REQUEST['thread_id']) {
+				$post['thread_name'] = $this->getDBData('entry_name', array('entry_id' => $thread_id));
+				$post['area_name'] = $this->getDBData('entry_name', array('entry_id' => $post['root_id']));
+			} else if (!$_REQUEST['thread_id']) {
+				$post['thread_name'] = $this->getDBData('entry_name', array('entry_id' => $thread_id));
+			}
+
+			$list[$post['topic_id']] = array(
+				'author' => $post['author'],
+				'topic_id' => $post['topic_id'],
+				'name' => formatReady($post['name']),
+				'description' => formatReady($this->forumParseEdit($post['description'])),
+				'chdate' => $post['chdate'],
+				'mkdate' => $post['mkdate'],
+				'owner_id' => $post['user_id'],
+				'raw_title' => $post['name'],
+				'raw_description' => $this->forumKillEdit($post['description']),
+				'area_name' => $post['area_name'],
+				'thread_name' => $post['thread_name'],
+				'thread_id' => $thread_id,
+				'root_id' => $post['root_id']
+			);
+
+	}
+
 	/**
 	 * this functions reads postings and returns them as an array
 	 * @param string $type type of retrieval, is one of get_all_for_parent / entry_name
@@ -830,9 +909,33 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				
 				break;
 
+			case 'get_postings_for_feed':
+				if ($data['id']) {
+					$postings = array();
+
+					$db = new DB_Seminar("SELECT * FROM px_topics WHERE Seminar_id = '{$data['id']}' ORDER BY chdate DESC LIMIT " . $this->FEED_POSTINGS);
+					while ($db->next_record()) {						
+						$this->appendEntry($postings, $db->Record);	
+					}
+
+					return $postings;
+				}
+
+				else if ($data['area_id']) {
+					$postings = array();
+
+					$db = new DB_Seminar("SELECT * FROM px_topics WHERE Seminar_id = '{$this->getId()} ' AND root_id = '{$data['area_id']}'ORDER BY chdate DESC LIMIT ". $this->FEED_POSTINGS);
+					while ($db->next_record()) {
+						$this->appendEntry($postings, $db->Record);	
+					}
+
+					return $postings;
+				}
+				break;
+
 			// retrieves all postings for one thread			
       case 'get_postings_for_thread':
-				// we retrieve all postings for one area and take the ones belonging to our thread
+				// we retrieve all postings for one thread and its childs
 	
 				// instead of recursion we us a stack
 				$stack = array();
@@ -873,13 +976,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 				
 				if ($GLOBALS['_REQUEST']['jump_to']) {
-					$page = ceil(sizeof($postings) / self::POSTINGS_PER_PAGE);
+					$page = ceil(sizeof($postings) / $this->POSTINGS_PER_PAGE);
 				}
 				
 				$GLOBALS['_REQUEST']['page'] = $page;
 
 				foreach ($postings as $post) {
-					if ($i > ($page-1) * self::POSTINGS_PER_PAGE && $i <= (($page-1) * self::POSTINGS_PER_PAGE) + self::POSTINGS_PER_PAGE) {
+					if ($i > ($page-1) * $this->POSTINGS_PER_PAGE && $i <= (($page-1) * $this->POSTINGS_PER_PAGE) + $this->POSTINGS_PER_PAGE) {
 	          $parent_list[$post['topic_id']] = array(
 	            'author' => $post['author'],
 	            'topic_id' => $post['topic_id'],
@@ -950,8 +1053,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 					// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
 					$desc_short = $this->br2space(kill_format(strip_tags($db->f('description'))));
-					if (strlen($desc_short) > (self::THREAD_PREVIEW_LENGTH +2)) {
-						$desc_short = substr($desc_short, 0, self::THREAD_PREVIEW_LENGTH) . '...';
+					if (strlen($desc_short) > ($this->THREAD_PREVIEW_LENGTH +2)) {
+						$desc_short = substr($desc_short, 0, $this->THREAD_PREVIEW_LENGTH) . '...';
 					} else {
 						$desc_short = $desc_short;
 					}
@@ -988,7 +1091,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			case 'get_last_postings':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -996,14 +1099,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$db = new DB_Seminar($query = "SELECT px.*, ou.flag as fav  FROM px_topics as px
 					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 					WHERE Seminar_id =  '". $this->getId() ."' AND parent_id != '0'
-					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}");
+					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE);
 
 				return $this->_dbdataFillArray($db);
 				break;
 
 			case 'get_favorite_postings':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -1013,21 +1116,21 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					WHERE ou.user_id = '". $GLOBALS['user']->id ."' 
 					AND ou.flag = 'fav'
 					AND pt.Seminar_id = '". $this->getId() ."'
-					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}");
+					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE);
 
 				return $this->_dbdataFillArray($db);
 				break;
 
 			case 'get_new_postings':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
 
 				$db = new DB_Seminar($query = "SELECT * FROM px_topics 
 					WHERE Seminar_id =  '". $this->getId() ."' AND mkdate >= {$this->last_visit}
-					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}");
+					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE);
 
 				return $this->_dbdataFillArray($db);
 				break;
@@ -1058,7 +1161,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			case 'search_indexed':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -1137,7 +1240,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
 						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")
-						ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}";
+						ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE;
 
 					$query2 = "SELECT COUNT(*) as c FROM px_topics as px
 						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")";
@@ -1163,7 +1266,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				
 			case 'search':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -1200,7 +1303,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
 					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 					WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")
-					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}";
+					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE;
 
 				$query2 = "SELECT COUNT(*) as c FROM px_topics as px
 					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
@@ -1244,7 +1347,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	/* the page chooser for ar list of postings */
 	function get_page_chooser_NP($num_postings) {
-		$pages = ceil($num_postings / self::POSTINGS_PER_PAGE);
+		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
 		if ($pages <= 1) return;
 
 		if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
@@ -1337,7 +1440,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
 		}
 
-		$pages = ceil($num_postings / self::POSTINGS_PER_PAGE);
+		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
 		
 		if ($pages == 1) return;
 	
