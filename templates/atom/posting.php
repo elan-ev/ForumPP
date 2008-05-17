@@ -1,3 +1,4 @@
+<?php /*
 <? $GLOBALS['_SWITCHER'] = 1 - $GLOBALS['_SWITCHER'] ?>
 <!-- Posting -->
 <tr>
@@ -38,6 +39,7 @@
 						<? endif; ?>
 						<strong><?= $entry['username']?></strong>
 					</a>
+
 				</dt>
 
 				<? if ($entry['userrights']) : ?>
@@ -63,3 +65,4 @@
 <tr class="trenner">
 	<td class="blank" style="height: 3px"></td>
 </tr>
+*/

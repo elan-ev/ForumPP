@@ -1,10 +1,13 @@
-<table cellspacing="0" cellpadding="0" border="0" width="100%">
-	<td valign="top" width="100%">		
-		<?= $menubar ?>
-		<?= $content_for_layout ?>
-	</td>
-	<td>&nbsp;&nbsp;</td>
-	<td valign="top" width="255">
-		<?= $infobox->render() ?>
-	</td>
-</table>	
+<?php
+	$updated = ForumPPDB::getLastPostingTimestamp($plugin->getId())
+?>
+<?= '<?xml version="1.0" encoding="utf-8"?>'?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+	<title type="text"><?= ForumPPDB::getSeminarTitle($plugin->getId()) ?></title>
+	<subtitle type="html">
+		<?= ForumPPDB::getSeminarSubtitle($plugin->getId()) ?>
+	</subtitle>
+	
+	<updated></updated>
+<?= $content_for_layout ?>
+</feed>
