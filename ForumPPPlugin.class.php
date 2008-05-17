@@ -78,8 +78,23 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	}
 
 
+	function check_token() {
+		$db = DBManager::get('studip');
+		$result = $db->query("SELECT forumfeed_token FROM seminare WHERE Seminar_id = '{$this->getId()}'");
+		$data = $result->fetch(PDO::FETCH_ASSOC);
+
+		if (!$data['forumfeed_token']) {
+			$this->token = md5(uniqid(rand())); 
+			$db->query("UPDATE seminare SET forumfeed_token = '{$this->token}' WHERE Seminar_id = '{$this->getId()}'");
+		} else {
+			$this->token = $data['forumfeed_token'];
+		}
+	}
+
 	function initialize() {
 		global $_include_additional_header;
+
+		$this->check_token();
 
 		// we want to display the dates in german
 		setlocale(LC_TIME, 'de_DE@euro', 'de_DE', 'de', 'ge');
@@ -103,12 +118,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			switch ($_REQUEST['plugin_subnavi_params']) {
 		
 				case 'last_postings':
+				case 'search':
 					$include_links = true;
 					break;
 
 				case 'new_postings':
 				case 'favorites':
-				case 'search':
 				case 'config':
 				default:
 					$include_links = false;
@@ -125,10 +140,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$params = array(
 					'formats' => $this->FEED_FORMATS,
 					'plugin'  => $this,
-					'link_params' => $link_params
+					'link_params' => $link_params,
+					'token' => $this->token
 					);
-
-			//'token'   => $token);
 
 			$GLOBALS['_include_additional_header'] .= $this->template_factory->render('feed/links', $params);
 
@@ -201,6 +215,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		// this hack is necessary to disable the standard Stud.IP layout
 		ob_end_clean();
 		
+		if ($_REQUEST['token'] != $this->token) die;
+
 		$this->last_visit = time();
 		$this->output_format = 'feed';
 		$this->POSTINGS_PER_PAGE = $this->FEED_POSTINGS;
@@ -992,7 +1008,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 							'owner_id' => $post['user_id'],
 							'raw_title' => $post['name'],
 							'raw_description' => $this->forumKillEdit($post['description']),
-							'fav' => ($post['fav'] == 'fav')
+							'fav' => ($post['fav'] == 'fav'),
+							'thread_id' => $_REQUEST['thread_id'],
+							'root_id' => $_REQUEST['root_id']
 	          );
 					}
 					$i++;
@@ -1074,7 +1092,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 
 				usort($ret, array('ForumPPPlugin', 'sort_threads_by_date'));
-			return $ret;
+				return $ret;
         break;
 
 			// retrieves the formatted title of one posting
@@ -1200,29 +1218,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$cl = new SphinxClient ();
 				$cl->SetMatchMode( SPH_MATCH_EXTENDED );
 
-				/*
-				$res = $cl->Query ( $data['searchfor'], 'seminare');
-				if ( !$res )
-				{
-					die ( "ERROR: " . $cl->GetLastError() . ".\n" );
-				} else
-				{
-				
-					foreach ($res['matches'] as $id => $data) {
-						$seminar = new DB_Seminar("SELECT VeranstaltungsNummer, Name, Untertitel FROM seminare WHERE num = '$id'");
-						$seminar->next_record();
-						echo '<div style="border: 1px solid black; background-color: #FFFFCC; padding: 10px;">';
-						echo 'VA-Nummer : ' . $seminar->f('VeranstaltungsNummer') . '<br/>';
-						echo 'Name : ' . $seminar->f('Name') . '<br/>';
-						echo 'Untertitel : ' . $seminar->f('Untertitel') . '<br/>';
-						echo '</div>';
-					}
-					
-					echo '<br/>';
-				}	
-				*/				
-				
-				
 				$res = $cl->Query ( $data['searchfor'], 'forum');
 				if ( !$res )
 				{
@@ -1264,6 +1259,10 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				
 				break;
 				
+
+			/* * * * * * * * * * * * * * * * * * * * * *
+			 * S T A N D A R D - F O R U M S S U C H E *
+			 * * * * * * * * * * * * * * * * * * * * * */
 			case 'search':
 				if ($data['page'] && $data['page'] > 1) {
 					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
@@ -1291,22 +1290,27 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						unset($_searchfor[$key]);
 					} else {
 						$_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
-						$val = str_replace('"', '', str_replace("'", '', $val));
+						$val = trim(str_replace('"', '', str_replace("'", '', $val)));
 						
-						$search_string[] .= "name LIKE '%$val%'";
-						$search_string[] .= "description LIKE '%$val%'";
-						//$search_string[] .= "author LIKE '%$val%'";
+						if ($_REQUEST['search_title']) $search_string[] .= "name LIKE '%$val%'";
+						if ($_REQUEST['search_content']) $search_string[] .= "description LIKE '%$val%'";
+						if ($_REQUEST['search_author']) $search_string[] .= "author LIKE '%$val%'";
 					}
 				}
 				
 				// get the postings that match
-				$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
-					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")
-					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE;
+				if ($this->output_format != 'html') {
+					$query = "SELECT * FROM px_topics
+						WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")
+						ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE;
+				} else {
+					$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
+						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+						WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")
+						ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE;
+				}
 
 				$query2 = "SELECT COUNT(*) as c FROM px_topics as px
-					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 					WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")";
 
 				$db = new DB_Seminar($query);
@@ -1924,7 +1928,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					break;
 			}
 
-			echo $query;
 		}
 
 		?>
@@ -2030,9 +2033,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		if (!$_REQUEST['searchfor']) {
 			$info_message = _("Bitte geben Sie einen oder mehrere Suchbegriffe ein!");
 		} else {
-			//$search = $this->getDBData('search_indexed', array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
-			//$search = $this->getDBData('search', array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
-			$search = $this->getDBData($_REQUEST['engine'], array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
+			$search = $this->getDBData($_REQUEST['backend'], array('searchfor' => $_REQUEST['searchfor'], 'page' => $_REQUEST['page']));
 			$postings = $search['postings'];
 			$num_postings = $search['num_postings'];
 
