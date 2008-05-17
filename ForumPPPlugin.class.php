@@ -363,11 +363,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			if ($c == 1) {
 				return _("Ein neuer Beitrag vorhanden");
 			} else {
-				return sprintf(_("%s neue Beiträge vorhanden."), $c);
+				return sprintf(_("%s neue Beitr&auml;ge vorhanden."), $c);
 			}
 		};
 
-		return _("Keine neuen Beiträge.");
+		return _("Keine neuen Beitr&auml;ge.");
 	}
 
 
@@ -526,7 +526,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		if ($this->rechte) {
 			$db = new DB_Seminar("DELETE FROM px_topics WHERE root_id = '". $_REQUEST['area_id'] ."'");
-			$this->addMessage(sprintf(_("Es wurden %s Einträge gelöscht!"), $db->affected_rows()), 'msg');
+			$this->addMessage(sprintf(_("Es wurden %s Eintr&auml;ge gelöscht!"), $db->affected_rows()), 'msg');
 		}
 	}
 
@@ -725,7 +725,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$icon = '';
 			$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'delete', 'entryid' => $entryid, 'jumpid' => $jumpid, 'page' => $_REQUEST['page']));
 			$icon['image'] = $this->picturepath .'/icons/delete.png';
-			$icon['title'] = _("Eintrag löschen!");
+			$icon['title'] = _("Eintrag l&ouml;schen!");
 			$tmpl_icons[4] = $icon;
 		}
     
@@ -734,7 +734,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'fav', 'entryid' => $entryid, 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'], 'plugin_subnavi_params' => $_REQUEST['plugin_subnavi_params'])) .'#'. $entryid;
 		if (!$fav) {
 			$icon['image'] = $this->picturepath .'/icons/not_a_favorite.png';
-			$icon['title'] = _("zu den Favoriten hinzufügen");
+			$icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
 		} else {
 			$icon['image'] = $this->picturepath .'/icons/favorite.png';
 			$icon['title'] = _("aus den Favoriten entfernen");
@@ -788,7 +788,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				} else {
 					$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/nobody_medium.png" ';
 				}
-				$tmpl_picture .= tooltip(_("kein persönliches Bild vorhanden")).'>';
+				$tmpl_picture .= tooltip(_("kein pers&ouml;nliches Bild vorhanden")).'>';
 			} else {
 				$tmpl_picture = '<img src="'.$GLOBALS['DYNAMIC_CONTENT_URL'].'/user/'. $owner_id .'.jpg" border="0" width="75" ';
 				$tmpl_picture .= tooltip($GLOBALS['user']->name).'>';
@@ -1066,7 +1066,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						$last_posting['text'] = $text;
 						//$text  = '<img src="'. $GLOBALS['ASSETS_URL'] .'/images/link_intern.gif">&nbsp;'. $text;
 					} else {
-						$last_posting = _("keine Beiträge");
+						$last_posting = _("keine Beitr&auml;ge");
 					}
 
 					// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
@@ -1360,7 +1360,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$add_dots = false;
 
 		// show additional text over thread-postings
-		$ret .= "$num_postings ". _("Beiträge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
+		$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
 
 		for ($i = 1; $i <= $pages; $i++) {
 
@@ -1450,10 +1450,10 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	
 		if ($show_text) {
 			// show additional text over thread-postings
-			$ret .= "$num_postings ". _("Beiträge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
+			$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
 		} else {
 			// page icon in thread-overview
-			$info = _("Seite auswählen");
+			$info = _("Seite ausw&auml;hlen");
 			$ret .= '<img src="'. $this->picturepath .'/pages.png" align="absbottom" alt="'. $info .' title="'. $info .'"> ';
 		}
 
@@ -1657,7 +1657,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			array('name' => '<u>u</u>', 'open' => '__', 'close' => '__', 'info' => 'unterstrichen'),
 			array('name' => '<del>u</del>', 'open' => '{-', 'close' => '-}', 'info' => 'durchgestrichen'),
 			array('name' => 'Code', 'open' => '[code]', 'close' => '[/code]', 'info' => 'Programmcode'),
-			array('name' => 'A+', 'open' => '++', 'close' => '++', 'info' => 'größere Schrift'),
+			array('name' => 'A+', 'open' => '++', 'close' => '++', 'info' => 'gr&ouml;ßere Schrift'),
 			array('name' => 'A-', 'open' => '--', 'close' => '--', 'info' => 'kleinere Schrift')
 		);
 
@@ -1944,18 +1944,18 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						<button>Erweiterte Funktionen einschalten</button>
 					</a><br/>
 					<br/>
-					Für die erweiterten Funktionen wird die Tabelle 'forumpp' in der Datenbank benötigt.<br/>
+					F&uuml;r die erweiterten Funktionen wird die Tabelle 'forumpp' in der Datenbank ben&ouml;tigt.<br/>
 					Diese Tabelle wird automatisch angelegt, wenn sie die erweiterten Funktionen aktivieren.<br/>
 					<br/>
-					Die erweiterten Funktionen ermöglichen:<br/>
+					Die erweiterten Funktionen erm&ouml;glichen:<br/>
 					<ul>
 						<li>Bereiche in verschiedene Kategorien einzuordnen</li>
-						<li>Verschiedene Typen von Beiträgen (sticky, announcement)</li>
+						<li>Verschiedene Typen von Beitr&auml;gen (sticky, announcement)</li>
 					</ul>
 					<? else : ?>
 					<font color="green"><b>Die erweiterten Funktionen sind aktiviert!</b></font><br/>
 					<br/>
-					Für die erweiterten Funktionen wurde die Tabelle 'forumpp' in der Datenbank erstellt.<br/>
+					F&uuml;r die erweiterten Funktionen wurde die Tabelle 'forumpp' in der Datenbank erstellt.<br/>
 					<br/>
 					<?
 						$categories = $this->getDBData('get_categories');
@@ -2005,7 +2005,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 									echo '<option value="'. $area_id .'">'. $area['name'] .'</option>';
 								}
 								echo '</select>';
-								echo '&nbsp;&nbsp;<button name="add_area" value="'. $cat_id .'">hinzufügen</button>';
+								echo '&nbsp;&nbsp;<button name="add_area" value="'. $cat_id .'">hinzuf&uuml;gen</button>';
 								echo '<br/>';
 							}
 						}
@@ -2037,7 +2037,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$postings = $search['postings'];
 			$num_postings = $search['num_postings'];
 
-			if ($num_postings == 0) $info_message = _("Es wurden keine mit ihrer Suchanfrage übereinstimmenden Beiträge gefunden!");
+			if ($num_postings == 0) $info_message = _("Es wurden keine mit ihrer Suchanfrage &uuml;bereinstimmenden Beitr&auml;ge gefunden!");
 		}
 
     $plugin = $this;
@@ -2056,7 +2056,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$num_postings = $this->getDBData('get_favorite_postings_count');		
 
 		if ($num_postings == 0) {
-			$info_message = _("Sie haben bisher keine Beiträge als Favoriten eingetragen!");
+			$info_message = _("Sie haben bisher keine Beitr&auml;ge als Favoriten eingetragen!");
 		}
 
     $plugin = $this;
@@ -2073,7 +2073,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$num_postings = $this->getDBData('get_new_postings_count');		
 
 		if ($num_postings == 0) {
-			$info_message = _("Seit ihrem letzten Besuch wurden keine neuen Beiträge erstellt!");
+			$info_message = _("Seit ihrem letzten Besuch wurden keine neuen Beitr&auml;ge erstellt!");
 		}
 
     $plugin = $this;
@@ -2146,7 +2146,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			if ($this->rechte) {
 				$aktionen[] = array(
-				'name' => 'Bereich löschen',
+				'name' => 'Bereich l&ouml;schen',
 				'link' => PluginEngine::getLink($this, array('subcmd' => 'delete_area', 'area_id' => $_REQUEST['root_id']))
 				);
 			}
