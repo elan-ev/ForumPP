@@ -19,7 +19,8 @@
  */
 
 //require_once ( "sphinxapi.php" );
- 
+require_once('db/ForumPPDB.class.php');
+
 class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	const THREAD_PREVIEW_LENGTH = 100;
@@ -145,6 +146,17 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		die;
 	}
 
+	function actionAtom() {
+		// this hack is necessary to disable the standard Stud.IP layout
+		ob_end_clean();
+		//header('Content-Type: application/atom+xml');
+		
+		$this->last_visit = time();
+		$this->output_format = 'atom';
+
+		$this->loadView();
+	}
+
   function actionShow() {
 
 		// check for SeminarSession and set visit
@@ -194,6 +206,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
     }
 
 		echo '<div class="forumpp">';
+		$this->loadView();
+		echo '</div>';
+	}
+
+	function loadView() {
 		if (isset($_REQUEST['plugin_subnavi_params'])) {
 			switch ($_REQUEST['plugin_subnavi_params']) {
 		
@@ -232,9 +249,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 			}
 		}
-		echo '</div>';
-
-  }
+	}
 
 
 	function setPluginPath($newpath) {
@@ -1980,10 +1995,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	function forumShow() {
 		global $_REQUEST;
-
-		if ($_REQUEST['output_format']) {
-			$this->output_format = $_REQUEST['output_format'];
-		}
 
 		// show messages if any
 		$this->showMessages();
