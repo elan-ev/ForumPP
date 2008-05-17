@@ -22,12 +22,19 @@
  
 class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
+	const THREAD_PREVIEW_LENGTH = 100;
+	const POSTINGS_PER_PAGE = 10;
+	var   $OUTPUT_FORMATS = array('html' => 'html', 'atom' => 'atom');
+
   var $template_factory;
-	var $THREAD_PREVIEW_LENGTH = 100;
-	var $POSTINGS_PER_PAGE = 10;
 	var $avatar_class = false;
 	var $rechte = false;
-	var $lastlogin = 0;
+	var $lastlogin = 0;	
+
+	/**
+	 * defines the chosen output format, one of OUTPUT_FORMATS
+	 */
+	var $output_format = 'html';
 
 	var $_ENHANCED = false;
 
@@ -605,7 +612,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function show_entry($username, $datum, $titel, $inhalt, $entryid, $jumpid, $owner_id, $raw_title, $raw_description, $fav = false, $last = false, $highlight = false) {
 		global $_REQUEST;
 
-		$template =& $this->template_factory->open('posting');
+		$template =& $this->template_factory->open($this->output_format . '/posting');
 
 		$tmpl_inhalt = '';
 		$tmpl_icons = '';
@@ -851,13 +858,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 				
 				if ($GLOBALS['_REQUEST']['jump_to']) {
-					$page = ceil(sizeof($postings) / $this->POSTINGS_PER_PAGE);
+					$page = ceil(sizeof($postings) / self::POSTINGS_PER_PAGE);
 				}
 				
 				$GLOBALS['_REQUEST']['page'] = $page;
 
 				foreach ($postings as $post) {
-					if ($i > ($page-1) * $this->POSTINGS_PER_PAGE && $i <= (($page-1) * $this->POSTINGS_PER_PAGE) + $this->POSTINGS_PER_PAGE) {
+					if ($i > ($page-1) * self::POSTINGS_PER_PAGE && $i <= (($page-1) * self::POSTINGS_PER_PAGE) + self::POSTINGS_PER_PAGE) {
 	          $parent_list[$post['topic_id']] = array(
 	            'author' => $post['author'],
 	            'topic_id' => $post['topic_id'],
@@ -928,8 +935,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 					// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
 					$desc_short = $this->br2space(kill_format(strip_tags($db->f('description'))));
-					if (strlen($desc_short) > ($this->THREAD_PREVIEW_LENGTH +2)) {
-						$desc_short = substr($desc_short, 0, $this->THREAD_PREVIEW_LENGTH) . '...';
+					if (strlen($desc_short) > (self::THREAD_PREVIEW_LENGTH +2)) {
+						$desc_short = substr($desc_short, 0, self::THREAD_PREVIEW_LENGTH) . '...';
 					} else {
 						$desc_short = $desc_short;
 					}
@@ -966,7 +973,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			case 'get_last_postings':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -974,14 +981,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$db = new DB_Seminar($query = "SELECT px.*, ou.flag as fav  FROM px_topics as px
 					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 					WHERE Seminar_id =  '". $this->getId() ."' AND parent_id != '0'
-					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}");
+					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}");
 
 				return $this->_dbdataFillArray($db);
 				break;
 
 			case 'get_favorite_postings':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -991,21 +998,21 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					WHERE ou.user_id = '". $GLOBALS['user']->id ."' 
 					AND ou.flag = 'fav'
 					AND pt.Seminar_id = '". $this->getId() ."'
-					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}");
+					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}");
 
 				return $this->_dbdataFillArray($db);
 				break;
 
 			case 'get_new_postings':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
 
 				$db = new DB_Seminar($query = "SELECT * FROM px_topics 
 					WHERE Seminar_id =  '". $this->getId() ."' AND mkdate >= {$this->last_visit}
-					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}");
+					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}");
 
 				return $this->_dbdataFillArray($db);
 				break;
@@ -1036,7 +1043,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			case 'search_indexed':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -1115,7 +1122,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
 						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")
-						ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}";
+						ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}";
 
 					$query2 = "SELECT COUNT(*) as c FROM px_topics as px
 						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")";
@@ -1141,7 +1148,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				
 			case 'search':
 				if ($data['page'] && $data['page'] > 1) {
-					$limit_start = ($data['page']-1) * $this->POSTINGS_PER_PAGE;
+					$limit_start = ($data['page']-1) * self::POSTINGS_PER_PAGE;
 				} else {
 					$limit_start = 0;
 				}
@@ -1178,7 +1185,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
 					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
 					WHERE seminar_id = '". $this->getId() ."' AND (". implode(' OR ', $search_string) .")
-					ORDER BY mkdate DESC LIMIT $limit_start, {$this->POSTINGS_PER_PAGE}";
+					ORDER BY mkdate DESC LIMIT $limit_start, {self::POSTINGS_PER_PAGE}";
 
 				$query2 = "SELECT COUNT(*) as c FROM px_topics as px
 					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
@@ -1222,7 +1229,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	/* the page chooser for ar list of postings */
 	function get_page_chooser_NP($num_postings) {
-		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
+		$pages = ceil($num_postings / self::POSTINGS_PER_PAGE);
 		if ($pages <= 1) return;
 
 		if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
@@ -1315,7 +1322,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
 		}
 
-		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
+		$pages = ceil($num_postings / self::POSTINGS_PER_PAGE);
 		
 		if ($pages == 1) return;
 	
@@ -1735,7 +1742,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function getInfobox($section) {
 		global $_REQUEST;
 
-		$infobox =& $this->template_factory->open('infobox');
+		$infobox =& $this->template_factory->open($this->output_format . '/infobox');
 		$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
 		$infobox->set_attribute('standard_infobox', $standard_infobox);
 		$infobox->set_attribute('picture', 'sms3.jpg');
@@ -1915,8 +1922,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 
     $plugin = $this;
-		$template =& $this->template_factory->open('show_posting_list');
-		$template->set_layout('layout');
+		$template =& $this->template_factory->open($this->output_format . '/show_posting_list');
+		$template->set_layout($this->output_format . '/layout');
     $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox', 'info_message'));
 		$template->set_attribute('highlight', $search['highlight']);
 
@@ -1934,8 +1941,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 
     $plugin = $this;
-		$template =& $this->template_factory->open('show_posting_list');
-		$template->set_layout('layout');
+		$template =& $this->template_factory->open($this->output_format . '/show_posting_list');
+		$template->set_layout($this->output_format . '/layout');
     $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox', 'info_message'));
 		echo $template->render();
 	}
@@ -1951,8 +1958,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 
     $plugin = $this;
-		$template =& $this->template_factory->open('show_posting_list');
-		$template->set_layout('layout');
+		$template =& $this->template_factory->open($this->output_format . '/show_posting_list');
+		$template->set_layout($this->output_format . '/layout');
     $template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox', 'info_message'));
 		echo $template->render();
 
@@ -1965,8 +1972,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$num_postings = $this->getDBData('get_last_postings_count');		
 
 		$plugin = $this;
-		$template =& $this->template_factory->open('show_posting_list');
-		$template->set_layout('layout');
+		$template =& $this->template_factory->open($this->output_format . '/show_posting_list');
+		$template->set_layout($this->output_format . '/layout');
 		$template->set_attributes(compact('postings', 'num_postings', 'plugin', 'infobox'));
 		echo $template->render();
 	}
@@ -1974,12 +1981,16 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function forumShow() {
 		global $_REQUEST;
 
+		if ($_REQUEST['output_format']) {
+			$this->output_format = $_REQUEST['output_format'];
+		}
+
 		// show messages if any
 		$this->showMessages();
 
 		$aktionen = array();
 		
-		$infobox =& $this->template_factory->open('infobox');
+		$infobox =& $this->template_factory->open($this->output_format . '/infobox');
 		$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
 		$infobox->set_attribute('standard_infobox', $standard_infobox);
 		$infobox->set_attribute('picture', 'sms3.jpg');
@@ -2004,8 +2015,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$infobox->set_attribute('area_name', $area_name);
 			$infobox->set_attribute('thread_name', $thread_name);
 
-			$template =& $this->template_factory->open('show_postings');
-			$template->set_layout('layout');
+			$template =& $this->template_factory->open($this->output_format . '/show_postings');
+			$template->set_layout($this->output_format . '/layout');
 			$template->set_attributes(compact('area_name', 'thread_name', 'postings', 'postings_count', 'plugin', 'infobox', 'standard_infobox', 'menubar', 'answer_link'));
 			echo $template->render();
 		}
@@ -2034,8 +2045,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$infobox->set_attribute('area_name', $area_name);
 			$infobox->set_attribute('aktionen', $aktionen);
 
-			$template =& $this->template_factory->open('show_threads');
-			$template->set_layout('layout');
+			$template =& $this->template_factory->open($this->output_format . '/show_threads');
+			$template->set_layout($this->output_format . '/layout');
 			$template->set_attributes(compact('area_name', 'threads', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
 			echo $template->render();
 		}
@@ -2088,8 +2099,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$infobox->set_attribute('section', 'areas');
 			$infobox->set_attribute('aktionen', $aktionen);
 
-			$template =& $this->template_factory->open('show_areas');
-			$template->set_layout('layout');
+			$template =& $this->template_factory->open($this->output_format . '/show_areas');
+			$template->set_layout($this->output_format . '/layout');
 			$template->set_attributes(compact('categories', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
 			echo $template->render();
 		}

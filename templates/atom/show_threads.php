@@ -29,7 +29,7 @@
 							echo $thread['name'];
 						else :
 							echo '(' . _("Kein Titel angegeben") . ')';
-						endif
+						endif;
 					?>
 					</span>
         </a><br/>
@@ -60,7 +60,7 @@
       </td>
 			<td class="areaborder"></td>
     </tr>
-  <? endforeach ?>
+  <? endforeach; ?>
 
   <!-- bottom border -->
 	<tr>
