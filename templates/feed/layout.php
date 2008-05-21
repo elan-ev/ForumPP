@@ -36,8 +36,6 @@ $rss->syndicationURL = htmlspecialchars($_SERVER['REQUEST_URI']);
 
 foreach ((array)$postings as $post) {
 
-	$description = quotes_decode(formatReady($plugin->forumKillEdit($post['description']), TRUE, TRUE));
-
 	$item = new FeedItem();
 
 	// if available, give further information on where the posting is located
@@ -48,10 +46,14 @@ foreach ((array)$postings as $post) {
 
 	$item->title = $name;
 
+
 	$link = PluginEngine::getUrl($plugin, array('root_id' => $post['root_id'], 'thread_id' => $post['thread_id'], 'jump_to' => $post['topic_id'])) . '#' . $post['topic_id'];
 	$item->link  = $GLOBALS['ABSOLUTE_URI_STUDIP'] . $link;
 
+
+	$description = quotes_decode($post['description']);
 	$item->description = $description;
+
 	$item->date = (int) $post['mkdate'];
 	$item->source = $GLOBALS['ABSOLUTE_URI_STUDIP'];
 	$item->author = $post['author'];
@@ -61,5 +63,5 @@ foreach ((array)$postings as $post) {
 $output = $rss->createFeed($format);
 
 header('Content-Type: '.$rss->contentType.'; charset='.$rss->encoding);
-echo $output;
+echo str_replace('<summary>', '<summary type="html">', $output);
 die;
