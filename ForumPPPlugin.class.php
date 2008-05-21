@@ -155,7 +155,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	}
 	
 	function getPluginname() {
-		return _("Forum++");
+		return _("Forum");
 	}
 
 	function getDisplaytitle() {
@@ -326,7 +326,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	function buildMenu() {
 		$navigation = new PluginNavigation();
-		$navigation->setDisplayname('Forum++');
+		$navigation->setDisplayname('Forum');
 		$navigation->addLinkParam('source', 'va');
 		$navigation->setActive();
 
