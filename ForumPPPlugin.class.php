@@ -1740,9 +1740,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		require_once('lib/classes/smiley.class.php');
 
 		if (get_config("EXTERNAL_HELP")) {
-			$help_url=format_help_url("Basis.VerschiedenesFormat");
+			$help_url = format_help_url("Basis.VerschiedenesFormat");
 		} else {
-			$help_url="help/index.php?help_page=ix_forum6.htm";
+			$help_url = "help/index.php?help_page=ix_forum6.htm";
 		}
 
 		echo '<center><div>';
@@ -1897,8 +1897,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$admin_modules = new AdminModules();
 		$bitmask = $admin_modules->getBin($this->getId());
 
-		$default_forum = $admin_modules->isBit($bitmask, $admin_modules->registered_modules['forum']['id']);
-
 		// Standardforum deaktivieren
 		if ($_REQUEST['deactivate'] == 'deactivate') {
 			$admin_modules->clearBit($bitmask, $admin_modules->registered_modules['forum']["id"]);
@@ -1910,6 +1908,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$admin_modules->setBit($bitmask, $admin_modules->registered_modules['forum']['id']);
 			$admin_modules->writeBin($this->getId(), $bitmask);
 		}
+
+		$default_forum = $admin_modules->isBit($bitmask, $admin_modules->registered_modules['forum']['id']);
 
 		if ($_REQUEST['action'])
 			switch ($_REQUEST['action']) {
@@ -1941,12 +1941,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$areas = $this->getDBData('get_threads_for_area', array('parent_id' => '0'));
 
 		$infobox = $this->getInfobox('config');
+		$infobox->set_attribute('default_forum', $default_forum);
     $plugin = $this;
 		$template =& $this->template_factory->open('html/config.php');
 		$template->set_layout('html/layout');
     $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum'));
-		$template->set_attribute('highlight', $search['highlight']);
 
+		echo $template->render();
 	}
 
 	function searchShow() {

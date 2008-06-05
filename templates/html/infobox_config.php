@@ -30,18 +30,44 @@
 
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
-            <img src="<?= Assets::img('info') ?>">
+            <?= Assets::img('ausruf_small') ?>
           </td>
           <td class="infobox" width="99%" align="left">
             <font size="-1">
 							<?= _("Hier können Sie Einstellungen für das ForumPP vornehmen") ?><br/>
-							<br/>
-							<?= sprintf(_("Das Standardforum ist momentan %s"), 
-								($default_forum ? '<b>'. _("aktiviert") .'</b>' : '<b>'. _("deaktiviert") .'</b>')); ?>
 						</font>
           </td>
       </tr>                             
 
+      <!-- Aktionen -->
+
+      <tr>
+        <td class="infobox" width="100%" colspan="2">
+          <font size="-1"><b><?=_("Aktionen")?>:</b></font>
+          <br>
+        </td>
+      </tr>
+
+      <tr>
+          <td class="infobox" align="center" valign="center" width="1%">
+            <?= Assets::img('ausruf_small') ?>
+          </td>
+          <td class="infobox" width="99%" align="left">
+            <font size="-1">
+							<? if ($default_forum) : ?>
+							<?= sprintf(_("Das Standardforum ist momentan %saktiviert.%s"), '<b>', '</b>') ?><br/>
+							<a href="<?= PluginEngine::getLink($plugin, array('plugin_subnavi_params' => 'config', 'deactivate' => 'deactivate')) ?>">
+								<?=  _("Standardforum deaktivieren") ?>
+							</a>
+							<? else : ?>
+							<?= sprintf(_("Das Standardforum ist momentan %sdeaktiviert.%s"), '<b>', '</b>') ?><br/>
+							<a href="<?= PluginEngine::getLink($plugin, array('plugin_subnavi_params' => 'config', 'activate' => 'activate')) ?>">
+								<?= _("Standardforum aktivieren") ?>
+							</a>
+							<? endif; ?>
+						</font>
+          </td>
+      </tr>                             
 
     </table>
     </td>
