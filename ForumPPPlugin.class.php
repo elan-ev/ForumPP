@@ -18,8 +18,10 @@
  * @version   $Id: TGForumPlugin.class.php 632 2008-04-11 10:48:38Z tgloeggl $
  */
 
+global $RELATIVE_PATH_ELEARNING_INTERFACE;
 //require_once ( "sphinxapi.php" );
 require_once('db/ForumPPDB.class.php');
+require_once('lib/classes/AdminModules.class.php');
 
 if (!defined('FEEDCREATOR_VERSION')) {
 	require_once('vendor/feedcreator/feedcreator.class.php');
@@ -228,7 +230,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		// check for SeminarSession and set visit
 		checkObject();
-		checkObjectModule("forum");
+		// checkObjectModule("forum");
 
 		$this->last_visit = object_get_visit($this->getId(), "forum");
 		if (!$this->last_visit) $this->last_visit = time();
@@ -1864,13 +1866,25 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function getInfobox($section) {
 		global $_REQUEST;
 
-		$infobox =& $this->template_factory->open($this->output_format . '/infobox');
-		$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
-		$infobox->set_attribute('standard_infobox', $standard_infobox);
-		$infobox->set_attribute('picture', 'sms3.jpg');
-		$infobox->set_attribute('plugin', $this);
-		$infobox->set_attribute('section', $section);
-		$infobox->set_attribute('_REQUEST', $_REQUEST);
+		// The configuation has a different infobox
+		if ($section == 'config') {
+			$infobox =& $this->template_factory->open('html/infobox_config');
+			$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
+			$infobox->set_attribute('standard_infobox', $standard_infobox);
+			$infobox->set_attribute('picture', 'sms3.jpg');
+			$infobox->set_attribute('plugin', $this);
+		} 
+		
+		// the default infobox for the forum
+		else {
+			$infobox =& $this->template_factory->open($this->output_format . '/infobox');
+			$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
+			$infobox->set_attribute('standard_infobox', $standard_infobox);
+			$infobox->set_attribute('picture', 'sms3.jpg');
+			$infobox->set_attribute('plugin', $this);
+			$infobox->set_attribute('section', $section);
+			$infobox->set_attribute('_REQUEST', $_REQUEST);
+		}
 
 		return $infobox;
 	}
@@ -1880,30 +1894,24 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function configShow() {
 		if (!$this->rechte) return;
 
-		if ($_REQUEST['activate'] == 'activate') {
-			new DB_Seminar("
-				CREATE TABLE IF NOT EXISTS `forumpp` (
-					`entry_id` varchar(32) NOT NULL,
-					`seminar_id` varchar(32) NOT NULL,
-					`entry_type` varchar(30) NOT NULL,
-					`topic_id` varchar(32) NOT NULL,
-					`entry_name` varchar(255) NOT NULL,
-					KEY  (`entry_id`),
-					KEY `entry_type` (`entry_type`),
-					KEY `topic_id` (`topic_id`)
-					) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-			");
+		$admin_modules = new AdminModules();
+		$bitmask = $admin_modules->getBin($this->getId());
 
-			$this->_ENHANCED = true;
+		$default_forum = $admin_modules->isBit($bitmask, $admin_modules->registered_modules['forum']['id']);
+
+		// Standardforum deaktivieren
+		if ($_REQUEST['deactivate'] == 'deactivate') {
+			$admin_modules->clearBit($bitmask, $admin_modules->registered_modules['forum']["id"]);
+			$admin_modules->writeBin($this->getId(), $bitmask);
+		} 
+		
+		// Standardforum aktivieren
+		else if ($_REQUEST['activate'] = 'activate') {
+			$admin_modules->setBit($bitmask, $admin_modules->registered_modules['forum']['id']);
+			$admin_modules->writeBin($this->getId(), $bitmask);
 		}
 
-		if ($_REQUEST['action']) {
-			/*
-			echo '<pre>';
-			print_r($_REQUEST);	
-			echo '</pre>';
-			*/
-
+		if ($_REQUEST['action'])
 			switch ($_REQUEST['action']) {
 				case 'administrate':
 					if (isset($_REQUEST['create_category'])) {
@@ -1928,101 +1936,17 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					break;
 			}
 
-		}
 
-		?>
-		<div class="posting bg2">
-			<span class="corners-top"><span></span></span>
+		$categories = $this->getDBData('get_categories');
+		$areas = $this->getDBData('get_threads_for_area', array('parent_id' => '0'));
 
-			<div class="postbody">
-				<span class="title" style="margin-bottom: 5px">Konfiguration der erweiterten Funktionen</span>
-				<p class="content">
-					<? if (!$this->_ENHANCED) : ?>
-					<font color="red"><b>Die erweiterten Funktionen sind momentan nicht eingeschaltet.</b></font>
-					&nbsp;&nbsp;
-					<a href="<?=PluginEngine::getLink($this, array('plugin_subnavi_params' => 'config', 'activate' => 'activate'))?>">
-						<button>Erweiterte Funktionen einschalten</button>
-					</a><br/>
-					<br/>
-					F&uuml;r die erweiterten Funktionen wird die Tabelle 'forumpp' in der Datenbank ben&ouml;tigt.<br/>
-					Diese Tabelle wird automatisch angelegt, wenn sie die erweiterten Funktionen aktivieren.<br/>
-					<br/>
-					Die erweiterten Funktionen erm&ouml;glichen:<br/>
-					<ul>
-						<li>Bereiche in verschiedene Kategorien einzuordnen</li>
-						<li>Verschiedene Typen von Beitr&auml;gen (sticky, announcement)</li>
-					</ul>
-					<? else : ?>
-					<font color="green"><b>Die erweiterten Funktionen sind aktiviert!</b></font><br/>
-					<br/>
-					F&uuml;r die erweiterten Funktionen wurde die Tabelle 'forumpp' in der Datenbank erstellt.<br/>
-					<br/>
-					<?
-						$categories = $this->getDBData('get_categories');
-      			$areas = $this->getDBData('get_threads_for_area', array('parent_id' => '0'));
+		$infobox = $this->getInfobox('config');
+    $plugin = $this;
+		$template =& $this->template_factory->open('html/config.php');
+		$template->set_layout('html/layout');
+    $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum'));
+		$template->set_attribute('highlight', $search['highlight']);
 
-						// connect categories with areas
-						foreach($categories as $cat_id => $cat) {
-							$new_areas = array();
-							foreach ($cat['areas'] as $id) {
-								$new_areas[$id] = $areas[$id];
-								unset($areas[$id]);
-							}
-							$categories[$cat_id]['areas'] = $new_areas;
-						}
-
-						/*
-						// All ares which are not assigned to a predefined category are collected now
-						$unconnected['areas'] = $areas;
-						$unconnected['name'] = 'Keiner Kategorie zugeordnet';
-						$categories[] = $unconnected;
-						*/
-						
-						if (sizeof($areas) > 0) {
-							echo 'Keiner Kategorie zugeordnete Bereiche:<br/>';
-							foreach ($areas as $area) {
-								echo '&nbsp;&nbsp;'. $area['name'] .'<br/>';
-							}
-						}
-						echo '<hr>';
-
-						echo '<form action="" method="post">';
-						echo 'Bereiche:<br/>';
-						foreach($categories as $cat_id => $cat) {
-							echo '&nbsp;&nbsp;'. $cat['name'];
-							echo '&nbsp&nbsp;<a href="'. PluginEngine::getLink($this, array('plugin_subnavi_params' => 'config', 'action' => 'delete_category', 'category_id' => $cat_id)).'">X</a>';
-							echo '<br/>';
-
-							foreach($cat['areas'] as $area_id => $area) {
-								echo '&nbsp;&nbsp;&nbsp;&nbsp;'. $area['name'];
-								echo '&nbsp&nbsp;<a href="'. PluginEngine::getLink($this, array('plugin_subnavi_params' => 'config', 'action' => 'delete_area', 'area_id' => $area_id, 'category_id' => $cat_id)).'">X</a>';
-								echo '<br/>';
-							}
-							if (sizeof($areas) > 0) {
-								echo '&nbsp;&nbsp;&nbsp;&nbsp;';
-								echo '<select name="cat_'. $cat_id .'">';
-								foreach ($areas as $area_id => $area) {
-									echo '<option value="'. $area_id .'">'. $area['name'] .'</option>';
-								}
-								echo '</select>';
-								echo '&nbsp;&nbsp;<button name="add_area" value="'. $cat_id .'">hinzuf&uuml;gen</button>';
-								echo '<br/>';
-							}
-						}
-
-						echo '<input type="text" name="category">';
-						echo '&nbsp;&nbsp;<button name="create_category">Bereich erstellen</button>';
-						echo '<input type="hidden" name="plugin_subnavi_params" value="config">';
-						echo '<input type="hidden" name="action" value="administrate">';
-						echo '</form>';
-					?>
-					<? endif; ?>
-				</p>
-			</div>
-
-			<span class="corners-bottom"><span></span></span>
-		</div>
-		<?
 	}
 
 	function searchShow() {
