@@ -311,7 +311,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			if ($_REQUEST['source'] == 'va') {
 		    $this->forumShow();
 			} else {
-				if ($this->getDBData('get_new_postings_count') > 0 && sizeof($_REQUEST) == 1) {
+				if ($this->getDBData('get_new_postings_count') > 0) {
 					$this->newPostingsShow();
 				} else {
 					$this->forumShow();
@@ -352,7 +352,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
   function hasChanged($lastlogin) {
 		//echo date('d.m.Y H:i', $lastlogin);
-		$this->last_visit = object_get_visit($this->getId(), "forum");
+		$this->last_visit = object_get_visit($this->getId(), "forum", "visitdate");
 		if (!$this->last_visit) {
 			$this->last_visit = $lastlogin;
 		}
@@ -365,7 +365,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			if ($c == 1) {
 				return _("Ein neuer Beitrag vorhanden");
 			} else {
-				return sprintf(_("%s neue Beitr&auml;ge vorhanden."), $c);
+				return sprintf(_("%s neue Beiträge vorhanden."), $c);
 			}
 		};
 
