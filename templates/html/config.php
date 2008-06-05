@@ -5,16 +5,6 @@
 		<span class="Title" style="margin-bottom: 5px">Konfiguration</span>
 		<br/>
 		<p>
-			<? if ($default_forum) : ?>
-			<a href="<?=PluginEngine::getLink($plugin, array('plugin_subnavi_params' => 'config', 'deactivate' => 'deactivate'))?>">
-				<button>Standardforum abschalten</button>
-			</a><br/>
-			<? else : ?>
-			<a href="<?=PluginEngine::getLink($plugin, array('plugin_subnavi_params' => 'config', 'activate' => 'activate'))?>">
-				<button>Standardforum einschalten</button>
-			</a><br/>
-			<? endif; ?>
-			<br/>
 			<?
 
 				// connect categories with areas
