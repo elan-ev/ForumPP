@@ -380,7 +380,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	*/
 
 	function getScore() {
-		return 200000;
+		return 1;
 	}
 
 
