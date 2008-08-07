@@ -308,8 +308,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					break;
 			}
 		} else {
-			if ($_REQUEST['source'] == 'va') {
+			//if ($_REQUEST['source'] == 'va') {
 		    $this->forumShow();
+			/*
 			} else {
 				if ($this->getDBData('get_new_postings_count') > 0) {
 					$this->newPostingsShow();
@@ -317,6 +318,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$this->forumShow();
 				}
 			}
+			*/
 		}
 	}
 
@@ -429,13 +431,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 */
   function create_area() {
 
-		if ($this->rechte) {
-			$data = array (
-				'name' => $GLOBALS['_REQUEST']['title'],
-				'description' => $GLOBALS['_REQUEST']['data']
-			);
-			$GLOBALS['_REQUEST']['root_id'] = $this->insert_entry($data);
-		}
+		$data = array (
+			'name' => $GLOBALS['_REQUEST']['title'],
+			'description' => $GLOBALS['_REQUEST']['data']
+		);
+		$GLOBALS['_REQUEST']['root_id'] = $this->insert_entry($data);
 
   }
 
@@ -562,6 +562,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		switch ($part) {
 		case 'main':
+			$has_rights = true;		// Nun ja, momentan darf das auch jeder
 			$title = _("Neuen Bereich erstellen");
 			$name = _("Bereichsname");
 			$content = _("Beschreibung");
@@ -658,7 +659,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			<?
 			if ($_REQUEST['thread_id']) $params['thread_id'] = $_REQUEST['thread_id'];
 			if ($_REQUEST['root_id']) $params['root_id'] = $_REQUEST['root_id'];
-			$link = PluginEngine::getLink($this, array_merge($params, array('page' => $_REQUEST['page'])));
+			$link = PluginEngine::getLink($this, array_merge((array)$params, array('page' => $_REQUEST['page'])));
 			?>
 			<a href="<?= $link ?>"><img border="0" <?= makebutton('abbrechen', 'src') ?>></a>
 			</div>
@@ -1767,10 +1768,20 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function translate_perm($perm) {
 		switch($perm) {
 			case 'root':
+				return _("Chef im Ring");
+				break;
 			case 'admin':
+				return _("Administrator/In");
+				break;
 			case 'dozent': 
+				return _("Dozent/In");
+				break;
 			case 'tutor':
-				return _("Moderator/In");
+				return _("Tutor/In");
+				break;
+
+			case 'autor':
+				return _("Autor/In");
 				break;
 
 			default:
@@ -2128,13 +2139,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			}
 
 
-			if ($this->rechte) {
-				$aktionen[] = array(
-				'name' => 'Bereich erstellen',
-				'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
-				'anchor' => 'create_area'
-				);
-			}
+			$aktionen[] = array(
+			'name' => 'Bereich erstellen',
+			'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
+			'anchor' => 'create_area'
+			);
 
 			$infobox->set_attribute('section', 'areas');
 			$infobox->set_attribute('aktionen', $aktionen);
