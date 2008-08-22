@@ -20,7 +20,7 @@
 
 global $RELATIVE_PATH_ELEARNING_INTERFACE;
 //require_once ( "sphinxapi.php" );
-require_once('db/ForumPPDB.class.php');
+require_once('db/ForumPPDB.php');
 require_once('lib/classes/AdminModules.class.php');
 
 if (!defined('FEEDCREATOR_VERSION')) {
