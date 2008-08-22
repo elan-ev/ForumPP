@@ -17,4 +17,6 @@ class ForumPPDB {
 	static function getLastPostingTimestamp($seminar_id) {
 
 	}
+
+	static function 
 }
