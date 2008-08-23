@@ -399,7 +399,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			}
 		};
 
-		return _("Keine neuen Beitr&auml;ge.");
+		return _("Keine neuen Beiträge.");
 	}
 
 
