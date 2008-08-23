@@ -48,6 +48,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	var $rechte = false;
 	var $lastlogin = 0;	
 
+	var $writable = false;
+	var $editable = false;
+
 	/**
 	 * defines the chosen output format, one of OUTPUT_FORMATS
 	 */
@@ -77,8 +80,26 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
     $this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
 		
 		$this->check_for_enhance();
+		$this->check_write_and_edit();
 	}
 
+	function check_write_and_edit() {
+		global $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus;
+		/*
+		 * Schreibrechte
+		 * 0 - freier Zugriff 
+		 * 1 - in Stud.IP angemeldet
+		 * 2 - nur mit Passwort
+		 */
+
+		// This is a separate view on rights, nobody should not be able to edit posts from other nobodys
+		$this->editable = $GLOBALS['perm']->have_studip_perm('user', $this->getId());
+		if ($GLOBALS['perm']->have_studip_perm('user', $this->getId())) {
+			$this->writable = true;	
+		} else if (isset($SemSecLevelWrite) && $SemSecLevelWrite == 0) {
+			$this->writable = true;
+		}
+	}
 
 	function check_token() {
 		$db = DBManager::get('studip');
@@ -241,30 +262,37 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
       switch ($_REQUEST['subcmd']) {
 
         case 'create_area':
+					if ($this->writable)
           $this->create_area();
           break;
 
         case 'create_thread':
+					if ($this->writable)
           $this->create_thread();
           break;
 
         case 'create_posting':
+					if ($this->writable)
           $this->create_posting();
           break;
 
         case 'delete':
+					if ($this->writable)
           $this->delete_posting();
           break;
 
 				case 'do_edit_posting':
+					if ($this->writable && $this->editable)
 					$this->edit_posting();
 					break;
 
 				case 'delete_area':
+					if ($this->writable)
 					$this->delete_area();
 					break;
 
 				case 'fav':
+					if ($this->writable)
 					object_switch_fav($_REQUEST['entryid']);
 					break;
 
@@ -562,7 +590,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		switch ($part) {
 		case 'main':
-			$has_rights = true;		// Nun ja, momentan darf das auch jeder
+			$has_rights = $this->writable;
 			$title = _("Neuen Bereich erstellen");
 			$name = _("Bereichsname");
 			$content = _("Beschreibung");
@@ -571,7 +599,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			break;
 
 		case 'area':
-			$has_rights = true;		// Themen erstellen darf jeder
+			$has_rights = $this->writable;
 			$title = _("Neues Thema erstellen");
 			$name = _("Titel");
 			$content = _("Inhalt");
@@ -580,7 +608,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			break;
 
 		case 'thread':
-			$has_rights = true;		// Antworten darf auch jeder
+			$has_rights = $this->writable;
 			$title = _("Neuen Beitrag erstellen");
 			$name = _("Titel");
 			$content = _("Inhalt");
@@ -733,16 +761,18 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
     
 		// icon for adding / removing a post to / from the favorites
-		$icon = '';
-		$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'fav', 'entryid' => $entryid, 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'], 'plugin_subnavi_params' => $_REQUEST['plugin_subnavi_params'])) .'#'. $entryid;
-		if (!$fav) {
-			$icon['image'] = $this->picturepath .'/icons/not_a_favorite.png';
-			$icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
-		} else {
-			$icon['image'] = $this->picturepath .'/icons/favorite.png';
-			$icon['title'] = _("aus den Favoriten entfernen");
+		if ($this->editable) {
+			$icon = '';
+			$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'fav', 'entryid' => $entryid, 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'page' => $_REQUEST['page'], 'plugin_subnavi_params' => $_REQUEST['plugin_subnavi_params'])) .'#'. $entryid;
+			if (!$fav) {
+				$icon['image'] = $this->picturepath .'/icons/not_a_favorite.png';
+				$icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
+			} else {
+				$icon['image'] = $this->picturepath .'/icons/favorite.png';
+				$icon['title'] = _("aus den Favoriten entfernen");
+			}
+			$tmpl_icons[3] = $icon;
 		}
-		$tmpl_icons[3] = $icon;
 
 
 		// the buttonbar
@@ -764,7 +794,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			} else {
 				// show icons for editing and citing
 				//if ($last && ($owner_id == $GLOBALS['user']->id || $this->rechte) && (is_array($highlight) === FALSE)) {
-				if (($owner_id == $GLOBALS['user']->id || $this->rechte) && (is_array($highlight) === FALSE)) {
+				if (($owner_id == $GLOBALS['user']->id || $this->rechte) && (is_array($highlight) === FALSE) && $this->editable) {
 					$icon = '';
 					$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'edit_posting', 'root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'], 'posting_id' => $entryid, 'page' => $_REQUEST['page'])) .'#'. $entryid;
 					$icon['image'] = $this->picturepath .'/icons/edit.png';
@@ -2058,7 +2088,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$plugin = $this;
 			$menubar = $this->show_menubar('thread', $area_name, $thread_name);
 
-			if ($GLOBALS['section'] != 'create_posting') {
+			if ($GLOBALS['section'] != 'create_posting' && $this->writable) {
 				$answer_link = PluginEngine::getLink($this, array('section' => 'create_posting', 'thread_id' => $_REQUEST['thread_id'], 'root_id' => $_REQUEST['root_id'], 'page' => $_REQUEST['page'], 'time' => time()));
 			}
 			
@@ -2080,17 +2110,20 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$plugin = $this;
 			$menubar = $this->show_menubar('area', $area_name);
 
-			if ($this->rechte) {
+			if ($this->rechte && $this->writable) {
 				$aktionen[] = array(
 				'name' => 'Bereich l&ouml;schen',
 				'link' => PluginEngine::getLink($this, array('subcmd' => 'delete_area', 'area_id' => $_REQUEST['root_id']))
 				);
 			}
-			$aktionen[] = array(
-			'name' => 'neues Thema',
-			'link' => PluginEngine::getLink($this, array('section' => 'create_thread', 'root_id' => $_REQUEST['root_id'])).'#create_thread',
-			'anchor' => 'create_thread'
-			);
+
+			if ($this->writable) {
+				$aktionen[] = array(
+				'name' => 'neues Thema',
+				'link' => PluginEngine::getLink($this, array('section' => 'create_thread', 'root_id' => $_REQUEST['root_id'])).'#create_thread',
+				'anchor' => 'create_thread'
+				);
+			}
 
 			$infobox->set_attribute('section', 'threads');
 			$infobox->set_attribute('area_name', $area_name);
@@ -2139,11 +2172,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			}
 
 
-			$aktionen[] = array(
-			'name' => 'Bereich erstellen',
-			'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
-			'anchor' => 'create_area'
-			);
+			if ($this->writable) {
+				$aktionen[] = array(
+					'name' => 'Bereich erstellen',
+					'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
+					'anchor' => 'create_area'
+				);
+			}
 
 			$infobox->set_attribute('section', 'areas');
 			$infobox->set_attribute('aktionen', $aktionen);
