@@ -193,16 +193,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	}
 
 	function setDesign($design) {
-		global $sess, $forumpp_template;
-
-		$sess->register('forumpp_template');
-		$forumpp_template[$this->getId()] = $design;
+		$_SESSION['forumpp_template'][$this->getId()] = $design;
 	}
 
 	function getDesign() {
-		global $sess, $forumpp_template;
-
-		return $forumpp_template[$this->getId()];
+		return $_SESSION['forumpp_template'][$this->getId()];
 	}
 
 	function actionCss () {
@@ -223,8 +218,17 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		// this hack is necessary to disable the standard Stud.IP layout
 		ob_end_clean();
+
+		date_default_timezone_set('CET');
+		$modified =  date(DATE_RFC822,time()-(31*24*60*60));
+		$expires = date(DATE_RFC822,time()-(365*31*24*60*60));
+		$today = date(DATE_RFC822);
+		header('Date: '.$today);
+		header('Expires: '.$expires);
+		header('Cache-Control: private');
+		header('Pragma: no-cache');
+		header('Last-Modified: '.$modified);
 		header('Content-Type: text/css');
-		//header('Cache-Control: private');
 
 		if (isset($template_before)) {
 			echo $template_before->render();
