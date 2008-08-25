@@ -220,14 +220,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		ob_end_clean();
 
 		date_default_timezone_set('CET');
-		$modified =  date(DATE_RFC822,time()-(31*24*60*60));
-		$expires = date(DATE_RFC822,time()-(365*31*24*60*60));
+		$expires = date(DATE_RFC822,time()+(24*60*60));		// expires after one day
 		$today = date(DATE_RFC822);
 		header('Date: '.$today);
 		header('Expires: '.$expires);
-		header('Cache-Control: private');
-		header('Pragma: no-cache');
-		header('Last-Modified: '.$modified);
+		header('Cache-Control: public');
 		header('Content-Type: text/css');
 
 		if (isset($template_before)) {
