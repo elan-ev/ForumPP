@@ -5,7 +5,7 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 		'action' => 'delete_area',
 		'area_id' => '%s',
 		'category_id' => '%s')
-	).'">X</a>';
+	).'"><img src="'. $picturepath .'/icons/delete.png"></a>';
 ?>
 <script>
 	var delete_link = '<?= str_replace('%25', '%', $delete_link) ?>';
@@ -125,7 +125,7 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 		<dt><b><?= _("Keine Kategorie zugeordnet") ?>:</b><br/><br/></dt>
 		<dd><ul>
 		<? foreach ($areas as $area) : ?>
-			<li id="area_<?= $area['entry_id'] ?>" class="areas"><?= $area['name'] ?></li>
+			<li id="area_<?= $area['entry_id'] ?>" class="areas pointer"><?= $area['name'] ?></li>
 			<script>
 				areas['area_<?= $area['entry_id'] ?>'] = new Draggable("area_<?= $area['entry_id'] ?>", {revert: true});
 			</script>
