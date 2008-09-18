@@ -37,7 +37,18 @@
 							<?= _("Hier können Sie Einstellungen für das ForumPP vornehmen") ?><br/>
 						</font>
           </td>
-      </tr>                             
+      </tr>
+
+      <tr>
+          <td class="infobox" align="center" valign="center" width="1%">
+            <?= Assets::img('ausruf_small') ?>
+          </td>
+          <td class="infobox" width="99%" align="left">
+            <font size="-1">
+							<?= _("Sie können mittels Drag'n'Drop Elemente zu Kategorien hinzufügen und innerhalb von Kategorien sortieren.") ?><br/>
+						</font>
+          </td>
+      </tr>
 
       <!-- Aktionen -->
 

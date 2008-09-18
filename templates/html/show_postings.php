@@ -2,7 +2,6 @@
 <center>
 	<a href="<?= $answer_link ?>#create_posting"><?= makebutton('antworten') ?></a>
 </center>
-<br/>
 <? endif; ?>
 <form action="<?= PluginEngine::getLink($plugin, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $_REQUEST['thread_id'])) ?>" method="post">
 <input type="hidden" name="page" value="<?= $GLOBALS['_REQUEST']['page'] ?>">
@@ -10,7 +9,6 @@
   <tr>
     <!--<td class="printhead" colspan="8" style="padding-left: 5px; height: 25px;">-->
 		<td>
-    	<span class="thread-title"><?= $thread_name ?></span>
 			<span class="pagechooser">
 				<br/>
 				<?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id'], $postings_count) ?>

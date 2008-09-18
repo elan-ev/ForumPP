@@ -53,7 +53,7 @@ span.pagechooser {
 span.thread-title {
 	background-image: url('<?=$picturepath?>/steelblau.jpg');
 	display: block;
-	font-size: 1.5em;
+	font-size: 16pt;
 	font-weight: bold;
 	margin-bottom: 0px;
 	padding-left: 5px;
