@@ -88,7 +88,7 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 
 				</div>
 				<script>
-				var sort = Sortable.create('cat_list_<?=$cat_id?>');
+				Sortable.create('cat_list_<?=$cat_id?>');
 
 				Droppables.add("cat_<?= $cat_id ?>", { 
 					accept:'areas',
@@ -99,10 +99,10 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 							element.insert(String.sprintf(delete_link, id.substring(5, id.length), '<?= $cat_id ?>'));
 							$('cat_list_<?=$cat_id?>').insert(element, {position: 'bottom'});
 							element.writeAttribute('dropped', 'dropped');
-							element.writeAttribute('class', 'areas_dropped');
 							areas[element.readAttribute('id')].destroy();
-							sort = Sortable.create('cat_list_<?=$cat_id?>');
+							Sortable.create('cat_list_<?=$cat_id?>');
 						}
+
 						save('cat_list_<?=$cat_id?>');
 					},
 				});

@@ -271,14 +271,6 @@ li.areas {
 	margin-left: -10px;
 }
 
-li.areas_dropped {
-	border: 1px solid #CFCFEF;
-	background-color: none;
-	margin-bottom: 5px;
-	cursor: pointer;
-	margin-left: -10px;
-}
-
 span.bgtext {
 	display: block;
 	color: #AAAAAA;
