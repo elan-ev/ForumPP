@@ -41,7 +41,7 @@
 				<a href="<?= $area['last_posting']['link'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 					<img src="<?= $plugin->picturepath ?>/goto_posting.png" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 				</a><br/>
-				<?= _("am") ?> <?= strftime($plugin->time_format_string_short,  $area['last_posting']['date']) ?>
+				<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$area['last_posting']['date']) ?>
       </td>
 			<td class="areaborder">&nbsp;</td>
     </tr>

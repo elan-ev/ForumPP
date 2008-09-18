@@ -37,7 +37,7 @@
 					<?= _("von") ?> <a href="about.php?username=<?= get_username($thread['owner_id']) ?>">
 						<?= $thread['author'] ?>
 					</a>
-					<?= _("am") ?> <?= strftime($plugin->time_format_string_short,  $thread['mkdate']) ?>
+					<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$thread['mkdate']) ?>
 				</span>
 				<span class="pagechooser_thread"><?= $plugin->get_page_chooser($_REQUEST['root_id'], $thread['entry_id']) ?></span>
       </td>
@@ -55,7 +55,7 @@
 				<a href="<?= $thread['last_posting']['link'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 					<img src="<?= $plugin->picturepath ?>/goto_posting.png" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 				</a><br/>
-				<?= _("am") ?> <?= strftime($plugin->time_format_string_short,  $thread['last_posting']['date']) ?>
+				<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$thread['last_posting']['date']) ?>
 				<? endif; ?>
       </td>
 			<td class="areaborder"></td>

@@ -12,7 +12,7 @@
 					<?= ($entry['titel']) ? $entry['titel'] : ''?>
 					<p class="author">
 						von <strong><a href="about.php?username=<?= $entry['real_username'] ?>"><?= $entry['username'] ?></a></strong>
-						am <?= strftime($plugin->time_format_string,  $entry['datum']) ?>
+						am <?= strftime($plugin->time_format_string, (int)$entry['datum']) ?>
 					</p>
 				</span>
 				<!-- Aktionsicons -->

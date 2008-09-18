@@ -122,7 +122,7 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 	<script>areas = Array();</script>
 	<dl class="postprofile" style="width: 38%">
 	<? if (sizeof($areas) > 0) : ?>
-		<dt><b><?= _("Keine Kategorie zugeordnet") ?>:</b><br/><br/></dt>
+		<dt><b><?= _("Keiner Kategorie zugeordnet") ?>:</b><br/><br/></dt>
 		<dd><ul>
 		<? foreach ($areas as $area) : ?>
 			<li id="area_<?= $area['entry_id'] ?>" class="areas pointer"><?= $area['name'] ?></li>
