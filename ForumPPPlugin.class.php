@@ -1027,7 +1027,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 				
 				// cache the number to speed up the process if called again
-				$count_postings[$data['range_id']] = $count;
+				$count_postings[$data['range_id']] = ($count < 0) ? 0 : $count;
 				return $count;
 				
 				break;
