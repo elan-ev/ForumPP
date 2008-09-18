@@ -248,7 +248,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$this->loadView();
 	}
 
+	/*
+	 * AJAX Backend-Actions 
+	 */
 	function actionSavecats() {
+		ob_end_clean();
+
 		$entry_id = substr($_REQUEST['topic_id'], 9, strlen($_REQUEST['topic_id']));
 		$pos = 0;
 		foreach($_REQUEST['l'] as $item) {
@@ -259,6 +264,52 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 	}
 
+	function actionChangeParent() {
+		ob_end_clean();
+
+		$new_parent = $_REQUEST['new_parent'];
+		$topic_id = $_REQUEST['topic_id'];
+		
+		$stmt = DBManager::get()->prepare("UPDATE px_topics SET parent_id = ?, chdate = ? WHERE topic_id = ?");
+		$stmt->execute(array($new_parent, time(), $topic_id));
+	}
+
+	function actionLoadChilds() {
+		ob_end_clean();
+		
+		if ($this->rechte) {
+			$childs = $this->getDBData('get_child_postings', array('parent_id' => $_REQUEST['area_id']));
+			echo '<ul>';
+			foreach ($childs as $entry) {
+				echo '<li id="area_'. $entry['topic_id'] .'">';
+
+				if ($entry['has_childs']) {
+					echo '<a href="javascript:loadChilds(\''. $entry['topic_id'] .'\')" ';
+					echo 'onMouseOver="showTooltip(\'area_'. $entry['topic_id'] .'\', \''.  preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $entry['description']) .'\')" ';
+					echo 'onMouseOut="hideTooltip()">';
+					echo $entry['name'] .'</a>';
+				} else {
+					echo '<span ';
+					echo 'onMouseOver="showTooltip(\'area_'. $entry['topic_id'] .'\', \''.  preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $entry['description']) .'\')" ';
+					echo 'onMouseOut="hideTooltip()">';
+					echo $entry['name'];
+					echo '</span>';
+				}
+
+				echo '&nbsp;&nbsp;';
+				echo '<a href="javascript:choose(\''. $entry['topic_id'] .'\')" title="Diskussionsstrang ausschneiden"><img id="'. $entry['topic_id'] .'" src="'. $this->picturepath .'/icons/cut.png"></a>';
+				echo '&nbsp; &nbsp;';
+				echo '<a href="javascript:paste(\''. $entry['topic_id'] .'\')" title="Diskussionsstrang hier einfügen"><img src="'. $this->picturepath .'/icons/paste_plain.png"></a>';
+				echo '</li>';	
+			}
+			echo '</ul>';
+		}
+		die;
+	}
+
+	/*
+	 * Main action
+	 */
   function actionShow() {
 
 		// check for SeminarSession and set visit
@@ -340,7 +391,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					break;
 
 				case 'config':
-					$this->configShow();
+					$this->configShow('area_admin');
+					break;
+
+				case 'config2':
+					$this->configShow('thread_admin');
 					break;
 
 				default:
@@ -377,9 +432,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		
 		if ($this->rechte) {
 			$sub_nav = new PluginNavigation();
-			$sub_nav->setDisplayname(_("Administration"));
+			$sub_nav->setDisplayname(_("Bereiche administrieren"));
 			$sub_nav->addLinkParam('plugin_subnavi_params', 'config');
 			$navigation->addSubmenu($sub_nav);
+
+			$sub_nav2 = new PluginNavigation();
+			$sub_nav2->setDisplayname(_("Postings administrieren"));
+			$sub_nav2->addLinkParam('plugin_subnavi_params', 'config2');
+			$navigation->addSubmenu($sub_nav2);
+
 		}
 
 		$this->setNavigation($navigation);
@@ -875,6 +936,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$thread_id = $this->getThreadIdCached($db->f('topic_id'));
 
 			$ret[] = array(
+				'has_childs' => $db->f('has_childs'),
 				'author' => $db->f('author'),
 				'topic_id' => $db->f('topic_id'),
 				'thread_id' => $thread_id,
@@ -1151,6 +1213,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				return $entry_name_cache[$data['entry_id']];
 			break;
 
+			case 'get_child_postings':
+				$db = new DB_Seminar($query = "SELECT px.*, ou.flag as fav, p2.topic_id as has_childs FROM px_topics as px
+					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+					LEFT JOIN px_topics as p2 ON (p2.parent_id = px.topic_id)
+					WHERE px.Seminar_id =  '". $this->getId() ."' AND px.parent_id = '{$data['parent_id']}'
+					ORDER BY mkdate DESC");
+
+				return $this->_dbdataFillArray($db);
+				break;
 
 			case 'get_last_postings':
 				if ($data['page'] && $data['page'] > 1) {
@@ -1948,7 +2019,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * M A I N - F U N C T I O N S *
 	 * * * * * * * * * * * * * * * */
 
-	function configShow() {
+	function configShow($page = 'area_admin') {
 		if (!$this->rechte) return;
 
 		$admin_modules = new AdminModules();
@@ -2000,9 +2071,16 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$infobox = $this->getInfobox('config');
 		$infobox->set_attribute('default_forum', $default_forum);
     $plugin = $this;
-		$template =& $this->template_factory->open('html/config.php');
+		$picturepath = $this->picturepath;
+
+		if ($page == 'thread_admin') {
+			$template =& $this->template_factory->open('html/config_threads.php');
+		} else {
+			$template =& $this->template_factory->open('html/config.php');
+		}
+
 		$template->set_layout('html/layout');
-    $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum', 'plugin'));
+    $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum', 'plugin', 'picturepath'));
 
 		echo $template->render();
 	}

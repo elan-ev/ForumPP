@@ -263,11 +263,18 @@ div.cat, div.dropcat {
 	min-height: 60px;
 }
 
+div.droparea {
+	background-color: #AFAFEF;
+}
+
+li.pointer {
+	cursor: pointer;
+}
+
 li.areas {
 	border: 1px solid #CFCFEF;
 	background-color: #CFCFEF;
 	margin-bottom: 5px;
-	cursor: pointer;
 	margin-left: -10px;
 }
 
