@@ -248,6 +248,17 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$this->loadView();
 	}
 
+	function actionSavecats() {
+		$entry_id = substr($_REQUEST['topic_id'], 9, strlen($_REQUEST['topic_id']));
+		$pos = 0;
+		foreach($_REQUEST['l'] as $item) {
+			$topic_id = substr($item, 5, strlen($item));
+			$stmt = DBManager::get()->prepare("REPLACE INTO forumpp (entry_id, seminar_id, entry_type, topic_id, entry_name, pos) VALUES (?, ?, 'area', ?, '', ?)");
+			$stmt->execute($t = array($entry_id, $this->getId(), $topic_id, $pos));
+			$pos++;
+		}
+	}
+
   function actionShow() {
 
 		// check for SeminarSession and set visit
@@ -263,7 +274,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
       switch ($_REQUEST['subcmd']) {
 
         case 'create_area':
-					if ($this->writable)
+					if ($this->writable && $this->rechte)
           $this->create_area();
           break;
 
@@ -366,7 +377,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		
 		if ($this->rechte) {
 			$sub_nav = new PluginNavigation();
-			$sub_nav->setDisplayname(_("Konfiguration"));
+			$sub_nav->setDisplayname(_("Administration"));
 			$sub_nav->addLinkParam('plugin_subnavi_params', 'config');
 			$navigation->addSubmenu($sub_nav);
 		}
@@ -591,7 +602,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		switch ($part) {
 		case 'main':
-			$has_rights = $this->writable;
+			$has_rights = ($this->writable && $this->rechte);
 			$title = _("Neuen Bereich erstellen");
 			$name = _("Bereichsname");
 			$content = _("Beschreibung");
@@ -1125,7 +1136,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					);
 				}
 
-				usort($ret, array('ForumPPPlugin', 'sort_threads_by_date'));
+				uksort($ret, array('ForumPPPlugin', 'sort_threads_by_date'));
 				return $ret;
         break;
 
@@ -1360,9 +1371,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			// _ENHANCED
 			case 'get_categories':
-				$db = new DB_Seminar("SELECT * FROM forumpp WHERE entry_type = 'category' AND seminar_id = '". $this->getId() ."'");
+				$db = new DB_Seminar("SELECT * FROM forumpp WHERE entry_type = 'category' AND seminar_id = '". $this->getId() ."' ORDER BY pos ASC");
 				if ($db->num_rows() == 0) {
-					return array(array('areas' => array()));
+					return array();
 				} 
 
 				$ret = array();
@@ -1371,7 +1382,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$zw['name'] = $db->f('entry_name');
 					$zw['areas'] = array();
 					$db2 = new DB_Seminar("SELECT * FROM forumpp 
-						WHERE entry_type = 'area' AND seminar_id = '". $this->getId() ."' AND entry_id = '". $db->f('entry_id') ."'");
+						WHERE entry_type = 'area' AND seminar_id = '". $this->getId() ."' AND entry_id = '". $db->f('entry_id') ."'
+						ORDER BY pos ASC");
 					while ($db2->next_record()) {
 						$zw['areas'][] = $db2->f('topic_id');
 					}
@@ -1930,9 +1942,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		return $infobox;
 	}
+
+
 	/* * * * * * * * * * * * * * * *
 	 * M A I N - F U N C T I O N S *
 	 * * * * * * * * * * * * * * * */
+
 	function configShow() {
 		if (!$this->rechte) return;
 
@@ -1941,12 +1956,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		// Standardforum deaktivieren
 		if ($_REQUEST['deactivate'] == 'deactivate') {
-			$admin_modules->clearBit($bitmask, $admin_modules->registered_modules['forum']["id"]);
+			$admin_modules->clearBit($bitmask, $admin_modules->registered_modules['forum']['id']);
 			$admin_modules->writeBin($this->getId(), $bitmask);
 		} 
 		
 		// Standardforum aktivieren
-		else if ($_REQUEST['activate'] = 'activate') {
+		else if ($_REQUEST['activate'] == 'activate') {
 			$admin_modules->setBit($bitmask, $admin_modules->registered_modules['forum']['id']);
 			$admin_modules->writeBin($this->getId(), $bitmask);
 		}
@@ -1987,7 +2002,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
     $plugin = $this;
 		$template =& $this->template_factory->open('html/config.php');
 		$template->set_layout('html/layout');
-    $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum'));
+    $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum', 'plugin'));
 
 		echo $template->render();
 	}
@@ -2165,15 +2180,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			} else {
 				$categories = array (
-				array (
-				'name' => 'Allgemeine Kategorie',
-				'areas' => $areas
-				)
+					array (
+						'name' => 'Allgemeine Kategorie',
+						'areas' => $areas
+					)
 				);
 			}
 
 
-			if ($this->writable) {
+			if ($this->writable && $this->rechte) {
 				$aktionen[] = array(
 					'name' => 'Bereich erstellen',
 					'link' => PluginEngine::getLink($this, array('section' => 'create_area')),

@@ -36,7 +36,7 @@ img:onClick {
 /* highlighted search-strings */
 span.highlight {
 	background-color: yellow;
-	font-size: 1em;
+	font-size: 12pt;
 }
 
 /* posting lists*/
@@ -100,12 +100,12 @@ span.highlight {
 
 span.areaname {
 	font-weight: bold;
-	font-size: 1.2em;
+	font-size: 12pt;
 }
 
 /* thread specififc stuff */
 span.threadauthor {
-	font-size: 0.9em;
+	font-size: 12pt;
 	float: left;
 	width: 70%;
 }
@@ -143,14 +143,6 @@ span.selected {
 	background-color: #E1EBF2;
 }
 
-span.thread-title {
-	display: block;
-	font-size: 1.5em;
-	font-weight: bold;
-	margin-bottom: 8px;
-	float: left;
-}
-
 .posting {
 	height: 100%;
 
@@ -164,7 +156,7 @@ span.thread-title {
 	width: 78%;
 	float: left;
 	text-align: left;
-	font-size: 0.9em;
+	font-size: 12pt;
 }
 
 .buttons {
@@ -175,7 +167,7 @@ span.thread-title {
 span.title {
 	text-align: left;
 	font-weight: bold;
-	font-size: 1.1em;
+	font-size: 12pt;
 	width: 80%;
 	float: left;
 }
@@ -187,12 +179,12 @@ div.postbody span.icons {
 }
 
 p.author {
-	font-size: 0.8em;
+	font-size: 12pt;
 	margin: 2px 0px 8px 0px;
 }
 
 div.postbody p.content {
-	font-size: 1.1em;
+	font-size: 12pt;
 	overflow: hidden;
 	clear: both;
 }
@@ -202,7 +194,7 @@ div.postbody p.content:hover {
 }
 
 .postprofile {
-	font-size: 0.9em;
+	font-size: 12pt;
 	border-left: 1px solid #FFFFFF;
 	display: inline;
 	float: right;
@@ -259,4 +251,39 @@ span.corners-bottom span {
 span.no-corner {
 	display: block;
 	height: 5px;
+}
+
+blockquote.quote {
+	background-color: #D1DBF2;
+}
+
+/* Administration-Area */
+div.cat, div.dropcat {
+	background-color: #CFCFEF;
+	min-height: 60px;
+}
+
+li.areas {
+	border: 1px solid #CFCFEF;
+	background-color: #CFCFEF;
+	margin-bottom: 5px;
+	cursor: pointer;
+	margin-left: -10px;
+}
+
+li.areas_dropped {
+	border: 1px solid #CFCFEF;
+	background-color: none;
+	margin-bottom: 5px;
+	cursor: pointer;
+	margin-left: -10px;
+}
+
+span.bgtext {
+	display: block;
+	color: #AAAAAA;
+	position: absolute;
+	top: 2px;
+	right: 10px;
+	width: 300px;
 }
