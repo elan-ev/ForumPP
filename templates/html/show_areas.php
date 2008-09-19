@@ -30,9 +30,10 @@
         </font>
       </td>
       <td width="5%" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
-      	<?= $area['num_postings'] - 1 ?>
+      	<?= ($area['num_postings'] > 0) ? ($area['num_postings'] - 1) : 0 ?>
       </td>
       <td width="30%" align="left" valign="top" class="areaentry2">
+				<? if (is_array($area['last_posting'])) : ?>
 				<?= _("von") ?>
 				<a href="about.php?username=<?= $area['last_posting']['username'] ?>">
 					<?= $area['last_posting']['user_fullname'] ?>
@@ -42,6 +43,12 @@
 					<img src="<?= $plugin->picturepath ?>/goto_posting.png" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 				</a><br/>
 				<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$area['last_posting']['date']) ?>
+				<? else: ?>
+				<?= _("von") ?>
+				<a href="about.php?username=<?= get_username($area['owner_id']) ?>">
+					<?= $area['author'] ?>
+				</a>
+				<? endif; ?>
       </td>
 			<td class="areaborder">&nbsp;</td>
     </tr>
