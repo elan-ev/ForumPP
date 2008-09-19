@@ -24,7 +24,7 @@ require_once('db/ForumPPDB.php');
 require_once('lib/classes/AdminModules.class.php');
 
 if (!defined('FEEDCREATOR_VERSION')) {
-	require_once('vendor/feedcreator/feedcreator.class.php');
+	require_once( dirname(__FILE__) . '/vendor/feedcreator/feedcreator.class.php');
 }
 
 class ForumPPPlugin extends AbstractStudIPStandardPlugin {
@@ -253,6 +253,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 */
 	function actionSavecats() {
 		ob_end_clean();
+		if (!$this->rechte) return;
 
 		$entry_id = substr($_REQUEST['topic_id'], 9, strlen($_REQUEST['topic_id']));
 		$pos = 0;
@@ -266,9 +267,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	function actionChangeParent() {
 		ob_end_clean();
+		if (!$this->rechte) return;
 
 		$new_parent = $_REQUEST['new_parent'];
 		$topic_id = $_REQUEST['topic_id'];
+		
+		if ($new_parent == '0'){
+			$stmt = DBManager::get()->prepare("DELETE FROM forumpp WHERE topic_id = ? AND seminar_id = ?");
+			$stmt->execute(array($topic_id, $this->getId()));
+		}
 		
 		$stmt = DBManager::get()->prepare("UPDATE px_topics SET parent_id = ?, chdate = ? WHERE topic_id = ?");
 		$stmt->execute(array($new_parent, time(), $topic_id));
@@ -276,6 +283,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	function actionLoadChilds() {
 		ob_end_clean();
+		if (!$this->rechte) return;
 		
 		if ($this->rechte) {
 			$childs = $this->getDBData('get_child_postings', array('parent_id' => $_REQUEST['area_id']));
@@ -532,11 +540,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 */
   function create_area() {
 
-		$data = array (
-			'name' => $GLOBALS['_REQUEST']['title'],
-			'description' => $GLOBALS['_REQUEST']['data']
-		);
-		$GLOBALS['_REQUEST']['root_id'] = $this->insert_entry($data);
+		if ($_REQUEST['title']) {
+			$data = array (
+				'name' => $GLOBALS['_REQUEST']['title'],
+				'description' => $GLOBALS['_REQUEST']['data']
+			);
+			$GLOBALS['_REQUEST']['root_id'] = $this->insert_entry($data);
+		}
 
   }
 
@@ -936,7 +946,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$thread_id = $this->getThreadIdCached($db->f('topic_id'));
 
 			$ret[] = array(
-				'has_childs' => $db->f('has_childs'),
+				'has_childs' => true,
 				'author' => $db->f('author'),
 				'topic_id' => $db->f('topic_id'),
 				'thread_id' => $thread_id,
@@ -1214,13 +1224,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			break;
 
 			case 'get_child_postings':
-				$db = new DB_Seminar($query = "SELECT px.*, ou.flag as fav, p2.topic_id as has_childs FROM px_topics as px
-					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					LEFT JOIN px_topics as p2 ON (p2.parent_id = px.topic_id)
+				$db = new DB_Seminar($query = "SELECT px.* FROM px_topics as px
 					WHERE px.Seminar_id =  '". $this->getId() ."' AND px.parent_id = '{$data['parent_id']}'
 					ORDER BY mkdate DESC");
 
-				return $this->_dbdataFillArray($db);
+				$data = $this->_dbdataFillArray($db);
+				return $data;
 				break;
 
 			case 'get_last_postings':
@@ -2157,8 +2166,27 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		echo $template->render();
 	}
 
+	/*
+	 * This function does a garbage collect on the table forumpp. It is only needed,
+	 * until deleted areas delete their entry in here for them self.
+	 */
+	function gc() {
+		$stmt = DBManager::get()->prepare("SELECT DISTINCT forumpp.entry_id FROM forumpp LEFT JOIN px_topics ON (forumpp.topic_id = px_topics.topic_id) WHERE px_topics.topic_id IS NULL AND forumpp.seminar_id = ? AND forumpp.topic_id IS NOT NULL AND forumpp.topic_id != ''");
+		$stmt->execute(array($this->getId()));
+		
+		$ids = array();
+		
+		while ($data = $stmt->fetch()) {
+			$ids[] = $data['entry_id'];
+		}
+
+		DBManager::get()->query("DELETE FROM forumpp WHERE entry_id IN ('". implode("', '", $ids) ."')");
+	}
+
+	
 	function forumShow() {
 		global $_REQUEST;
+		$this->gc();
 
 		// show messages if any
 		$this->showMessages();

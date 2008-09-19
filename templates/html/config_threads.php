@@ -62,9 +62,10 @@ foreach($categories as $cat_id => $cat) {
 
 	function paste(id) {
 		if (copyid == '' || copyid == id) return;
+		if ($('area_' + id).descendantOf($('area_' + copyid))) return;
 
 		// load the child elements only if they are not present already
-		if (typeof(loaded_childs[id]) == 'undefined') {
+		if (typeof(loaded_childs[id]) == 'undefined' && id != '0') {
 			loadChilds(id);
 		}
 
@@ -117,7 +118,6 @@ foreach($categories as $cat_id => $cat) {
 			</ul>
 			<? endforeach; ?>
 	
-			<? if (sizeof($areas) > 0) : ?>
 			<div id="area_0">
 			<b><?= _("Keiner Kategorie zugeordnet") ?>:</b>
 			<img onClick="paste('0')" title="<?= _("Als Bereich einf&uuml;gen") ?>" src="<?= $picturepath ?>/icons/paste_plain.png">
@@ -133,7 +133,6 @@ foreach($categories as $cat_id => $cat) {
 				</li>
 				<? endforeach; ?>
 			</ul>
-			<? endif; ?>
 			</div>
 		</p>
 	</div>
