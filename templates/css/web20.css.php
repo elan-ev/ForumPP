@@ -162,6 +162,8 @@ span.selected {
 .buttons {
 	clear: both;
 	width: 100%;
+	text-align: center;
+	padding-top: 5px;
 }
 
 span.title {
