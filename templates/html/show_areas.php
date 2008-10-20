@@ -6,6 +6,14 @@
 			<span class="corners-top"></span>
 			<span class="heading"><?= strtoupper($cat['name']) ?>&nbsp;</span>
 		</td>
+
+		<? if ($show_area_edit) : ?>
+		<td class="forum_header" width="1%">
+			<span class="no-corner"></span>
+			<span class="heading">&nbsp;</span>
+		</td>
+		<? endif; ?>
+
     <td class="forum_header" width="1%">
 			<span class="no-corner"></span>
 			<span class="heading"><?= _("BEITR&Auml;GE") ?></span>
@@ -22,16 +30,42 @@
         <?= Assets::img('eigene2') ?>
 			</td>
       <td class="areaentry" valign="top">
+
+				<? if ($edit_area == $area['entry_id']) : ?>
+					<form action="<?= PluginEngine::getLink($plugin) ?>" method="post">
+						<input type="text" name="posting_title" style="width: 99%" value="<?= $area['name_raw'] ?>"><br/>
+						<textarea name="posting_data" style="width: 99%" rows="7"><?= $area['description_raw'] ?></textarea><br/>
+						<div class="buttons">
+							<input type="image" <?= makebutton('speichern', 'src') ?>>&nbsp;&nbsp;&nbsp;
+							<a href="<?= PluginEngine::getLink($plugin) ?>"><img <?= makebutton('abbrechen', 'src') ?>></a>
+						</div>
+						<input type="hidden" name="subcmd" value="do_edit_posting">
+						<input type="hidden" name="posting_id" value="<?= $area['entry_id'] ?>">
+					</form>
+				<? else : ?>
+
         <font size="-1">
           <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $area['entry_id'])) ?>">
             <span class="areaname"><?= $area['name'] ?></span>
           </a><br/>
           <?= $area['description'] ?>
         </font>
+				<? endif; ?>
+
       </td>
-      <td width="5%" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
+
+			<? if ($show_area_edit) : ?>
+      <td width="20" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
+				<a href="<?= PluginEngine::getLink($plugin, array('subcmd' => 'edit_area', 'area_id' => $area['entry_id']))?>#create_area">
+					<?= Assets::img('edit_transparent') ?>
+				</a>
+			</td>
+			<? endif; ?>
+
+      <td width="40" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
       	<?= ($area['num_postings'] > 0) ? ($area['num_postings'] - 1) : 0 ?>
       </td>
+
       <td width="30%" align="left" valign="top" class="areaentry2">
 				<? if (is_array($area['last_posting'])) : ?>
 				<?= _("von") ?>
@@ -53,6 +87,7 @@
 			<td class="areaborder">&nbsp;</td>
     </tr>
   <? endforeach; ?>
+
 	<!-- bottom border -->
 	<tr>
 		<td class="areaborder" colspan="6">
@@ -63,6 +98,7 @@
 		<td class="blank">&nbsp;</td>
 	</tr>
   <? endif; endforeach; ?>
+
 </table>
 <br/>
 

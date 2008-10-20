@@ -766,7 +766,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			</dl>
 
 			<div class="buttons">				
-			<input type="image" <?= makebutton('erstellen', 'src') ?>>
+			<input type="image" <?= makebutton('erstellen', 'src') ?>>&nbsp;&nbsp;&nbsp;
 			<?
 			if ($_REQUEST['thread_id']) $params['thread_id'] = $_REQUEST['thread_id'];
 			if ($_REQUEST['root_id']) $params['root_id'] = $_REQUEST['root_id'];
@@ -1199,7 +1199,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						'entry_id' => $db->f('topic_id'),
 						'mkdate' => $db->f('mkdate'),
 						'name' => formatReady($db->f('name')),
+						'name_raw' => $db->f('name'),
 						'description' => formatReady($this->forumKillEdit($db->f('description'))),
+						'description_raw' => $this->forumKillEdit($db->f('description')),
 						'description_short' => $desc_short,
 						'num_postings' =>  $num_postings,
 						'last_posting' => $last_posting,
@@ -2294,12 +2296,20 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			}
 
 
+			$show_area_edit = false;
+			$edit_area = false;
+
 			if ($this->writable && $this->rechte) {
 				$aktionen[] = array(
 					'name' => 'Bereich erstellen',
 					'link' => PluginEngine::getLink($this, array('section' => 'create_area')),
 					'anchor' => 'create_area'
 				);
+
+				if ($_REQUEST['subcmd'] == 'edit_area') {
+					$edit_area = $_REQUEST['area_id'];
+				}
+				$show_area_edit = true;
 			}
 
 			$infobox->set_attribute('section', 'areas');
@@ -2307,7 +2317,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			$template =& $this->template_factory->open($this->output_format . '/show_areas');
 			$template->set_layout($this->output_format . '/layout');
-			$template->set_attributes(compact('categories', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
+			$template->set_attributes(compact('categories', 'plugin', 'infobox', 'standard_infobox', 'menubar', 'show_area_edit', 'edit_area'));
 			echo $template->render();
 		}
 
