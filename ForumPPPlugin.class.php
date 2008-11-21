@@ -1009,6 +1009,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
     switch ($type) {
 			// count all postings under a specified range_id
 			case 'count_postings':
+				$db = new DB_Seminar($query = "SELECT COUNT(*) as c FROM px_topics 
+					WHERE px_topics.parent_id = '{$data['range_id']}'");
+
+				$db->next_record();
+				return $db->f('c');
+
+				/*
 				// return cached number if any
 				if ($count_postings[$data['range_id']]) return $count_postings[$data['range_id']];
 				
@@ -1039,7 +1046,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				// cache the number to speed up the process if called again
 				$count_postings[$data['range_id']] = ($count < 0) ? 0 : $count;
 				return $count;
-				
+				*/
 				break;
 
 			case 'get_postings_for_feed':
