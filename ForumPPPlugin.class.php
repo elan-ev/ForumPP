@@ -271,14 +271,20 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		$new_parent = $_REQUEST['new_parent'];
 		$topic_id = $_REQUEST['topic_id'];
+		$stmt = DBManager::get()->prepare("SELECT * FROM px_topics WHERE topic_id = ?");
+		$stmt->execute(array($new_parent));
+		if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) die;
+		$new_root_id = $data['topic_id'];
 		
 		if ($new_parent == '0'){
 			$stmt = DBManager::get()->prepare("DELETE FROM forumpp WHERE topic_id = ? AND seminar_id = ?");
 			$stmt->execute(array($topic_id, $this->getId()));
 		}
 		
-		$stmt = DBManager::get()->prepare("UPDATE px_topics SET parent_id = ?, chdate = ? WHERE topic_id = ?");
-		$stmt->execute(array($new_parent, time(), $topic_id));
+		$stmt = DBManager::get()->prepare("UPDATE px_topics SET parent_id = ?, root_id = ?, chdate = ? WHERE topic_id = ?");
+		$stmt->execute(array($new_parent, $new_root_id, time(), $topic_id));
+
+		$this->recreate_traversal($new_root_id);
 	}
 
 	function actionLoadChilds() {
@@ -940,6 +946,10 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * D A T A - R E T R I E V A L - F U N C T I O N S *
 	 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	function getThreadIdCached($topic_id) {
+		
+	}
+
 	function _dbdataFillArray($db) {
 		$ret = array();
 		while ($db->next_record()) {
@@ -1007,46 +1017,27 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
     $ret = array();
 
     switch ($type) {
+			case 'get_lft_rgt':
+				$stmt = DBManager::get()->prepare("SELECT lft, rgt FROM px_topics WHERE topic_id = ?");
+				$stmt->execute(array($data['range_id']));
+				$data = $stmt->fetch(PDO::FETCH_ASSOC);
+				return $data;
+				break;
+
 			// count all postings under a specified range_id
 			case 'count_postings':
-				$db = new DB_Seminar($query = "SELECT COUNT(*) as c FROM px_topics 
-					WHERE px_topics.parent_id = '{$data['range_id']}'");
-
-				$db->next_record();
-				return $db->f('c');
-
+				$data = $this->getDBData('get_lft_rgt', array('range_id' => $data['range_id']));
+				// var_dump($data['rgt'], $data['lft']);
+				// echo '<hr/>';
+				return ($data['rgt'] - $data['lft'] - 1) / 2;
 				/*
-				// return cached number if any
-				if ($count_postings[$data['range_id']]) return $count_postings[$data['range_id']];
-				
-				// instead of recursion we us a stack
-				$stack = array();
-				$count = 1;		// count the parent-posting itself as well
-
-				$db = new DB_Seminar($query = "SELECT pa.topic_id, pb.topic_id as child FROM px_topics as pa 
-					LEFT JOIN px_topics as pb ON (pa.topic_id = pb.parent_id)
-					WHERE pa.parent_id = '{$data['range_id']}'");
-					
-				while ($db->next_record()) {
-					if ($db->f('child')) {
-						$stack[] = $db->f('topic_id');
-					}
-					
-					$count++;
-				}
-
-				while ($id = array_pop($stack)) {				
-					$count++;
-					$db = new DB_Seminar("SELECT * FROM px_topics WHERE parent_id = '$id'");
-					while ($db->next_record()) {
-						$stack[] = $db->f('topic_id');
-					}
-				}
-				
-				// cache the number to speed up the process if called again
-				$count_postings[$data['range_id']] = ($count < 0) ? 0 : $count;
-				return $count;
+				$stmt = DBManager::get()->prepare("SELECT COUNT(*) as c FROM px_topics 
+					WHERE lft >= ? AND rgt <= ?");
+				$stmt->execute(array($data['lft'], $data['rgt']));
+				$ret = $stmt->fetch();
 				*/
+
+				return $ret['c'];
 				break;
 
 			case 'get_postings_for_feed':
@@ -1077,38 +1068,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
       case 'get_postings_for_thread':
 				// we retrieve all postings for one thread and its childs
 	
-				// instead of recursion we us a stack
-				$stack = array();
-				$postings = array();
-
-				$db = new DB_Seminar("SELECT pa.*, ou.flag as fav, pb.topic_id as child FROM px_topics as pa 
-					LEFT JOIN object_user as ou ON (ou.object_id = pa.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					LEFT JOIN px_topics as pb ON (pa.topic_id = pb.parent_id)
-					WHERE pa.parent_id = '{$data['thread_id']}' OR pa.topic_id ='{$data['thread_id']}'
-					ORDER BY mkdate, chdate");
-				while ($db->next_record()) {
-					$postings[$db->f('topic_id')] = $db->Record;
-
-					// only put on stack if it has child-postings
-					if ($db->f('child')) {
-						$stack[] = $db->f('topic_id');
-					} else {
-						$count++;
-					}
-				}
-
-				while ($id = array_pop($stack)) {
-					$db = new DB_Seminar("SELECT px.*, ou.flag as fav FROM px_topics as px
-						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-						WHERE parent_id = '$id' ORDER BY mkdate, chdate");
-					while ($db->next_record()) {
-						$postings[$db->f('topic_id')] = $db->Record;
-						$stack[] = $db->f('topic_id');
-					}
-				}
-
-				$parent_list = array();
-				$i = 1;
 				$page = 1;
 				
 				if ($GLOBALS['_REQUEST']['page']) {
@@ -1116,28 +1075,33 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				}
 				
 				if ($GLOBALS['_REQUEST']['jump_to']) {
-					$page = ceil(sizeof($postings) / $this->POSTINGS_PER_PAGE);
+					$page = ceil($this->getDBData('count_postings', array('range_id' => $data['thread_id'])) / $this->POSTINGS_PER_PAGE);
 				}
 				
 				$GLOBALS['_REQUEST']['page'] = $page;
+				$start = ($page - 1) * $this->POSTINGS_PER_PAGE;
 
-				foreach ($postings as $post) {
-					if ($i > ($page-1) * $this->POSTINGS_PER_PAGE && $i <= (($page-1) * $this->POSTINGS_PER_PAGE) + $this->POSTINGS_PER_PAGE) {
-	          $parent_list[$post['topic_id']] = array(
-	            'author' => $post['author'],
-	            'topic_id' => $post['topic_id'],
-	            'name' => formatReady($post['name']),
-	            'description' => formatReady($this->forumParseEdit($post['description'])),
-	            'chdate' => $post['chdate'],
-							'owner_id' => $post['user_id'],
-							'raw_title' => $post['name'],
-							'raw_description' => $this->forumKillEdit($post['description']),
-							'fav' => ($post['fav'] == 'fav'),
-							'thread_id' => $_REQUEST['thread_id'],
-							'root_id' => $_REQUEST['root_id']
-	          );
-					}
-					$i++;
+				$data = $this->getDBData('get_lft_rgt', array('range_id' => $data['thread_id']));
+
+				$stmt = DBManager::get()->prepare("SELECT p.*, ou.flag as fav FROM px_topics as p 
+					LEFT JOIN object_user as ou ON (ou.object_id = p.topic_id AND ou.user_id = ?)
+					WHERE p.lft >= ? AND p.rgt <= ? AND root_id = ? ORDER BY lft, mkdate, chdate LIMIT $start, {$this->POSTINGS_PER_PAGE}");
+				$stmt->execute(array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $_REQUEST['root_id']));
+
+				while ($post = $stmt->fetch(PDO::FETCH_ASSOC)) {
+	      	$parent_list[$post['topic_id']] = array(
+	          'author' => $post['author'],
+	          'topic_id' => $post['topic_id'],
+	          'name' => formatReady($post['name']),
+	          'description' => formatReady($this->forumParseEdit($post['description'])),
+	          'chdate' => $post['mkdate'],
+						'owner_id' => $post['user_id'],
+						'raw_title' => $post['name'],
+						'raw_description' => $this->forumKillEdit($post['description']),
+						'fav' => ($post['fav'] == 'fav'),
+						'thread_id' => $_REQUEST['thread_id'],
+						'root_id' => $_REQUEST['root_id']
+	         );
 				}
 								
         return array('postings' => $parent_list, 'postings_count' => sizeof($postings));
@@ -1147,38 +1111,29 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			case 'get_threads_for_area':
 			case 'get_areas':
 				if (!$data['parent_id']) $parent_id = 0; else $parent_id = $data['parent_id'];
-				$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE Seminar_id = '". $this->getId() ."' AND parent_id = '$parent_id'");
+				$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE Seminar_id = '". $this->getId() ."' AND parent_id = '$parent_id' ORDER BY mkdate");
 				while ($db->next_record()) {
-					// count the postings in this area. all postings have the area_id as root_id in the database
-					if ($parent_id == '0') {
-						$db2 = new DB_Seminar("SELECT COUNT(*) as c FROM px_topics WHERE root_id = '". $db->f('topic_id') ."'");
-						$db2->next_record();
-						$num_postings = $db2->f('c');
-					} else {
-						$num_postings = $this->getDBData('count_postings', array('range_id' => $db->f('topic_id'))); 
-					}
-					
-					// get newest posting
-					if ($parent_id == '0') {
-						$db3 = new DB_Seminar("SELECT * FROM px_topics
-							WHERE root_id = '". $db->f('topic_id') ."' 
-							ORDER BY chdate DESC LIMIT 1");
-					} else {
-						$db3 = new DB_Seminar("SELECT * FROM px_topics 
-							WHERE parent_id = '". $db->f('topic_id') ."' OR topic_id = '". $db->f('topic_id') ."' 
-							ORDER BY chdate DESC LIMIT 1");
-					}
-
+					// count the postings in this area / thread
+					$num_postings = $this->getDBData('count_postings', array('range_id' => $db->f('topic_id'))); 
 					$sort_criteria = $db->f('mkdate');
-					if ($db3->next_record()) {
-						$sort_criteria = $db3->f('mkdate');
-						$last_posting['date'] = $db3->f('chdate');
-						$last_posting['user_id'] = $db3->f('user_id');
-						$last_posting['user_fullname'] = $db3->f('author');
-						$last_posting['username'] = get_username($db3->f('user_id'));
+					$range_id = ($_REQUEST['root_id'] ? $_REQUEST['root_id'] : $db->f('topic_id'));
+
+					// get newest posting
+					$data = $this->getDBData('get_lft_rgt', array('range_id' => $db->f('topic_id')));
+					$stmt = DBManager::get()->prepare("SELECT * FROM px_topics 
+						WHERE lft >= ? AND rgt <= ? AND root_id = ? 
+						ORDER BY mkdate DESC LIMIT 1");
+					$stmt->execute(array($data['lft'], $data['rgt'], $db->f('root_id')));
+
+					if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+						$sort_criteria = $data['mkdate'];
+						$last_posting['date'] = $data['mkdate'];
+						$last_posting['user_id'] = $data['user_id'];
+						$last_posting['user_fullname'] = $data['author'];
+						$last_posting['username'] = get_username($data['user_id']);
 
 						// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
-						$text = strip_tags($db3->f('description'));
+						$text = strip_tags($data['description']);
 						$text = $this->br2space($text);
 						$text = kill_format($this->forumKillQuotes($text));
 
@@ -1186,7 +1141,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 							$text = substr($text ,0, 40) . '...';
 						}
 
-						$last_posting['link'] = PluginEngine::getLink($this, array('root_id' => $db3->f('root_id'), 'thread_id' => $this->getThreadIDCached($db3->f('topic_id')), 'jump_to' => $db3->f('topic_id'))) .'#'. $db3->f('topic_id');
+						$last_posting['link'] = PluginEngine::getLink($this, array('root_id' => $range_id, 'thread_id' => $db->f('topic_id'), 'jump_to' => $data['topic_id'])) .'#'. $data['topic_id'];
 						$last_posting['text'] = $text;
 						//$text  = '<img src="'. $GLOBALS['ASSETS_URL'] .'/images/link_intern.gif">&nbsp;'. $text;
 					} else {
@@ -1568,28 +1523,20 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 	/*
 	 * the page chooser for the thread-overview */
-	function get_page_chooser($area_id, $thread_id, $num_postings = -1) {
-		$show_text = true;
-
-		if ($num_postings == -1) {
-			$num_postings = $this->getDBData('count_postings', array('range_id' => $thread_id, 'exact' => 'true'));
-			$cur_page = -1;
-			$show_text = false;
-		} else {
-			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
-		}
+	function get_page_chooser($area_id, $thread_id, $show_text = true) {
+		$num_postings = $this->getDBData('count_postings', array('range_id' => $thread_id, 'exact' => 'true'));
 
 		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
-		
 		if ($pages == 1) return;
 	
 		if ($show_text) {
 			// show additional text over thread-postings
+			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
 			$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
 		} else {
 			// page icon in thread-overview
 			$info = _("Seite ausw&auml;hlen");
-			$ret .= '<img src="'. $this->picturepath .'/pages.png" align="absbottom" alt="'. $info .' title="'. $info .'"> ';
+			$ret .= '<img src="'. $this->picturepath .'/pages.png" align="absbottom" alt="'. $info .' title="'. $info .'">';
 		}
 
 		$run = true;
@@ -1645,7 +1592,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			}
 
 			if ($add_dots) {
-				$ret .= ' &hellip;';
+				$ret .= '&nbsp;&hellip;';
 			}
 
 			// only show pages to choose if they are meant to be shown
@@ -1666,32 +1613,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	/* * * * * * * * * * * * * * * * * * *
 	 * H E L P E R - F U N C T I O N S *
 	 * * * * * * * * * * * * * * * * * * */
-
-	/**
-	 * this functions retrieves the topic-id of the belonging thread recursively
-	 * @param string $topic_id id of the topic we want the belonging thread for
-	 * @returns string
-	 */
-	function getThreadID($topic_id) {
-		$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE topic_id = '$topic_id'");
-		$db->next_record();
-
-		if ($db->f('parent_id') == $db->f('root_id')) {
-			return $db->f('topic_id');
-		} else {
-			return $this->getThreadID($db->f('parent_id'));
-		}
-	}
-
-	function getThreadIDCached($topic_id) {	
-		static $get_thread_id_cache;
-
-		if (!isset($get_thread_id_cache[$topic_id])) {
-			$get_thread_id_cache[$topic_id] = $this->getThreadID($topic_id);
-		}
-
-		return $get_thread_id_cache[$topic_id];
-	}
 
 	/**
 	 * callback-function for usort, sorts by array-field sort_criteria

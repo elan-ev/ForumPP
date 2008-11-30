@@ -12,7 +12,7 @@ class CreateForumppTable extends DBMigration {
 				KEY  (`entry_id`),
 				KEY `entry_type` (`entry_type`),
 				KEY `topic_id` (`topic_id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+			) ENGINE=MyISAM;
 		");
 
 	}
