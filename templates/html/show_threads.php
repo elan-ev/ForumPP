@@ -39,7 +39,7 @@
 					</a>
 					<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$thread['mkdate']) ?>
 				</span>
-				<span class="pagechooser_thread"><?= $plugin->get_page_chooser($_REQUEST['root_id'], $thread['entry_id']) ?></span>
+				<span class="pagechooser_thread"><?= $plugin->get_page_chooser($_REQUEST['root_id'], $thread['entry_id'], false) ?></span>
       </td>
       <td class="areaentry2" align="center" valign="top" style="padding-top: 8px">
 				<?= $thread['num_postings'] ?>

@@ -11,7 +11,7 @@
 		<td>
 			<span class="pagechooser">
 				<br/>
-				<?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id'], $postings_count) ?>
+				<?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id']) ?>
 			</span>
 		</td>
 	</tr>
@@ -37,7 +37,7 @@
 </table>
 
 </form>
-<?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id'], $postings_count) ?>
+<?= $plugin->get_page_chooser($_REQUEST['root_id'], $_REQUEST['thread_id']) ?>
 <br />
 <? if ($answer_link) : ?>
 <center>

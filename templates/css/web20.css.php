@@ -117,8 +117,9 @@ span.pagechooser {
 
 span.pagechooser_thread {
 	float: right;
-	width: 110px;
+	width: 160px;
 	padding-bottom: 2px;
+	white-space: nowrap;
 }
 
 /* page-chooser */
