@@ -1017,29 +1017,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
     $ret = array();
 
     switch ($type) {
-			case 'get_lft_rgt':
-				$stmt = DBManager::get()->prepare("SELECT lft, rgt FROM px_topics WHERE topic_id = ?");
-				$stmt->execute(array($data['range_id']));
-				$data = $stmt->fetch(PDO::FETCH_ASSOC);
-				return $data;
-				break;
-
-			// count all postings under a specified range_id
-			case 'count_postings':
-				$data = $this->getDBData('get_lft_rgt', array('range_id' => $data['range_id']));
-				// var_dump($data['rgt'], $data['lft']);
-				// echo '<hr/>';
-				return ($data['rgt'] - $data['lft'] - 1) / 2;
-				/*
-				$stmt = DBManager::get()->prepare("SELECT COUNT(*) as c FROM px_topics 
-					WHERE lft >= ? AND rgt <= ?");
-				$stmt->execute(array($data['lft'], $data['rgt']));
-				$ret = $stmt->fetch();
-				*/
-
-				return $ret['c'];
-				break;
-
 			case 'get_postings_for_feed':
 				if ($data['id']) {
 					$postings = array();
@@ -1063,118 +1040,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					return $postings;
 				}
 				break;
-
-			// retrieves all postings for one thread			
-      case 'get_postings_for_thread':
-				// we retrieve all postings for one thread and its childs
-	
-				$page = 1;
-				
-				if ($GLOBALS['_REQUEST']['page']) {
-					$page = $GLOBALS['_REQUEST']['page'];
-				}
-				
-				if ($GLOBALS['_REQUEST']['jump_to']) {
-					$page = ceil($this->getDBData('count_postings', array('range_id' => $data['thread_id'])) / $this->POSTINGS_PER_PAGE);
-				}
-				
-				$GLOBALS['_REQUEST']['page'] = $page;
-				$start = ($page - 1) * $this->POSTINGS_PER_PAGE;
-
-				$data = $this->getDBData('get_lft_rgt', array('range_id' => $data['thread_id']));
-
-				$stmt = DBManager::get()->prepare("SELECT p.*, ou.flag as fav FROM px_topics as p 
-					LEFT JOIN object_user as ou ON (ou.object_id = p.topic_id AND ou.user_id = ?)
-					WHERE p.lft >= ? AND p.rgt <= ? AND root_id = ? ORDER BY lft, mkdate, chdate LIMIT $start, {$this->POSTINGS_PER_PAGE}");
-				$stmt->execute(array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $_REQUEST['root_id']));
-
-				while ($post = $stmt->fetch(PDO::FETCH_ASSOC)) {
-	      	$parent_list[$post['topic_id']] = array(
-	          'author' => $post['author'],
-	          'topic_id' => $post['topic_id'],
-	          'name' => formatReady($post['name']),
-	          'description' => formatReady($this->forumParseEdit($post['description'])),
-	          'chdate' => $post['mkdate'],
-						'owner_id' => $post['user_id'],
-						'raw_title' => $post['name'],
-						'raw_description' => $this->forumKillEdit($post['description']),
-						'fav' => ($post['fav'] == 'fav'),
-						'thread_id' => $_REQUEST['thread_id'],
-						'root_id' => $_REQUEST['root_id']
-	         );
-				}
-								
-        return array('postings' => $parent_list, 'postings_count' => sizeof($postings));
-				break;
-
-			// retrieves all threads for one area
-			case 'get_threads_for_area':
-			case 'get_areas':
-				if (!$data['parent_id']) $parent_id = 0; else $parent_id = $data['parent_id'];
-				$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE Seminar_id = '". $this->getId() ."' AND parent_id = '$parent_id' ORDER BY mkdate");
-				while ($db->next_record()) {
-					// count the postings in this area / thread
-					$num_postings = $this->getDBData('count_postings', array('range_id' => $db->f('topic_id'))); 
-					$sort_criteria = $db->f('mkdate');
-					$range_id = ($_REQUEST['root_id'] ? $_REQUEST['root_id'] : $db->f('topic_id'));
-
-					// get newest posting
-					$data = $this->getDBData('get_lft_rgt', array('range_id' => $db->f('topic_id')));
-					$stmt = DBManager::get()->prepare("SELECT * FROM px_topics 
-						WHERE lft >= ? AND rgt <= ? AND root_id = ? 
-						ORDER BY mkdate DESC LIMIT 1");
-					$stmt->execute(array($data['lft'], $data['rgt'], $db->f('root_id')));
-
-					if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-						$sort_criteria = $data['mkdate'];
-						$last_posting['date'] = $data['mkdate'];
-						$last_posting['user_id'] = $data['user_id'];
-						$last_posting['user_fullname'] = $data['author'];
-						$last_posting['username'] = get_username($data['user_id']);
-
-						// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
-						$text = strip_tags($data['description']);
-						$text = $this->br2space($text);
-						$text = kill_format($this->forumKillQuotes($text));
-
-						if (strlen($text) > 42) {
-							$text = substr($text ,0, 40) . '...';
-						}
-
-						$last_posting['link'] = PluginEngine::getLink($this, array('root_id' => $range_id, 'thread_id' => $db->f('topic_id'), 'jump_to' => $data['topic_id'])) .'#'. $data['topic_id'];
-						$last_posting['text'] = $text;
-						//$text  = '<img src="'. $GLOBALS['ASSETS_URL'] .'/images/link_intern.gif">&nbsp;'. $text;
-					} else {
-						$last_posting = _("keine Beitr&auml;ge");
-					}
-
-					// we throw away all formatting stuff, tags, etc, so we have just the important bit of information
-					$desc_short = $this->br2space(kill_format(strip_tags($db->f('description'))));
-					if (strlen($desc_short) > ($this->THREAD_PREVIEW_LENGTH +2)) {
-						$desc_short = substr($desc_short, 0, $this->THREAD_PREVIEW_LENGTH) . '...';
-					} else {
-						$desc_short = $desc_short;
-					}
-
-					$ret[$db->f('topic_id')] = array(
-						'author' => $db->f('author'),
-						'entry_id' => $db->f('topic_id'),
-						'mkdate' => $db->f('mkdate'),
-						'name' => formatReady($db->f('name')),
-						'name_raw' => $db->f('name'),
-						'description' => formatReady($this->forumKillEdit($db->f('description'))),
-						'description_raw' => $this->forumKillEdit($db->f('description')),
-						'description_short' => $desc_short,
-						'num_postings' =>  $num_postings,
-						'last_posting' => $last_posting,
-						'owner_id' => $db->f('user_id'),
-						'sort_criteria' => $sort_criteria
-					);
-				}
-
-				uksort($ret, array('ForumPPPlugin', 'sort_threads_by_date'));
-				return $ret;
-        break;
 
 			// retrieves the formatted title of one posting
 			case 'entry_name':
@@ -1436,6 +1301,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 				return $ret;
 				break;
+
+			default:
+				echo '<pre>';
+				echo "data-retrieval-method $type (". print_r($data, true) .") not found!";
+				print_r(debug_backtrace());
+				echo '</pre>';
+				die;
+				break;
     }
   }
 
@@ -1643,17 +1516,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 	}
 
-	
-	/**
-	 * is used for posting-preview. replaces all newlines with spaces
-	 * @param string $text the text to work on
-	 * @returns string
-	 */
-	function br2space($text) {
-		return str_replace("\n", ' ', str_replace("\r", '', $text));
-	}
-
-
 	/**
 	 * add a message to the message stack. Is used to display informational- or error-messages.
 	 * @param string $msg the message to be added to the stack
@@ -1675,36 +1537,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		echo '</table>';
 	}
 
-
-  function forumKillEdit($description) {
-    // wurde schon mal editiert
-    if (preg_match('/^(.*)(<admin_msg.*?)$/s',$description, $match)) {
-      return $match[1];
-    }
-    return $description;
-  }
-
-
-  function forumAppendEdit($description) {
-    $edit = "<admin_msg autor=\"".addslashes(get_fullname())."\" chdate=\"".time()."\">";
-    return $description . $edit;
-  }
-
-
-  function forumParseEdit($description) {
-    // wurde schon mal editiert
-    if (preg_match('/^.*(<admin_msg.*?)$/s',$description, $match)) {
-      $tmp = explode('"',$match[1]);
-      $append = "\n\n%%["._("Zuletzt editiert von"). ' '.$tmp[1]." - ".date ("d.m.y - H:i", $tmp[3])."]%%";
-      $description = $this->forumKillEdit($description) . $append;
-    }
-    return $description;
-  }
-
-	function forumKillQuotes($description) {
-		return str_replace('[/quote]', '', preg_replace("/\[quote=.*\]/U", "", $description));
-	}
- 
 	function show_textedit_buttons() {
 		// define the possible tags
 		$buttons = array (
