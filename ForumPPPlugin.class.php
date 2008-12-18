@@ -46,7 +46,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
   var $template_factory;
 	var $avatar_class = false;
 	var $rechte = false;
-	var $lastlogin = 0;	
+	var $lastlogin = 0;
 
 	var $writable = false;
 	var $editable = false;
@@ -78,7 +78,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		//$this->seminar_class = $GLOBALS['SessSemName']['class'];
     $this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
-		
+
 		$this->check_for_enhance();
 		$this->check_write_and_edit();
 	}
@@ -87,7 +87,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		global $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus;
 		/*
 		 * Schreibrechte
-		 * 0 - freier Zugriff 
+		 * 0 - freier Zugriff
 		 * 1 - in Stud.IP angemeldet
 		 * 2 - nur mit Passwort
 		 */
@@ -95,7 +95,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		// This is a separate view on rights, nobody should not be able to edit posts from other nobodys
 		$this->editable = $GLOBALS['perm']->have_studip_perm('user', $this->getId());
 		if ($GLOBALS['perm']->have_studip_perm('user', $this->getId())) {
-			$this->writable = true;	
+			$this->writable = true;
 		} else if (isset($SemSecLevelWrite) && $SemSecLevelWrite == 0) {
 			$this->writable = true;
 		}
@@ -107,7 +107,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$data = $result->fetch(PDO::FETCH_ASSOC);
 
 		if (!$data['forumfeed_token']) {
-			$this->token = md5(uniqid(rand())); 
+			$this->token = md5(uniqid(rand()));
 			$db->query("UPDATE seminare SET forumfeed_token = '{$this->token}' WHERE Seminar_id = '{$this->getId()}'");
 		} else {
 			$this->token = $data['forumfeed_token'];
@@ -132,14 +132,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		// path to plugin-pictures
 		$this->picturepath =  $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] . $this->getPluginPath() . '/img';
 
-		$_include_additional_header = 
-			'<link rel="stylesheet" href="'. PluginEngine::getLink($this, array(), 'css') .'" type="text/css">' . "\n"; 
+		$_include_additional_header =
+			'<link rel="stylesheet" href="'. PluginEngine::getLink($this, array(), 'css') .'" type="text/css">' . "\n";
 
 		$include_links = true;
 
-		if (isset($_REQUEST['plugin_subnavi_params'])) 
+		if (isset($_REQUEST['plugin_subnavi_params']))
 			switch ($_REQUEST['plugin_subnavi_params']) {
-		
+
 				case 'last_postings':
 				case 'search':
 					$include_links = true;
@@ -176,7 +176,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$db = new DB_Seminar("SHOW TABLES LIKE 'forumpp'");
 		if ($db->num_rows() == 1) $this->_ENHANCED = true;
 	}
-	
+
 	function getPluginname() {
 		return _("Forum");
 	}
@@ -238,18 +238,18 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function actionFeed() {
 		// this hack is necessary to disable the standard Stud.IP layout
 		ob_end_clean();
-		
+
 		if ($_REQUEST['token'] != $this->token) die;
 
 		$this->last_visit = time();
 		$this->output_format = 'feed';
 		$this->POSTINGS_PER_PAGE = $this->FEED_POSTINGS;
-		
+
 		$this->loadView();
 	}
 
 	/*
-	 * AJAX Backend-Actions 
+	 * AJAX Backend-Actions
 	 */
 	function actionSavecats() {
 		ob_end_clean();
@@ -275,12 +275,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$stmt->execute(array($new_parent));
 		if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) die;
 		$new_root_id = $data['topic_id'];
-		
+
 		if ($new_parent == '0'){
 			$stmt = DBManager::get()->prepare("DELETE FROM forumpp WHERE topic_id = ? AND seminar_id = ?");
 			$stmt->execute(array($topic_id, $this->getId()));
 		}
-		
+
 		$stmt = DBManager::get()->prepare("UPDATE px_topics SET parent_id = ?, root_id = ?, chdate = ? WHERE topic_id = ?");
 		$stmt->execute(array($new_parent, $new_root_id, time(), $topic_id));
 
@@ -290,7 +290,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function actionLoadChilds() {
 		ob_end_clean();
 		if (!$this->rechte) return;
-		
+
 		if ($this->rechte) {
 			$childs = $this->getDBData('get_child_postings', array('parent_id' => $_REQUEST['area_id']));
 			echo '<ul>';
@@ -314,7 +314,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				echo '<a href="javascript:choose(\''. $entry['topic_id'] .'\')" title="Diskussionsstrang ausschneiden"><img id="'. $entry['topic_id'] .'" src="'. $this->picturepath .'/icons/cut.png"></a>';
 				echo '&nbsp; &nbsp;';
 				echo '<a href="javascript:paste(\''. $entry['topic_id'] .'\')" title="Diskussionsstrang hier einfügen"><img src="'. $this->picturepath .'/icons/paste_plain.png"></a>';
-				echo '</li>';	
+				echo '</li>';
 			}
 			echo '</ul>';
 		}
@@ -387,7 +387,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function loadView() {
 		if (isset($_REQUEST['plugin_subnavi_params'])) {
 			switch ($_REQUEST['plugin_subnavi_params']) {
-		
+
 				case 'last_postings':
 					$this->lastPostingsShow();
 					break;
@@ -443,7 +443,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$navigation->addLinkParam('source', 'va');
 		$navigation->setActive();
 
-		
+
 		if ($this->rechte) {
 			$sub_nav = new PluginNavigation();
 			$sub_nav->setDisplayname(_("Bereiche administrieren"));
@@ -476,7 +476,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		return $this->getDBData('get_new_postings_count');
   }
 
-	function getOverviewMessage($has_changed) {
+	function getOverviewMessage($has_changed = FALSE) {
 		if ($has_changed) {
 			$c = $this->getDBData('get_new_postings_count');
 			if ($c == 1) {
@@ -725,7 +725,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 
 		ob_start();
-		
+
 		// show navigation
 		?>
 		<span class="areaname">
@@ -742,14 +742,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		<?
 		if ($has_rights && $_REQUEST['section'] == $subcmd) { ?>
 			<a name="<?= $subcmd ?>"></a>
-			<form action="" method="post">		
+			<form action="" method="post">
 			<input type="hidden" name="section" value="">
 			<input type="hidden" name="cmd" value="show">
 			<input type="hidden" name="subcmd" value="<?= $subcmd ?>">
 			<div class="posting bg2">
 			<span class="corners-top"><span></span></span>
 
-			<div class="postbody">				
+			<div class="postbody">
 			<span class="title"><?= $title ?></span><br/>
 
 			<p class="content" style="margin-bottom: 0pt">
@@ -771,7 +771,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			</dt>
 			</dl>
 
-			<div class="buttons">				
+			<div class="buttons">
 			<input type="image" <?= makebutton('erstellen', 'src') ?>>&nbsp;&nbsp;&nbsp;
 			<?
 			if ($_REQUEST['thread_id']) $params['thread_id'] = $_REQUEST['thread_id'];
@@ -848,7 +848,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$icon['title'] = _("Eintrag l&ouml;schen!");
 			$tmpl_icons[4] = $icon;
 		}
-    
+
 		// icon for adding / removing a post to / from the favorites
 		if ($this->editable) {
 			$icon = '';
@@ -865,7 +865,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 
 		// the buttonbar
-		if ($_REQUEST['plugin_subnavi_params'] == 'last_postings' 
+		if ($_REQUEST['plugin_subnavi_params'] == 'last_postings'
 				|| $_REQUEST['plugin_subnavi_params'] == 'new_postings'
 				|| $_REQUEST['plugin_subnavi_params'] == 'favorites') {
 			$tmpl_buttons = '';
@@ -947,7 +947,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	function getThreadIdCached($topic_id) {
-		
+
 	}
 
 	function _dbdataFillArray($db) {
@@ -1022,8 +1022,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$postings = array();
 
 					$db = new DB_Seminar("SELECT * FROM px_topics WHERE Seminar_id = '{$data['id']}' ORDER BY chdate DESC LIMIT " . $this->FEED_POSTINGS);
-					while ($db->next_record()) {						
-						$this->appendEntry($postings, $db->Record);	
+					while ($db->next_record()) {
+						$this->appendEntry($postings, $db->Record);
 					}
 
 					return $postings;
@@ -1034,7 +1034,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 					$db = new DB_Seminar("SELECT * FROM px_topics WHERE Seminar_id = '{$this->getId()} ' AND root_id = '{$data['area_id']}'ORDER BY chdate DESC LIMIT ". $this->FEED_POSTINGS);
 					while ($db->next_record()) {
-						$this->appendEntry($postings, $db->Record);	
+						$this->appendEntry($postings, $db->Record);
 					}
 
 					return $postings;
@@ -1085,7 +1085,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 				$db = new DB_Seminar("SELECT pt.*, ou.flag as fav FROM object_user as ou
 					LEFT JOIN px_topics as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					WHERE ou.user_id = '". $GLOBALS['user']->id ."' 
+					WHERE ou.user_id = '". $GLOBALS['user']->id ."'
 					AND ou.flag = 'fav'
 					AND pt.Seminar_id = '". $this->getId() ."'
 					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE);
@@ -1100,7 +1100,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$limit_start = 0;
 				}
 
-				$db = new DB_Seminar($query = "SELECT * FROM px_topics 
+				$db = new DB_Seminar($query = "SELECT * FROM px_topics
 					WHERE Seminar_id =  '". $this->getId() ."' AND mkdate >= {$this->last_visit}
 					ORDER BY mkdate DESC LIMIT $limit_start, ". $this->POSTINGS_PER_PAGE);
 
@@ -1117,7 +1117,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			case 'get_favorite_postings_count':
 				$db = new DB_Seminar("SELECT COUNT(*) as c FROM object_user as ou
 					LEFT JOIN px_topics as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					WHERE ou.user_id = '". $GLOBALS['user']->id ."' 
+					WHERE ou.user_id = '". $GLOBALS['user']->id ."'
 					AND ou.flag = 'fav'
 					AND pt.Seminar_id = '". $this->getId() ."'");
 				$db->next_record();
@@ -1144,13 +1144,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				// if there are quoted parts, they should not be separated
 				$suchmuster = '/".*"/U';
 				preg_match_all($suchmuster, $_searchfor, $treffer);
-				
+
 				// remove the quoted parts from $_searchfor
 				$_searchfor = preg_replace($suchmuster, '', $_searchfor);
 
 				// split the searchstring $_searchfor at every space
 				$_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
-				
+
 				// make an SQL-statement out of the searchstring
 				$search_string = array();
 				foreach ($_searchfor as $key => $val) {
@@ -1159,16 +1159,16 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					} else {
 						$_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
 						$val = str_replace('"', '', str_replace("'", '', $val));
-						
+
 						$search_string[] .= "name LIKE '%$val%'";
 						$search_string[] .= "description LIKE '%$val%'";
 						$search_string[] .= "author LIKE '%$val%'";
 					}
 				}
 
-				
+
 				$ids = array();
-				
+
 				$cl = new SphinxClient ();
 				$cl->SetMatchMode( SPH_MATCH_EXTENDED );
 
@@ -1178,13 +1178,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					die ( "ERROR: " . $cl->GetLastError() . ".\n" );
 				} else
 				{
-				
+
 					foreach ($res['matches'] as $id => $data) {
 						$ids[] = $id;
 						//$db->query("SELECT * FROM px_topics WHERE num = '$id'");
 					}
 				}
-					
+
 				if (sizeof($ids) > 0) {
 					$query = "SELECT px.*, ou.flag as fav FROM px_topics as px
 						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
@@ -1193,11 +1193,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 					$query2 = "SELECT COUNT(*) as c FROM px_topics as px
 						WHERE seminar_id = '". $this->getId() ."' AND num IN(". implode(', ', $ids) .")";
-						
+
 					$db = new DB_Seminar($query);
 					$db2 = new DB_Seminar($query2);
 					$db2->next_record();
-					
+
 					return array(
 						'highlight' => $_searchfor,
 						'num_postings' => $db2->f('c'),
@@ -1208,11 +1208,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						'highlight' => $_searchfor,
 						'num_postings' => 0,
 						'postings' => array()
-					);				
+					);
 				}
-				
+
 				break;
-				
+
 
 			/* * * * * * * * * * * * * * * * * * * * * *
 			 * S T A N D A R D - F O R U M S S U C H E *
@@ -1230,13 +1230,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				// if there are quoted parts, they should not be separated
 				$suchmuster = '/".*"/U';
 				preg_match_all($suchmuster, $_searchfor, $treffer);
-				
+
 				// remove the quoted parts from $_searchfor
 				$_searchfor = preg_replace($suchmuster, '', $_searchfor);
 
 				// split the searchstring $_searchfor at every space
 				$_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
-				
+
 				// make an SQL-statement out of the searchstring
 				$search_string = array();
 				foreach ($_searchfor as $key => $val) {
@@ -1245,13 +1245,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					} else {
 						$_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
 						$val = trim(str_replace('"', '', str_replace("'", '', $val)));
-						
+
 						if ($_REQUEST['search_title']) $search_string[] .= "name LIKE '%$val%'";
 						if ($_REQUEST['search_content']) $search_string[] .= "description LIKE '%$val%'";
 						if ($_REQUEST['search_author']) $search_string[] .= "author LIKE '%$val%'";
 					}
 				}
-				
+
 				// get the postings that match
 				if ($this->output_format != 'html') {
 					$query = "SELECT * FROM px_topics
@@ -1283,14 +1283,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$db = new DB_Seminar("SELECT * FROM forumpp WHERE entry_type = 'category' AND seminar_id = '". $this->getId() ."' ORDER BY pos ASC");
 				if ($db->num_rows() == 0) {
 					return array();
-				} 
+				}
 
 				$ret = array();
 				while ($db->next_record()) {
 					$zw = array();
 					$zw['name'] = $db->f('entry_name');
 					$zw['areas'] = array();
-					$db2 = new DB_Seminar("SELECT * FROM forumpp 
+					$db2 = new DB_Seminar("SELECT * FROM forumpp
 						WHERE entry_type = 'area' AND seminar_id = '". $this->getId() ."' AND entry_id = '". $db->f('entry_id') ."'
 						ORDER BY pos ASC");
 					while ($db2->next_record()) {
@@ -1323,7 +1323,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$add_dots = false;
 
 		// show additional text over thread-postings
-		$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
+		$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; ";
 
 		for ($i = 1; $i <= $pages; $i++) {
 
@@ -1336,12 +1336,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					} else {
 						$run = true;
 					}
-	
+
 					if ($i == 3) {
 						$add_dots = true;
 					}
-				} 
-				
+				}
+
 				// show the first and the last page, as well as the two pages before and after
 				else {
 					$run= false;
@@ -1351,7 +1351,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						$end = 5;
 					} else if ($cur_page > ($pages - 3)) {
 						$start = $pages - 4;
-						$end = $pages;	
+						$end = $pages;
 					} else {
 						$start = $cur_page -2;
 						$end = $cur_page + 2;
@@ -1401,11 +1401,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
 		if ($pages == 1) return;
-	
+
 		if ($show_text) {
 			// show additional text over thread-postings
 			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
-			$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; "; 
+			$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; ";
 		} else {
 			// page icon in thread-overview
 			$info = _("Seite ausw&auml;hlen");
@@ -1426,12 +1426,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					} else {
 						$run = true;
 					}
-	
+
 					if ($i == 3) {
 						$add_dots = true;
 					}
-				} 
-				
+				}
+
 				// show the first and the last page, as well as the two pages before and after
 				else {
 					$run= false;
@@ -1441,7 +1441,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 						$end = 5;
 					} else if ($cur_page > ($pages - 3)) {
 						$start = $pages - 4;
-						$end = $pages;	
+						$end = $pages;
 					} else {
 						$start = $cur_page -2;
 						$end = $cur_page + 2;
@@ -1503,7 +1503,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * @returns string
 	 */
 	function makebutton($name, $type = 'full') {
-		$img = $this->getPluginPath() .'/buttons/'. $GLOBALS['_language_path'] .'/'. $name .'-button.png'; 
+		$img = $this->getPluginPath() .'/buttons/'. $GLOBALS['_language_path'] .'/'. $name .'-button.png';
 		switch ($type) {
 			case 'src':
 				return ' src="'. $img .'" ';
@@ -1658,7 +1658,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			case 'admin':
 				return _("Administrator/In");
 				break;
-			case 'dozent': 
+			case 'dozent':
 				return _("Dozent/In");
 				break;
 			case 'tutor':
@@ -1714,7 +1714,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	}
 
 	/**
-	 * This function highlights Text HTML-safe 
+	 * This function highlights Text HTML-safe
 	 * (tags or words in tags are not highlighted, words between tags ARE highlighted)
 	 * @param string $text the text where to words shall be highlighted, may contain tags
 	 * @param array $highlight an array of words to be highlighted
@@ -1746,7 +1746,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$data[] = $this->do_highlight(substr($text, $last_pos, $taginfo[1] - $last_pos), $highlight);
 			}
 
-			$data[] = substr($text, $taginfo[1], $size); 
+			$data[] = substr($text, $taginfo[1], $size);
 			$last_pos = $taginfo[1] + $size;
 		}
 
@@ -1769,8 +1769,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			$infobox->set_attribute('standard_infobox', $standard_infobox);
 			$infobox->set_attribute('picture', 'sms3.jpg');
 			$infobox->set_attribute('plugin', $this);
-		} 
-		
+		}
+
 		// the default infobox for the forum
 		else {
 			$infobox =& $this->template_factory->open($this->output_format . '/infobox');
@@ -1800,8 +1800,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		if ($_REQUEST['deactivate'] == 'deactivate') {
 			$admin_modules->clearBit($bitmask, $admin_modules->registered_modules['forum']['id']);
 			$admin_modules->writeBin($this->getId(), $bitmask);
-		} 
-		
+		}
+
 		// Standardforum aktivieren
 		else if ($_REQUEST['activate'] == 'activate') {
 			$admin_modules->setBit($bitmask, $admin_modules->registered_modules['forum']['id']);
@@ -1814,14 +1814,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			switch ($_REQUEST['action']) {
 				case 'administrate':
 					if (isset($_REQUEST['create_category'])) {
-						new DB_Seminar("INSERT INTO forumpp 
-							(entry_id, seminar_id, entry_type, topic_id, entry_name) 
+						new DB_Seminar("INSERT INTO forumpp
+							(entry_id, seminar_id, entry_type, topic_id, entry_name)
 							VALUES ('". md5(uniqid(rand())) ."', '". $this->getId() ."', 'category', '', '{$_REQUEST['category']}')");
 					}
 
 					if (isset($_REQUEST['add_area'])) {
-						new DB_Seminar("INSERT INTO forumpp 
-							(entry_id, seminar_id, entry_type, topic_id, entry_name) 
+						new DB_Seminar("INSERT INTO forumpp
+							(entry_id, seminar_id, entry_type, topic_id, entry_name)
 							VALUES ('{$_REQUEST['add_area']}', '". $this->getId() ."', 'area', '". $_REQUEST['cat_'.$_REQUEST['add_area']] ."', '')");
 					}
 					break;
@@ -1883,8 +1883,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function favoritesShow() {
 		$infobox = $this->getInfobox('favorites');
 
-		$postings = $this->getDBData('get_favorite_postings', array('page' => $_REQUEST['page']));		
-		$num_postings = $this->getDBData('get_favorite_postings_count');		
+		$postings = $this->getDBData('get_favorite_postings', array('page' => $_REQUEST['page']));
+		$num_postings = $this->getDBData('get_favorite_postings_count');
 
 		if ($num_postings == 0) {
 			$info_message = _("Sie haben bisher keine Beitr&auml;ge als Favoriten eingetragen!");
@@ -1900,8 +1900,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function newPostingsShow() {
 		$infobox = $this->getInfobox('new_postings');
 
-		$postings = $this->getDBData('get_new_postings', array('page' => $_REQUEST['page']));		
-		$num_postings = $this->getDBData('get_new_postings_count');		
+		$postings = $this->getDBData('get_new_postings', array('page' => $_REQUEST['page']));
+		$num_postings = $this->getDBData('get_new_postings_count');
 
 		if ($num_postings == 0) {
 			$info_message = _("Seit ihrem letzten Besuch wurden keine neuen Beitr&auml;ge erstellt!");
@@ -1918,8 +1918,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function lastPostingsShow() {
 		$infobox = $this->getInfobox('last_postings');
 
-		$postings = $this->getDBData('get_last_postings', array('page' => $_REQUEST['page']));		
-		$num_postings = $this->getDBData('get_last_postings_count');		
+		$postings = $this->getDBData('get_last_postings', array('page' => $_REQUEST['page']));
+		$num_postings = $this->getDBData('get_last_postings_count');
 
 		$plugin = $this;
 		$template =& $this->template_factory->open($this->output_format . '/show_posting_list');
@@ -1935,9 +1935,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function gc() {
 		$stmt = DBManager::get()->prepare("SELECT DISTINCT forumpp.entry_id FROM forumpp LEFT JOIN px_topics ON (forumpp.topic_id = px_topics.topic_id) WHERE px_topics.topic_id IS NULL AND forumpp.seminar_id = ? AND forumpp.topic_id IS NOT NULL AND forumpp.topic_id != ''");
 		$stmt->execute(array($this->getId()));
-		
+
 		$ids = array();
-		
+
 		while ($data = $stmt->fetch()) {
 			$ids[] = $data['entry_id'];
 		}
@@ -1945,7 +1945,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		DBManager::get()->query("DELETE FROM forumpp WHERE entry_id IN ('". implode("', '", $ids) ."')");
 	}
 
-	
+
 	function forumShow() {
 		global $_REQUEST;
 		$this->gc();
@@ -1954,7 +1954,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$this->showMessages();
 
 		$aktionen = array();
-		
+
 		$infobox =& $this->template_factory->open($this->output_format . '/infobox');
 		$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
 		$infobox->set_attribute('standard_infobox', $standard_infobox);
@@ -1975,7 +1975,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			if ($GLOBALS['section'] != 'create_posting' && $this->writable) {
 				$answer_link = PluginEngine::getLink($this, array('section' => 'create_posting', 'thread_id' => $_REQUEST['thread_id'], 'root_id' => $_REQUEST['root_id'], 'page' => $_REQUEST['page'], 'time' => time()));
 			}
-			
+
 			$infobox->set_attribute('section', 'postings');
 			$infobox->set_attribute('area_name', $area_name);
 			$infobox->set_attribute('thread_name', $thread_name);
