@@ -22,7 +22,7 @@
         <?= Assets::img('eigene2') ?>
 			</td>
       <td class="areaentry" valign="top" align="left">
-        <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $thread['entry_id'])) ?>">
+        <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $thread['topic_id'])) ?>">
           <span class="areaname">
 						<? 
 						if ($thread['name']) :
@@ -39,7 +39,7 @@
 					</a>
 					<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$thread['mkdate']) ?>
 				</span>
-				<span class="pagechooser_thread"><?= $plugin->get_page_chooser($_REQUEST['root_id'], $thread['entry_id'], false) ?></span>
+				<span class="pagechooser_thread"><?= $plugin->get_page_chooser($_REQUEST['root_id'], $thread['topic_id'], false) ?></span>
       </td>
       <td class="areaentry2" align="center" valign="top" style="padding-top: 8px">
 				<?= $thread['num_postings'] ?>

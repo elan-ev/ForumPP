@@ -31,9 +31,9 @@
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
 						<? if ($section == 'areas' || $section == 'threads' || $section == 'postings') : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_red.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_red.gif">
 						<? else : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_gray.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_gray.gif">
 						<? endif; ?>
           </td>
           <td class="infobox" width="99%" align="left">
@@ -51,9 +51,9 @@
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
 						<? if ($section == 'favorites') : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_red.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_red.gif">
 						<? else : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_gray.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_gray.gif">
 						<? endif; ?>
           </td>
           <td class="infobox" width="99%" align="left">
@@ -66,9 +66,9 @@
        <tr>
           <td class="infobox" align="center" valign=center" width="1%">
 						<? if ($section == 'new_postings') : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_red.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_red.gif">
 						<? else : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_gray.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_gray.gif">
 						<? endif; ?>
           </td>
           <td class="infobox" width="99%" align="left">
@@ -81,9 +81,9 @@
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
 						<? if ($section == 'last_postings') : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_red.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_red.gif">
 						<? else : ?>
-            <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_gray.gif">
+            <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_gray.gif">
 						<? endif; ?>
           </td>
           <td class="infobox" width="99%" align="left">
@@ -129,16 +129,16 @@
 			<tr>
 				<td class="infobox" align="center" width="1%" valign="top" style="padding-top: 10px">
 					<? if ($section == 'search') : ?>
-           <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_red.gif">
+           <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_red.gif">
 					<? else : ?>
-           <img src="<?=$plugin->getPluginPath()?>/img/simple_indicator_gray.gif">
+           <img src="<?=$plugin->getPluginUrl()?>/img/simple_indicator_gray.gif">
 					<? endif; ?>
 				</td>
 				<td class="infobox" width="99%" align="left" nowrap>
 					<font size="-1">
 						<form action="<?= PluginEngine::getLink($plugin, array()) ?>" method="post">
 							<input type="text" name="searchfor" value="<?= htmlReady(stripslashes($_REQUEST['searchfor']))?>">
-							<input type="image" src="<?= $plugin->getPluginPath()?>/img/suchen.gif" align="absbottom"><br/>
+							<input type="image" src="<?= $plugin->getPluginUrl()?>/img/suchen.gif" align="absbottom"><br/>
 							<input type="checkbox" name="search_title" value="1" checked="checked"> <?= _("Titel") ?><br/>
 							<input type="checkbox" name="search_content" value="1" checked="checked"> <?= _("Inhalt") ?><br/>
 							<input type="checkbox" name="search_author" value="1" checked="checked"> <?= _("Autor") ?><br/>
@@ -174,7 +174,7 @@
 								<option value="<?= $design['value'] ?>" <?= ($design['value'] == $plugin->getDesign()) ? 'selected="selected"':''?>><?= $design['name'] ?></option>
 								<? endforeach; ?>
 							</select>
-							<input type="image" src="<?= $plugin->getPluginPath()?>/img/GruenerHakenButton.png" align="absbottom">
+							<input type="image" src="<?= $plugin->getPluginUrl()?>/img/GruenerHakenButton.png" align="absbottom">
 							<input type="hidden" name="subcmd" value="set_design">
 
 							<? if ($_REQUEST['plugin_subnavi_params']) : ?>

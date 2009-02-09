@@ -1,8 +1,8 @@
 <?php
 
 if ($_REQUEST['thread_id']) {
-	$area = ', '. _("Bereich") .': '. $plugin->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id'])) ;
-	$area .= ', '. _("Thema") .': '. $plugin->getDBData('entry_name', array('entry_id' => $_REQUEST['thread_id'])) ;
+	$area = ', '. _("Bereich") .': '. $plugin->getDBData('entry_name', array('topic_id' => $_REQUEST['root_id'])) ;
+	$area .= ', '. _("Thema") .': '. $plugin->getDBData('entry_name', array('topic_id' => $_REQUEST['thread_id'])) ;
 }
 
 // if now postings where loaded, check which feed has been requested and load the postings
@@ -10,7 +10,7 @@ if (!$postings && $_REQUEST['plugin_subnavi_params'] != 'search') {
 
 	// feed for postings in one area
 	if ($_REQUEST['root_id']) {
-		$area = ', '. _("Bereich") .': '. $plugin->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id'])) ;
+		$area = ', '. _("Bereich") .': '. $plugin->getDBData('entry_name', array('topic_id' => $_REQUEST['root_id'])) ;
 		$postings = $plugin->getDBData('get_postings_for_feed', array('area_id' => $_REQUEST['root_id']));
 	} 
 	

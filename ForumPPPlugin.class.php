@@ -21,6 +21,7 @@
 global $RELATIVE_PATH_ELEARNING_INTERFACE;
 //require_once ( "sphinxapi.php" );
 require_once('db/ForumPPDB.php');
+require_once('ForumPPEntry.class.php');
 require_once('lib/classes/AdminModules.class.php');
 
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -953,22 +954,22 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	function _dbdataFillArray($db) {
 		$ret = array();
 		while ($db->next_record()) {
-			$thread_id = $this->getThreadIdCached($db->f('topic_id'));
+			$path = ForumPPEntry::getPathToPosting($db->f('topic_id'));
 
 			$ret[] = array(
 				'has_childs' => true,
 				'author' => $db->f('author'),
 				'topic_id' => $db->f('topic_id'),
-				'thread_id' => $thread_id,
+				'thread_id' => $path['thread_id']['id'],
 				'root_id' => $db->f('root_id'),
-				'area_name' => $this->getDBData('entry_name', array('entry_id' => $db->f('root_id'))),
-				'thread_name' => $this->getDBData('entry_name', array('entry_id' => $thread_id)),
+				'area_name' => $path['root_id']['name'],
+				'thread_name' => $path['thread_id']['name'],
 				'name' => formatReady($db->f('name')),
-				'description' => formatReady($this->forumParseEdit($db->f('description'))),
+				'description' => formatReady(ForumPPEntry::parseEdit($db->f('description'))),
 				'chdate' => $db->f('chdate'),
 				'owner_id' => $db->f('user_id'),
 				'raw_title' => $db->f('name'),
-				'raw_description' => $this->forumKillEdit($db->f('description')),
+				'raw_description' => ForumPPEntry::killEdit($db->f('description')),
 				'fav' => ($db->f('fav') == 'fav')
 			);
 		}
@@ -1397,7 +1398,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	/*
 	 * the page chooser for the thread-overview */
 	function get_page_chooser($area_id, $thread_id, $show_text = true) {
-		$num_postings = $this->getDBData('count_postings', array('range_id' => $thread_id, 'exact' => 'true'));
+		$num_postings = ForumPPEntry::countPostings($thread_id);
 
 		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
 		if ($pages == 1) return;
@@ -1405,7 +1406,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		if ($show_text) {
 			// show additional text over thread-postings
 			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
-			$ret .= "$num_postings ". _("Beitr&auml;ge") . " &bull; " . _("Seite") . " $cur_page von $pages &bull; ";
+			$ret .= $num_postings .' '. _("Beitr&auml;ge") .' &bull; '. _("Seite") .' '. $cur_page .' von '. (($pages) ? $pages : 1) .' &bull; ';
 		} else {
 			// page icon in thread-overview
 			$info = _("Seite ausw&auml;hlen");
@@ -1837,7 +1838,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 
 		$categories = $this->getDBData('get_categories');
-		$areas = $this->getDBData('get_threads_for_area', array('parent_id' => '0'));
+		$areas = ForumPPEntry::getFlatList('threads', '0', $this->getId());
 
 		$infobox = $this->getInfobox('config');
 		$infobox->set_attribute('default_forum', $default_forum);
@@ -1966,9 +1967,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		if (isset($_REQUEST['thread_id'])) {
 			$area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
 			$thread_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['thread_id']));
-			$data = $this->getDBData('get_postings_for_thread', array('thread_id' => $_REQUEST['thread_id']));
-			$postings = $data['postings'];
-			$postings_count = $data['postings_count'];
+			$postings = ForumPPEntry::getFlatList('postings',$_REQUEST['thread_id'], $this->getId());
+			$postings_count = ForumPPEntry::countPostings($_REQUEST['thread_id']);
 			$plugin = $this;
 			$menubar = $this->show_menubar('thread', $area_name, $thread_name);
 
@@ -1990,7 +1990,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		// threads
 		else if (isset($_REQUEST['root_id'])) {
 			$area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
-			$threads = $this->getDBData('get_threads_for_area', array('parent_id' => $_REQUEST['root_id']));
+			$threads = ForumPPEntry::getFlatList('threads', $_REQUEST['root_id'], $this->getId());
 			$plugin = $this;
 			$menubar = $this->show_menubar('area', $area_name);
 
@@ -2022,7 +2022,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		// areas
 		else {
-			$areas = $this->getDBData('get_areas', array('parent_id' => '0'));
+			$areas = ForumPPEntry::getFlatList('areas', '0', $this->getId());
 			$plugin = $this;
 			$menubar = $this->show_menubar();
 

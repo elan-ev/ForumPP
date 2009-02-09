@@ -106,13 +106,13 @@ foreach($categories as $cat_id => $cat) {
 			<img onClick="paste('0')" title="<?= _("Zum Bereich 'keiner Kategorie zugeordnet' hinzuf&uuml;gen") ?>" src="<?= $picturepath ?>/icons/paste_plain.png">
 			<ul>
 				<? foreach ($cat['areas'] as $area) : ?>
-				<li id="area_<?= $area['entry_id'] ?>">
-					<a href="javascript:loadChilds('<?= $area['entry_id']?>')"
-						onMouseOver="showTooltip('area_<?= $area['entry_id'] ?>', '<?= preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $area['description']) ?>')" 
+				<li id="area_<?= $area['topic_id'] ?>">
+					<a href="javascript:loadChilds('<?= $area['topic_id']?>')"
+						onMouseOver="showTooltip('area_<?= $area['topic_id'] ?>', '<?= preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $area['description']) ?>')" 
 						onMouseOut="hideTooltip()"><?= $area['name'] ?></a>
 					&nbsp;&nbsp;
-					<img onClick="choose('<?= $area['entry_id'] ?>')" id="<?= $area['entry_id'] ?>" src="<?= $picturepath ?>/icons/cut.png" title="Diskussionsstrang ausschneiden">
-					<img onClick="paste('<?= $area['entry_id'] ?>')" title="Diskussionsstrang hier einf&uuml;gen" src="<?= $picturepath ?>/icons/paste_plain.png">
+					<img onClick="choose('<?= $area['topic_id'] ?>')" id="<?= $area['topic_id'] ?>" src="<?= $picturepath ?>/icons/cut.png" title="Diskussionsstrang ausschneiden">
+					<img onClick="paste('<?= $area['topic_id'] ?>')" title="Diskussionsstrang hier einf&uuml;gen" src="<?= $picturepath ?>/icons/paste_plain.png">
 				</li>
 				<? endforeach; ?>
 			</ul>
@@ -123,13 +123,13 @@ foreach($categories as $cat_id => $cat) {
 			<img onClick="paste('0')" title="<?= _("Als Bereich einf&uuml;gen") ?>" src="<?= $picturepath ?>/icons/paste_plain.png">
 			<ul>
 				<? foreach ((array)$areas as $area) : ?>
-				<li id="area_<?= $area['entry_id'] ?>">
-					<a href="javascript:loadChilds('<?= $area['entry_id']?>')"
-						onMouseOver="showTooltip('area_<?= $area['entry_id'] ?>', '<?= preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $area['description'])?>')" 
+				<li id="area_<?= $area['topic_id'] ?>">
+					<a href="javascript:loadChilds('<?= $area['topic_id']?>')"
+						onMouseOver="showTooltip('area_<?= $area['topic_id'] ?>', '<?= preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $area['description'])?>')" 
 						onMouseOut="hideTooltip()"><?= $area['name'] ?></a>
 					&nbsp;&nbsp;
-					<img onClick="choose('<?= $area['entry_id'] ?>')" id="<?= $area['entry_id'] ?>" src="<?= $picturepath ?>/icons/cut.png" title="Diskussionsstrang ausschneiden">
-					<img onClick="paste('<?= $area['entry_id'] ?>')" title="Diskussionsstrang hier einf&uuml;gen" src="<?= $picturepath ?>/icons/paste_plain.png">
+					<img onClick="choose('<?= $area['topic_id'] ?>')" id="<?= $area['topic_id'] ?>" src="<?= $picturepath ?>/icons/cut.png" title="Diskussionsstrang ausschneiden">
+					<img onClick="paste('<?= $area['topic_id'] ?>')" title="Diskussionsstrang hier einf&uuml;gen" src="<?= $picturepath ?>/icons/paste_plain.png">
 				</li>
 				<? endforeach; ?>
 			</ul>
