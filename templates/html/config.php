@@ -80,7 +80,7 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 
 					echo '<ul id="cat_list_'. $cat_id .'">';
 					foreach($cat['areas'] as $area_id => $area) {
-						echo '<li id="area_'. $area['entry_id'] .'" class="areas" dropped="dropped">'. $area['name'];
+						echo '<li id="area_'. $area['topic_id'] .'" class="areas" dropped="dropped">'. $area['name'];
 						printf($delete_link, $area_id, $cat_id);
 						echo '</li>';
 					}
@@ -125,9 +125,9 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 		<dt><b><?= _("Keiner Kategorie zugeordnet") ?>:</b><br/><br/></dt>
 		<dd><ul>
 		<? foreach ($areas as $area) : ?>
-			<li id="area_<?= $area['entry_id'] ?>" class="areas pointer"><?= $area['name'] ?></li>
+			<li id="area_<?= $area['topic_id'] ?>" class="areas pointer"><?= $area['name'] ?></li>
 			<script>
-				areas['area_<?= $area['entry_id'] ?>'] = new Draggable("area_<?= $area['entry_id'] ?>", {revert: true});
+				areas['area_<?= $area['topic_id'] ?>'] = new Draggable("area_<?= $area['topic_id'] ?>", {revert: true});
 			</script>
 		<? endforeach; ?>
 		</ul></dd>

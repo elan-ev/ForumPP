@@ -25,7 +25,7 @@ class ForumPPEntry {
 		return str_replace("\n", ' ', str_replace("\r", '', $text));
 	}
 
-	static function forumKillEdit($description) {
+	static function killEdit($description) {
 		// wurde schon mal editiert
 		if (preg_match('/^(.*)(<admin_msg.*?)$/s',$description, $match)) {
 			return $match[1];
@@ -33,22 +33,22 @@ class ForumPPEntry {
 		return $description;
 	}
 
-	static function forumAppendEdit($description) {
+	static function appendEdit($description) {
 		$edit = "<admin_msg autor=\"".addslashes(get_fullname())."\" chdate=\"".time()."\">";
 		return $description . $edit;
 	}
 
-	static function forumParseEdit($description) {
+	static function parseEdit($description) {
 		// wurde schon mal editiert
 		if (preg_match('/^.*(<admin_msg.*?)$/s',$description, $match)) {
 			$tmp = explode('"',$match[1]);
 			$append = "\n\n%%["._("Zuletzt editiert von"). ' '.$tmp[1]." - ".date ("d.m.y - H:i", $tmp[3])."]%%";
-			$description = $this->forumKillEdit($description) . $append;
+			$description = ForumPPEntry::killEdit($description) . $append;
 		}    
 		return $description;
 	}
 
-	static function forumKillQuotes($description) {
+	static function killQuotes($description) {
 		return str_replace('[/quote]', '', preg_replace("/\[quote=.*\]/U", "", $description));
 	}
 
@@ -78,7 +78,7 @@ class ForumPPEntry {
 		$data = ForumPPEntry::getConstraints($parent);
 		$stmt = DBManager::get()->prepare("SELECT * FROM px_topics 
 			WHERE lft >= ? AND rgt <= ? AND root_id = ?
-			LIMIT 1 ORDER BY mkdate DESC");
+			ORDER BY mkdate DESC LIMIT 1");
 		$stmt->execute(array($data['lft'], $data['rgt'], $data['root_id']));
 
 		if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -98,10 +98,13 @@ class ForumPPEntry {
 			$stmt = DBManager::get()->prepare("SELECT * FROM px_topics WHERE lft < ? AND rgt > ? AND root_id = ? ORDER BY lft ASC");
 			$stmt->execute(array($data['lft'], $data['rgt'], $data['root_id']));
 			while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-				$ret[] = $data['topic_id'];
+				$ret[] = array(
+					'id' => $data['topic_id'],
+					'name' => $data['name']
+				);
 			}
 
-			return array('root_id' => $data[0], 'thread_id' => $data[1]);
+			return array('root_id' => $ret[0], 'thread_id' => $ret[1]);
 		}
 	}
 
@@ -118,27 +121,25 @@ class ForumPPEntry {
 		}
 
 		$GLOBALS['_REQUEST']['page'] = $page;
-		$start = ($page - 1) * ForumPPEntry::POSTINGS_PER_PAGE;
+		$start = (int)($page - 1) * ForumPPEntry::POSTINGS_PER_PAGE;
 
 		// get entries of $parent with all childs and sub-childs
 		if ($with_childs) {
 			$data = ForumPPEntry::getConstraints($parent);
 			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav FROM px_topics 
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
-				WHERE lft >= ? AND rgt <= ? AND root_id = ? AND Seminar_id = ? LIMIT ?,?
-				ORDER BY mkdate");
-			$stmt->execute(array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $data['root_id'],
-				$sem_id, $start, ForumPPEntry::POSTINGS_PER_PAGE));
-			// $stmt->execute($data); // not sure if this works consistent
+				WHERE lft >= ? AND rgt <= ? AND root_id = ? AND Seminar_id = ?
+				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+			$stmt->execute($zw = array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $data['root_id'], $sem_id, ));
 		} 
 
 		// get only the next level of the tree
 		else {
-			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou-flag as fav FROM px_topics 
+			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav FROM px_topics 
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
-				WHERE parent_id = ? AND Seminar_id = ? LIMIT ?,?
-				ORDER BY mkdate");
-			$stmt->execute(array($GLOBALS['user']->id, $parent, $sem_id, $start, ForumPPEntry::POSTINGS_PER_PAGE));
+				WHERE parent_id = ? AND Seminar_id = ? 
+				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+			$stmt->execute(array($GLOBALS['user']->id, $parent, $sem_id));
 		}
 
 		if (!$stmt) throw new Exception("Error while retrieving postings in ". __FILE__ ." on line ". __LINE__);
@@ -147,7 +148,7 @@ class ForumPPEntry {
 		// retrieve the postings
 		while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			// we throw away all formatting stuff, tags, etc, leaving the important bit of information
-			$desc_short = ForumPPEntry::br2space(kill_format(strip_tags($db->f('description'))));
+			$desc_short = ForumPPEntry::br2space(kill_format(strip_tags($data['description'])));
 			if (strlen($desc_short) > (ForumPPEntry::THREAD_PREVIEW_LENGTH +2)) {
 				$desc_short = substr($desc_short, 0, ForumPPEntry::THREAD_PREVIEW_LENGTH) . '...';
 			} else {
@@ -155,18 +156,19 @@ class ForumPPEntry {
 			}
 
 			$posting_list[] = array(
-				'author' => $post['author'],
-				'topic_id' => $post['topic_id'],
-				'name' => formatReady($post['name']),
-				'name_raw' => $post['name'];
-				'description' => formatReady(ForumPPEntry::parseEdit($post['description'])),
-				'description_raw' => $this->forumKillEdit($db->f('description')),
+				'author' => $data['author'],
+				'topic_id' => $data['topic_id'],
+				'name' => formatReady($data['name']),
+				'name_raw' => $data['name'],
+				'description' => formatReady(ForumPPEntry::parseEdit($data['description'])),
+				'description_raw' => ForumPPEntry::killEdit($data['description']),
 				'description_short' => $desc_short,
-				'chdate' => $post['mkdate'],
-				'owner_id' => $post['user_id'],
-				'raw_title' => $post['name'],
-				'raw_description' => ForumPPEntry::killEdit($post['description']),
-				'fav' => ($post['fav'] == 'fav'),
+				'chdate' => $data['chdate'],
+				'mkdate' => $data['mkdate'],
+				'owner_id' => $data['user_id'],
+				'raw_title' => $data['name'],
+				'raw_description' => ForumPPEntry::killEdit($data['description']),
+				'fav' => ($data['fav'] == 'fav'),
 			);
 
 		} // retrieve the postings
@@ -213,7 +215,7 @@ class ForumPPEntry {
 				break;
 
 			case 'postings':
-				$postings = ForumPPEntry::getEntries($parent, $id, ForumPPEntry::WITH_CHILDS);
+				return ForumPPEntry::getEntries($parent, $id, ForumPPEntry::WITH_CHILDS);
 				break;
 		}
 	}

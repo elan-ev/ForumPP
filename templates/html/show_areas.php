@@ -31,7 +31,7 @@
 			</td>
       <td class="areaentry" valign="top">
 
-				<? if ($edit_area == $area['entry_id']) : ?>
+				<? if ($edit_area == $area['topic_id']) : ?>
 					<form action="<?= PluginEngine::getLink($plugin) ?>" method="post">
 						<input type="text" name="posting_title" style="width: 99%" value="<?= $area['name_raw'] ?>"><br/>
 						<textarea name="posting_data" style="width: 99%" rows="7"><?= $area['description_raw'] ?></textarea><br/>
@@ -40,12 +40,12 @@
 							<a href="<?= PluginEngine::getLink($plugin) ?>"><img <?= makebutton('abbrechen', 'src') ?>></a>
 						</div>
 						<input type="hidden" name="subcmd" value="do_edit_posting">
-						<input type="hidden" name="posting_id" value="<?= $area['entry_id'] ?>">
+						<input type="hidden" name="posting_id" value="<?= $area['topic_id'] ?>">
 					</form>
 				<? else : ?>
 
         <font size="-1">
-          <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $area['entry_id'])) ?>">
+          <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $area['topic_id'])) ?>">
             <span class="areaname"><?= $area['name'] ?></span>
           </a><br/>
           <?= $area['description'] ?>
@@ -56,7 +56,7 @@
 
 			<? if ($show_area_edit) : ?>
       <td width="20" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
-				<a href="<?= PluginEngine::getLink($plugin, array('subcmd' => 'edit_area', 'area_id' => $area['entry_id']))?>#create_area">
+				<a href="<?= PluginEngine::getLink($plugin, array('subcmd' => 'edit_area', 'area_id' => $area['topic_id']))?>#create_area">
 					<?= Assets::img('edit_transparent') ?>
 				</a>
 			</td>
@@ -101,4 +101,3 @@
 
 </table>
 <br/>
-
