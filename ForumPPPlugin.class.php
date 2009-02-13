@@ -266,26 +266,46 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 	}
 
+	/*
+	 * this function changes the parent node of a child node, correcting the root_id
+	 */
 	function actionChangeParent() {
 		ob_end_clean();
 		if (!$this->rechte) return;
 
 		$new_parent = $_REQUEST['new_parent'];
 		$topic_id = $_REQUEST['topic_id'];
+
+		// find out the root_id for the new node
 		$stmt = DBManager::get()->prepare("SELECT * FROM px_topics WHERE topic_id = ?");
 		$stmt->execute(array($new_parent));
 		if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) die;
-		$new_root_id = $data['topic_id'];
+		$new_root_id = $data['root_id'];
+		$new_left = $data['lft'];
 
+		// remove the entry from the categories if becomes a root node
 		if ($new_parent == '0'){
 			$stmt = DBManager::get()->prepare("DELETE FROM forumpp WHERE topic_id = ? AND seminar_id = ?");
 			$stmt->execute(array($topic_id, $this->getId()));
 		}
 
+		// get the left pott
+		$stmt = DBManager::get()->prepare("SELECT pxb.topic_id, pxb.left 
+			FROM px_topics as pxa 
+			LEFT JOIN px_topics pxb ON (pxa.parent_id = pxb.topic_id) 
+			WHERE pxa.topic_id = ?");
+		$stmt->execute(array($topic_id));
+		if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) die;
+		$old_left = $data['lft'];
+		$old_parent = $data['topic_id'];
+
+		// set the new parent and root for the submitted node
 		$stmt = DBManager::get()->prepare("UPDATE px_topics SET parent_id = ?, root_id = ?, chdate = ? WHERE topic_id = ?");
 		$stmt->execute(array($new_parent, $new_root_id, time(), $topic_id));
 
-		$this->recreate_traversal($new_root_id);
+		// rebuild the two sub-trees
+		ForumPPTraversal::recreate($new_parent, $new_left);
+		ForumPPTraversal::recreate($old_parent, $old_left);
 	}
 
 	function actionLoadChilds() {
@@ -1011,7 +1031,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * @returns mixed
 	 */
 	function getDBData($type = null, $data = array()) {
-		static $count_postings;
 
     if ($type == null) return FALSE;
 
@@ -1838,7 +1857,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 
 		$categories = $this->getDBData('get_categories');
-		$areas = ForumPPEntry::getFlatList('threads', '0', $this->getId());
+		$areas = ForumPPEntry::getFlatList('areas', '0', $this->getId());
 
 		$infobox = $this->getInfobox('config');
 		$infobox->set_attribute('default_forum', $default_forum);

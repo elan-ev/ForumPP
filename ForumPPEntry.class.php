@@ -155,7 +155,7 @@ class ForumPPEntry {
 				$desc_short = $desc_short;
 			}
 
-			$posting_list[] = array(
+			$posting_list[$data['topic_id']] = array(
 				'author' => $data['author'],
 				'topic_id' => $data['topic_id'],
 				'name' => formatReady($data['name']),
@@ -208,7 +208,6 @@ class ForumPPEntry {
 
 					$postings[$key]['last_posting'] = $last_posting;
 					$postings[$key]['num_postings'] = ForumPPEntry::countPostings($posting['topic_id']);
-
 				}
 
 				return $postings;
@@ -222,6 +221,6 @@ class ForumPPEntry {
 
 	static function countPostings($parent) {
 		$data = ForumPPEntry::getConstraints($parent);
-		return ($data['rgt'] - $data['lft'] - 1) / 2;
+		return (($data['rgt'] - $data['lft'] - 1) / 2) + 1;
 	}
 }
