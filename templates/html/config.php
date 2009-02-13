@@ -36,7 +36,7 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 		}
 
 		var url;
-		new Ajax.Request(url = '<?=PluginEngine::getLink($plugin) ?>savecats?topic_id='+ container + params, {
+		new Ajax.Request(url = '<?=PluginEngine::getURL($plugin, array(), 'savecats') ?>&topic_id='+ container + params, {
 				asynchronous:true
 			}
 		);
@@ -72,9 +72,16 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 			echo '<form action="" method="post">';
 			foreach($categories as $cat_id => $cat) : ?>
 				<div id="cat_<?= $cat_id ?>" class="cat">
-					<span class="bgtext"><?= _("Ziehen sie eine &Uuml;berschrift in diesen Bereich um die &Uuml;berschrift dieser Kategorie hinzuzuf&uuml;gen!") ?></span>
+					<span class="bgtext"><?= _("Zum Hinzufügen ziehen sie eine &Uuml;berschrift in diesen Bereich!") ?></span>
+					&nbsp;&nbsp;
+					<a href="<?=  PluginEngine::getLink($plugin, array(
+						'plugin_subnavi_params' => 'config',
+						'action' => 'delete_category',
+						'category_id' => $cat_id)) ?>">
+						<img src="<?= $picturepath ?>/icons/delete.png">
+					</a>
+					&nbsp;<b><?= $cat['name'] ?></b>
 					<?
-					echo '&nbsp;&nbsp;<b>'. $cat['name'] .'</b>';
 					//echo '&nbsp&nbsp;<a href="'. PluginEngine::getLink($plugin, array('plugin_subnavi_params' => 'config', 'action' => 'delete_category', 'category_id' => $cat_id)).'">X</a>';
 					// echo '<br/>';
 

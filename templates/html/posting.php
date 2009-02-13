@@ -11,7 +11,7 @@
 				<span class="title">
 					<?= ($entry['titel']) ? $entry['titel'] : ''?>
 					<p class="author">
-						von <strong><a href="about.php?username=<?= $entry['real_username'] ?>"><?= $entry['username'] ?></a></strong>
+						von <strong><a href="<?= URLHelper::getLink('about.php?username='. $entry['real_username']) ?>"><?= $entry['username'] ?></a></strong>
 						am <?= strftime($plugin->time_format_string, (int)$entry['datum']) ?>
 					</p>
 				</span>
@@ -32,7 +32,7 @@
 			<!-- Infobox rechts neben jedem Posting -->
 			<dl class="postprofile">				
 				<dt>
-					<a href="about.php?username=<?= $entry['real_username'] ?>">
+					<a href="<?= URLHelper::getLink('about.php?username='. $entry['real_username']) ?>">
 						<? if ($entry['userpicture']) : ?>
 						<?= $entry['userpicture'] ?><br/>
 						<? endif; ?>

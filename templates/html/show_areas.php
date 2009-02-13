@@ -90,7 +90,7 @@
 
 	<!-- bottom border -->
 	<tr>
-		<td class="areaborder" colspan="6">
+		<td class="areaborder" colspan="7">
 			<span class="corners-bottom"><span></span></span>
 		</td>
 	</tr>
