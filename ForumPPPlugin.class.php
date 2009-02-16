@@ -63,8 +63,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
     parent::AbstractStudIPStandardPlugin();
 
-    $this->setPluginiconname("img/plugin.png");
-
     # navigation
     $navigation =& new PluginNavigation();
     $navigation->setDisplayname(_("Forum"));
