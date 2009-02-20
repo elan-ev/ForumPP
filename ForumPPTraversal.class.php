@@ -14,7 +14,7 @@ class ForumPPTraversal  {
 			// child of this node
 			// $right is the current right value, which is
 			// incremented by the rebuild_tree function
-			$right = ForumPP::recreate($row['topic_id'], $right);
+			$right = ForumPPTraversal::recreate($row['topic_id'], $right);
 		}   
 
 		// we've got the left value, and now that we've processed

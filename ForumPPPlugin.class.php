@@ -21,12 +21,15 @@
 global $RELATIVE_PATH_ELEARNING_INTERFACE;
 //require_once ( "sphinxapi.php" );
 require_once('db/ForumPPDB.php');
+require_once('ForumPPTraversal.class.php');
 require_once('ForumPPEntry.class.php');
 require_once('lib/classes/AdminModules.class.php');
 
 if (!defined('FEEDCREATOR_VERSION')) {
 	require_once( dirname(__FILE__) . '/vendor/feedcreator/feedcreator.class.php');
 }
+
+define ('BULLETIN_BOARD', md5('bulletinboard'));
 
 class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
@@ -63,12 +66,16 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
     parent::AbstractStudIPStandardPlugin();
 
-    # navigation
-    $navigation =& new PluginNavigation();
-    $navigation->setDisplayname(_("Forum"));
-    $this->setNavigation($navigation);
+		if (!$this->getId()) { 
+			$this->setId(BULLETIN_BOARD);
+		} else {
+			// navigation
+	    $navigation =& new PluginNavigation();
+	    $navigation->setDisplayname(_("Forum"));
+	    $this->setNavigation($navigation);
+		}
 
-    ## AbstractStudIPStandardPlugin specifics
+    // AbstractStudIPStandardPlugin specifics
 
 		$this->setPluginiconname("img/pages.png");
     $this->setChangeIndicatorIconName('img/pages_red.png');
@@ -129,7 +136,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			new Flexi_TemplateFactory(dirname(__FILE__).'/templates');
 
 		// path to plugin-pictures
-		$this->picturepath =  $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] . $this->getPluginPath() . '/img';
+		$this->picturepath = $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] . $this->getPluginPath() . '/img';
 
 		$_include_additional_header =
 			'<link rel="stylesheet" href="'. PluginEngine::getLink($this, array(), 'css') .'" type="text/css">' . "\n";
@@ -345,14 +352,16 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 */
   function actionShow() {
 
-		// check for SeminarSession and set visit
-		checkObject();
-		// checkObjectModule("forum");
+		if ($this->getId() != BULLETIN_BOARD) {
+			// check for SeminarSession and set visit
+			checkObject();
+			// checkObjectModule("forum");
 
-		$this->last_visit = object_get_visit($this->getId(), "forum");
-		if (!$this->last_visit) $this->last_visit = time();
+			$this->last_visit = object_get_visit($this->getId(), "forum");
+			if (!$this->last_visit) $this->last_visit = time();
 
-		object_set_visit_module("forum");
+			object_set_visit_module("forum");
+		}
 
     if (isset($_REQUEST['subcmd'])) {
       switch ($_REQUEST['subcmd']) {
@@ -557,6 +566,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		new DB_Seminar($query);
 
+		if ($defaults['parent_id'] == 0) {
+			ForumPPTraversal::recreate($defaults['topic_id'], 0);
+		} else {
+			$data = ForumPPEntry::getConstraints($defaults['parent_id']);
+			ForumPPTraversal::recreate($defaults['parent_id'], $data['lft']);
+		}
 		return $topic_id;
 	}
 
@@ -734,7 +749,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				$db = new DB_Seminar("SELECT * FROM px_topics WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
 
 				if ($db->next_record()) {
-					$content_value = htmlReady(quotes_encode($this->forumKillEdit($db->f('description')), $db->f('author')));
+					$content_value = htmlReady(quotes_encode(ForumPPEntry::killEdit($db->f('description')), $db->f('author')));
 					$content_value .= "\n\n";
 				}
 			}
@@ -1014,7 +1029,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 				'mkdate' => $post['mkdate'],
 				'owner_id' => $post['user_id'],
 				'raw_title' => $post['name'],
-				'raw_description' => $this->forumKillEdit($post['description']),
+				'raw_description' => ForumPPEntry::killEdit($post['description']),
 				'area_name' => $post['area_name'],
 				'thread_name' => $post['thread_name'],
 				'thread_id' => $thread_id,
