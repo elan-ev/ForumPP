@@ -3,7 +3,6 @@
 class ForumPPNavigation extends PluginNavigation {
 	function getLink() {
 		$forum = new ForumPPPlugin();
-		$forum->setId('bulletin_board');
-		return PluginEngine::getLink($forum);
+		return PluginEngine::getLink($forum, array('cid' => md5('bulletinboard')));
 	}
 }
