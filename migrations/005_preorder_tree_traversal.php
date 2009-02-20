@@ -26,7 +26,7 @@ class PreorderTreeTraversal extends Migration {
 		// the right value of this node is the left value + 1
 		$right = $left+1;
 
-		if ($right > 1000) {
+		if ($right > 5000) {
 			echo "too many recursions: $parent\n";
 			die;
 		}
