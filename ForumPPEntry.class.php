@@ -108,9 +108,15 @@ class ForumPPEntry {
 		}
 	}
 
-	static function getEntries($parent, $sem_id, $with_childs = false) {
+	static function getEntries($parent, $sem_id, $order = array(), $limit = true, $with_childs = false) {
 		// calculate constraint for pagination
 		$page = 1;
+
+		if (sizeof($order) == 0) {
+			$order[] = 'mkdate DESC';
+		}
+
+		$order_clause = implode(', ', $order);
 
 		if ($GLOBALS['_REQUEST']['page']) {
 			$page = $GLOBALS['_REQUEST']['page'];
@@ -123,13 +129,15 @@ class ForumPPEntry {
 		$GLOBALS['_REQUEST']['page'] = $page;
 		$start = (int)($page - 1) * ForumPPEntry::POSTINGS_PER_PAGE;
 
+		if ($limit) $limit = 'LIMIT '. $start .','. ForumPPEntry::POSTINGS_PER_PAGE;
+
 		// get entries of $parent with all childs and sub-childs
 		if ($with_childs) {
 			$data = ForumPPEntry::getConstraints($parent);
 			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav FROM px_topics 
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
 				WHERE lft >= ? AND rgt <= ? AND root_id = ? AND Seminar_id = ?
-				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+				ORDER BY $order_clause $limit");
 			$stmt->execute($zw = array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $data['root_id'], $sem_id, ));
 		} 
 
@@ -138,7 +146,7 @@ class ForumPPEntry {
 			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav FROM px_topics 
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
 				WHERE parent_id = ? AND Seminar_id = ? 
-				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+				ORDER BY $order_clause $limit");
 			$stmt->execute(array($GLOBALS['user']->id, $parent, $sem_id));
 		}
 
@@ -183,7 +191,11 @@ class ForumPPEntry {
 		switch ($type) {
 			case 'areas':
 			case 'threads':
-				$postings = ForumPPEntry::getEntries($parent, $id);
+				if ($type == 'areas') {
+					$postings = ForumPPEntry::getEntries($parent, $id, array('mkdate ASC'), false);
+				} else {
+					$postings = ForumPPEntry::getEntries($parent, $id);
+				}
 				foreach ($postings as $key => $posting) {
 
 					if ($data = ForumPPEntry::getLatestPosting($posting['topic_id'])) {
@@ -214,7 +226,7 @@ class ForumPPEntry {
 				break;
 
 			case 'postings':
-				return ForumPPEntry::getEntries($parent, $id, ForumPPEntry::WITH_CHILDS);
+				return ForumPPEntry::getEntries($parent, $id, array('mkdate ASC'), ForumPPEntry::WITH_CHILDS);
 				break;
 		}
 	}
@@ -222,5 +234,10 @@ class ForumPPEntry {
 	static function countPostings($parent) {
 		$data = ForumPPEntry::getConstraints($parent);
 		return (($data['rgt'] - $data['lft'] - 1) / 2) + 1;
+	}
+
+	static function countChilds($parent) {
+		$stmt = DBManager::get()->query("SELECT COUNT(*) as c FROM px_topics WHERE parent_id = '$parent'");
+		return $stmt->fetchColumn(0);
 	}
 }
