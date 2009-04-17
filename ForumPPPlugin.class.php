@@ -1171,6 +1171,35 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 					$limit_start = 0;
 				}
 
+				// parse searchstring
+				$_searchfor = stripslashes($data['searchfor']);
+
+				// if there are quoted parts, they should not be separated
+				$suchmuster = '/".*"/U';
+				preg_match_all($suchmuster, $_searchfor, $treffer);
+
+				// remove the quoted parts from $_searchfor
+				$_searchfor = preg_replace($suchmuster, '', $_searchfor);
+
+				// split the searchstring $_searchfor at every space
+				$_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
+
+				// make an SQL-statement out of the searchstring
+				$search_string = array();
+				foreach ($_searchfor as $key => $val) {
+					if (!$val) {
+						unset($_searchfor[$key]);
+					} else {
+						$_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
+						$val = str_replace('"', '', str_replace("'", '', $val));
+
+						$search_string[] .= "name LIKE '%$val%'";
+						$search_string[] .= "description LIKE '%$val%'";
+						$search_string[] .= "author LIKE '%$val%'";
+					}
+				}
+
+
 				$ids = array();
 
 				$cl = new SphinxClient ();
@@ -1396,89 +1425,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		}
 
 		return $ret;
-	}
-
-	function pages($num_entries, $link_params) {
-		$pages = ceil($num_entries / $this->POSTINGS_PER_PAGE);
-		if (!$_REQUEST['page']) {
-			$cur_page = 1;
-		} else {
-			$cur_page = $_REQUEST['page'];
-		}
-
-		$link_params['page'] = $cur_page;
-
-		$run = true;
-		$add_dots = false;
-
-		for ($i = 1; $i <= $pages; $i++) {
-
-			if ($pages >= 6) {
-				$add_dots = false;
-				// show the two first and the two last pages
-				if ($cur_page == -1) {
-					if (($pages - 2) >= $i && (2 < $i)) {
-						$run = false;
-					} else {
-						$run = true;
-					}
-
-					if ($i == 3) {
-						$add_dots = true;
-					}
-				}
-
-				// show the first and the last page, as well as the two pages before and after
-				else {
-					$run= false;
-
-					if ($cur_page < 3) {
-						$start = 1;
-						$end = 5;
-					} else if ($cur_page > ($pages - 3)) {
-						$start = $pages - 4;
-						$end = $pages;
-					} else {
-						$start = $cur_page -2;
-						$end = $cur_page + 2;
-					}
-
-					if ($start != 1 && $i == 1) {
-						$run = true;
-					}
-
-					if ($start > 2 && $i == 2) $add_dots = true;
-
-					if ($end != $pages && $i == $pages) {
-						$run = true;
-						if ($end < $pages - 1) $add_dots = true;
-					}
-
-					if ($i >= $start && $i <= $end) {
-						$run = true;
-					}
-				}
-			}
-
-			if ($add_dots) {
-				$ret .= '&nbsp;&hellip;';
-			}
-
-			// only show pages to choose if they are meant to be shown
-			if ($run) {
-				if ($i > 1) $ret .= '&nbsp;';
-				if ($cur_page == $i) {
-					//$ret .= ' <b>'. $i .'</b>';
-					$ret .= '<span class="page selected">'. $i.'</span>';
-				} else {
-					$link_params['page'] = $i;
-					$ret .= '<span class="page"><a href="'. PluginEngine::getLink($this, $link_params) .'" '. tooltip(_("Gehe zu Seite")." $i") .'>'. $i .'</a></span>';
-				}
-			}
-		}
-
-		return $ret;
-
 	}
 
 	/*
@@ -2077,7 +2023,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		else if (isset($_REQUEST['root_id'])) {
 			$area_name = $this->getDBData('entry_name', array('entry_id' => $_REQUEST['root_id']));
 			$threads = ForumPPEntry::getFlatList('threads', $_REQUEST['root_id'], $this->getId());
-			$num_threads = ForumPPEntry::countChilds($_REQUEST['root_id']);
 			$plugin = $this;
 			$menubar = $this->show_menubar('area', $area_name);
 
@@ -2102,7 +2047,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 			$template =& $this->template_factory->open($this->output_format . '/show_threads');
 			$template->set_layout($this->output_format . '/layout');
-			$template->set_attributes(compact('area_name', 'threads', 'plugin', 'infobox', 'standard_infobox', 'menubar', 'num_threads'));
+			$template->set_attributes(compact('area_name', 'threads', 'plugin', 'infobox', 'standard_infobox', 'menubar'));
 			echo $template->render();
 		}
 
