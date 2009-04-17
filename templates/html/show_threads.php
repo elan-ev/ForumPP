@@ -1,3 +1,4 @@
+<div align="right" style="margin: 0px 10px 5px 0px">Seite: <?= $plugin->pages($num_threads, array('root_id' => $_REQUEST['root_id'])) ?></div>
 <table cellspacing="0" cellpadding="1" border="0" width="100%">
   <tr>
 		<td class="forum_header" colspan="3" align="left">
@@ -69,4 +70,5 @@
 		</td>
 	</tr>
 </table>
-<br />
+<div align="right" style="margin: 5px 10px 0px 0px">Seite: <?= $plugin->pages($num_threads, array('root_id' => $_REQUEST['root_id'])) ?></div>
+<br/>
