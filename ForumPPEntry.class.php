@@ -112,12 +112,25 @@ class ForumPPEntry {
 		// calculate constraint for pagination
 		$page = 1;
 
-		if ($GLOBALS['_REQUEST']['page']) {
-			$page = $GLOBALS['_REQUEST']['page'];
-		}
+		if ($parent != 0) {
+			if ($GLOBALS['_REQUEST']['page']) {
+				$page = $GLOBALS['_REQUEST']['page'];
+	
+				// get the number of max. available pages for this level
+				$max_page = ceil(ForumPPEntry::countPostings($parent) / ForumPPEntry::POSTINGS_PER_PAGE);
 
-		if ($GLOBALS['_REQUEST']['jump_to']) {
-			$page = ceil(ForumPPEntry::countPostings($parent) / ForumPPEntry::POSTINGS_PER_PAGE);
+				// prevent jumping to page that does not exists
+				if ($max_page < $page) $page = $max_page;
+			}
+
+			// jump_to is used to jump to the newest posting of a thread, on the last page.  
+			if ($GLOBALS['_REQUEST']['jump_to']) {
+				// get the number of max. available pages for this level
+				$max_page = ceil(ForumPPEntry::countPostings($parent) / ForumPPEntry::POSTINGS_PER_PAGE);
+	
+				$page = $max_page;
+			}
+
 		}
 
 		$GLOBALS['_REQUEST']['page'] = $page;
@@ -130,7 +143,7 @@ class ForumPPEntry {
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
 				WHERE lft >= ? AND rgt <= ? AND root_id = ? AND Seminar_id = ?
 				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
-			$stmt->execute($zw = array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $data['root_id'], $sem_id, ));
+			$stmt->execute(array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $data['root_id'], $sem_id ));
 		} 
 
 		// get only the next level of the tree

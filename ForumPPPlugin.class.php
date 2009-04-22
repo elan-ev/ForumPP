@@ -309,8 +309,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		$stmt->execute(array($new_parent, $new_root_id, time(), $topic_id));
 
 		// rebuild the two sub-trees
-		ForumPPTraversal::recreate($new_parent, $new_left);
-		ForumPPTraversal::recreate($old_parent, $old_left);
+		ForumPPTraversal::recreate($new_parent, $this->getId(), $new_left);
+		ForumPPTraversal::recreate($old_parent, $this->getId(), $old_left);
 	}
 
 	function actionLoadChilds() {
@@ -564,14 +564,18 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		// third: we build the query and execute it
 		$query = "INSERT INTO px_topics (".implode(', ', array_keys($defaults)).") VALUES ('".implode("', '", $defaults)."')";
 
-		new DB_Seminar($query);
+		DBManager::get()->query($query);
 
-		if ($defaults['parent_id'] == 0) {
+		// TODO: use the corrcct two-query solution to change the lft and rgt-values
+		ForumPPTraversal::recreate( $defaults['root_id'], $this->getId(), 0);
+		/*
+		if ($defaults['parent_id'] == '0') {
 			ForumPPTraversal::recreate($defaults['topic_id'], 0);
 		} else {
 			$data = ForumPPEntry::getConstraints($defaults['parent_id']);
 			ForumPPTraversal::recreate($defaults['parent_id'], $data['lft']);
 		}
+		*/
 		return $topic_id;
 	}
 
@@ -668,7 +672,10 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 			}
 
 			// don't forget to delete the main posting
-			new DB_Seminar($query = "DELETE FROM px_topics WHERE topic_id = '". $db->f('topic_id') ."'");
+			DBManager::get()->query("DELETE FROM px_topics WHERE topic_id = '". $db->f('topic_id') ."'");
+
+			// Beiträge neu durchnummerieren
+			ForumPPTraversal::recreate($db->f('root_id'), $this->getId(), 0);
 		}
   }
 
@@ -876,8 +883,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 
 		// icon dor deleting a post
 		if ($this->rechte && $_REQUEST['plugin_subnavi_params'] != 'last_postings') {
+			$jumpto = '';
+			if ($_REQUEST['thread_id']) {
+				$jumpto = $_REQUEST['thread_id'];
+			} else if ($_REQUEST['root_id']) {
+				$jumpto = $_REQUEST['root_id'];
+			}
+
 			$icon = '';
-			$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'delete', 'entryid' => $entryid, 'jumpid' => $jumpid, 'page' => $_REQUEST['page']));
+			$icon['link'] = PluginEngine::getLink($this, array('subcmd' => 'delete', 'entryid' => $entryid, 'jumpid' => $jumpto, 'page' => $_REQUEST['page']));
 			$icon['image'] = $this->picturepath .'/icons/delete.png';
 			$icon['title'] = _("Eintrag l&ouml;schen!");
 			$tmpl_icons[4] = $icon;
@@ -980,8 +994,30 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 	 * D A T A - R E T R I E V A L - F U N C T I O N S *
 	 * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	function getThreadIdCached($topic_id) {
+  /**  
+	 * this functions retrieves the topic-id of the belonging thread recursively
+	 * @param string $topic_id id of the topic we want the belonging thread for
+	 * @returns string
+	 */
+	function getThreadID($topic_id) {
+		$db = new DB_Seminar($query = "SELECT * FROM px_topics WHERE topic_id = '$topic_id'");
+		$db->next_record();
 
+		if ($db->f('parent_id') == $db->f('root_id')) {
+			return $db->f('topic_id');
+		} else {
+			return $this->getThreadID($db->f('parent_id'));
+		}    
+	}
+
+	function getThreadIDCached($topic_id) { 
+		static $get_thread_id_cache;
+
+		if (!isset($get_thread_id_cache[$topic_id])) {
+			$get_thread_id_cache[$topic_id] = $this->getThreadID($topic_id);
+		}    
+
+		return $get_thread_id_cache[$topic_id];
 	}
 
 	function _dbdataFillArray($db) {
