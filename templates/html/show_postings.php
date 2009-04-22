@@ -24,7 +24,7 @@
 			if ($posting_num == 1) : 
 				//$post['name'] = '';
 				//$post['raw_title'] = '';	// comment this out, to allow editing of thread-titles
-				$main_topic=$post['topic_id'];
+				$main_topic = $post['thread_id'];
 			endif;
 
 			//if ((ceil($posting_num / $plugin->POSTINGS_PER_PAGE)) == $page) :
