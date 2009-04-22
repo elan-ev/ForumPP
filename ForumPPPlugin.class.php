@@ -693,7 +693,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin {
 		if ($db->next_record()) {
 			if ($this->rechte || $db->f('user_id') == $GLOBALS['user']->id) {
 				// add the new edit-remark
-				$inhalt = $this->forumAppendEdit($_REQUEST['posting_data']);
+				$inhalt = ForumPPEntry::appendEdit($_REQUEST['posting_data']);
 
 				new DB_Seminar("UPDATE px_topics SET name = '". $_REQUEST['posting_title'] ."', description = '$inhalt' WHERE topic_id = '". $_REQUEST['posting_id'] ."'");
 			}
