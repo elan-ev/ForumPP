@@ -31,7 +31,7 @@ if (!defined('FEEDCREATOR_VERSION')) {
 
 define ('BULLETIN_BOARD', md5('bulletinboard'));
 
-class ForumPPPlugin extends AbstractStudIPStandardPlugin {
+class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlugin {
 
 	var $THREAD_PREVIEW_LENGTH = 100;
 	var $POSTINGS_PER_PAGE = 10;
