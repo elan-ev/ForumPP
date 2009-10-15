@@ -27,7 +27,47 @@ class ForumPPTraversal  {
 		return $right+1;
 	}
 
+	/*
 	function addNode($topic_id) {
 
+	}
+	*/
+
+	static function repair_root_ids( $seminar_id ) {
+		global $count;
+
+		echo '<pre>';
+		$stmt = DBManager::get()->query("SELECT * FROM px_topics WHERE parent_id = '0' AND Seminar_id = '$seminar_id'");
+		while ($data = $stmt->fetch()) {
+			echo $data['name'] . '<br>';
+			DBManager::get()->query("UPDATE px_topics SET root_id = topic_id WHERE topic_id = '". $data['topic_id'] ."'");
+
+		}
+
+		echo '<hr>';
+
+		$count = 0;
+		$stmt = DBManager::get()->query("SELECT * FROM px_topics WHERE topic_id = root_id AND parent_id = '0' AND Seminar_id = '$seminar_id'");
+
+		function set_rootid_for_childs($parent_id, $root_id) {
+			global $count;
+			$count++;
+
+			DBManager::get()->query("UPDATE px_topics SET root_id = '$root_id' WHERE parent_id = '$parent_id'");
+
+			$stmt = DBManager::get()->query("SELECT * FROM px_topics WHERE parent_id = '$parent_id'");
+			while ($data = $stmt->fetch()) {
+				set_rootid_for_childs($data['topic_id'], $root_id);
+			}   
+		}
+
+		while ($data = $stmt->fetch()) {
+			echo $data['name'];
+			set_rootid_for_childs($data['topic_id'], $data['root_id']);
+			echo ' ('.$count.')<br/>';
+			$count = 0;
+		}
+
+		echo '</pre>';
 	}
 }

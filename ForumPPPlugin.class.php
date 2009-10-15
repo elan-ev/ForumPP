@@ -412,6 +412,10 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		echo '</div>';
 	}
 
+	function actionRepair() {
+		ForumPPTraversal::repair_root_ids($this->getId());
+	}
+
 	function loadView() {
 		if (isset($_REQUEST['plugin_subnavi_params'])) {
 			switch ($_REQUEST['plugin_subnavi_params']) {
