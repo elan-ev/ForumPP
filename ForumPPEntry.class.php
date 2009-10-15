@@ -1,7 +1,7 @@
 <?php
 /*
  * this class allows the retrieval and handling of forum-entrys
- * @author Till GlÃ¶ggler <tgloeggl@uos.de>
+ * @author Till Glöggler <tgloeggl@uos.de>
  */
 
 
@@ -112,7 +112,7 @@ class ForumPPEntry {
 		// calculate constraint for pagination
 		$page = 1;
 
-		if ($parent != 0) {
+		if ($parent != '0') {
 			if ($GLOBALS['_REQUEST']['page']) {
 				$page = $GLOBALS['_REQUEST']['page'];
 	
