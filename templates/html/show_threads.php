@@ -1,3 +1,4 @@
+<? if (sizeof($threads)) : ?>
 <table cellspacing="0" cellpadding="1" border="0" width="100%">
   <tr>
 		<td class="forum_header" colspan="3" align="left">
@@ -70,3 +71,9 @@
 	</tr>
 </table>
 <br />
+<? elseif (!Request::get('section') == 'create_thread'): ?>
+<?= MessageBox::info(sprintf (_("Es wurden noch keine Themen in diesem Bereich erstellt! ".
+	"Erstellen Sie doch einfach eins &gt;&gt; %sThema erstellen%s"),
+	'<a href="'. PluginEngine::getLink($plugin, array('section' => 'create_thread', 'root_id' => Request::get('root_id'))) .'#create_thread">', '</a>'));
+?>
+<? endif; ?>

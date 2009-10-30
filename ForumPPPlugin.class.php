@@ -1469,13 +1469,21 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 	/*
 	 * the page chooser for the thread-overview */
-	function get_page_chooser($area_id, $thread_id, $show_text = true) {
-		$num_postings = ForumPPEntry::countPostings($thread_id);
+	function get_page_chooser($area_id = null, $thread_id = null, $show_text = true) {
+		if (!$area_id) {
+			$num_postings = ForumPPEntry::countAreas(Request::quoted('cid'));
+			$area = true;
+		} else {
+			$num_postings = ForumPPEntry::countPostings($thread_id);
+		}
 
 		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
 		if ($pages == 1) return;
 
-		if ($show_text) {
+		if ($area) {
+			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
+			$ret .= $num_postings .' '. _("Bereiche") .' &bull; '. _("Seite") .' '. $cur_page .' von '. (($pages) ? $pages : 1) .' &bull; ';
+		} else if ($show_text) {
 			// show additional text over thread-postings
 			if ($_REQUEST['page']) $cur_page = $_REQUEST['page']; else $cur_page = 1;
 			$ret .= $num_postings .' '. _("Beitr&auml;ge") .' &bull; '. _("Seite") .' '. $cur_page .' von '. (($pages) ? $pages : 1) .' &bull; ';
