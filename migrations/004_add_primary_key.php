@@ -7,5 +7,6 @@ class AddPrimaryKey extends DBMigration {
 	}
 
 	function down() {
+		$this->db->query("ALTER TABLE `forumpp` DROP PRIMARY KEY;");
 	}
 }

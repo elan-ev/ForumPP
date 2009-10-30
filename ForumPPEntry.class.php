@@ -57,7 +57,7 @@ class ForumPPEntry {
 		$range_stmt = DBManager::get()->prepare("SELECT lft, rgt, root_id FROM px_topics WHERE topic_id = ?");
 		$range_stmt->execute(array($topic_id));
 		if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
-			throw new Exception("Forumentry $topic_id not found in ". __FILE__ ." on line ". __LINE__);
+			throw new Exception("Could not find entry with id >>$topic_id<< in px_topics, ". __FILE__ ." on line ". __LINE__);
 		}
 		
 		return $data;
@@ -131,6 +131,19 @@ class ForumPPEntry {
 				$page = $max_page;
 			}
 
+		} else {
+			if ($GLOBALS['_REQUEST']['page']) {
+				$page = $GLOBALS['_REQUEST']['page'];
+	
+				// get the number of max. available pages for this level
+				$stmt = DBManager::get()->prepare("SELECT COUNT(*) as c FROM px_topics
+					WHERE parent_id = 0 AND Seminar_id = ?");
+				$stmt->execute(array($sem_id));
+				$max_page = ceil($stmt->fetchColumn() / ForumPPEntry::POSTINGS_PER_PAGE);
+
+				// prevent jumping to page that does not exists
+				if ($max_page < $page) $page = $max_page;
+			}
 		}
 
 		$GLOBALS['_REQUEST']['page'] = $page;
@@ -230,6 +243,13 @@ class ForumPPEntry {
 				return ForumPPEntry::getEntries($parent, $id, ForumPPEntry::WITH_CHILDS);
 				break;
 		}
+	}
+
+	static function countAreas($sem_id) {
+		$stmt = DBManager::get()->prepare("SELECT COUNT(*) as c FROM px_topics
+			WHERE parent_id = '0' AND Seminar_id = ?");
+		$stmt->execute(array($sem_id));
+		return $stmt->fetchColumn();
 	}
 
 	static function countPostings($parent) {

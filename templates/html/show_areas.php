@@ -1,3 +1,6 @@
+<div style="text-align: right">
+<?= $plugin->get_page_chooser() ?>
+</div>
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum">
 	<? foreach ($categories as $key => $cat) :
 		if (sizeof($cat['areas']) > 0) : ?>
@@ -94,10 +97,11 @@
 			<span class="corners-bottom"><span></span></span>
 		</td>
 	</tr>
-	<tr>
-		<td class="blank">&nbsp;</td>
-	</tr>
   <? endif; endforeach; ?>
 
 </table>
-<br/>
+<div style="text-align: right">
+	<?= $plugin->get_page_chooser() ?>
+</div>
+<br>
+<br>
