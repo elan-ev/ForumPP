@@ -20,7 +20,7 @@
     <tr>
 			<td class="areaborder"></td>
       <td class="areaentry icon_thread" valign="center" align="center" width="1%">
-        <?= Assets::img('eigene2') ?>
+        <img src="<?= $plugin->picturepath ?>/pages.png">
 			</td>
       <td class="areaentry" valign="top" align="left">
         <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $_REQUEST['root_id'], 'thread_id' => $thread['topic_id'])) ?>">

@@ -161,10 +161,12 @@ class ForumPPEntry {
 
 		// get only the next level of the tree
 		else {
-			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav FROM px_topics 
+			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav,
+					fpp.entry_id FROM px_topics 
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
-				WHERE parent_id = ? AND Seminar_id = ? 
-				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+				LEFT JOIN forumpp as fpp ON (fpp.topic_id = px_topics.topic_id)
+				WHERE parent_id = ? AND px_topics.Seminar_id = ? 
+				ORDER BY fpp.entry_id DESC, fpp.pos, mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
 			$stmt->execute(array($GLOBALS['user']->id, $parent, $sem_id));
 		}
 
@@ -181,9 +183,14 @@ class ForumPPEntry {
 				$desc_short = $desc_short;
 			}
 
+			$db2 = DBManager::get()->query("SELECT entry_name FROM forumpp 
+				WHERE entry_id = '{$data['entry_id']}' 
+					AND entry_type = 'category'");
+
 			$posting_list[$data['topic_id']] = array(
 				'author' => $data['author'],
 				'topic_id' => $data['topic_id'],
+				'area_name' => formatReady($db2->fetchColumn()),
 				'name' => formatReady($data['name']),
 				'name_raw' => $data['name'],
 				'description' => formatReady(ForumPPEntry::parseEdit($data['description'])),
@@ -241,6 +248,17 @@ class ForumPPEntry {
 
 			case 'postings':
 				return ForumPPEntry::getEntries($parent, $id, ForumPPEntry::WITH_CHILDS);
+				break;
+
+			case 'areas_no_limit':
+				$stmt = DBManager::get()->prepare("SELECT topic_id, name FROM px_topics
+					WHERE parent_id = '0' AND Seminar_id = ?");
+				$stmt->execute(array($id));
+				while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+					$ret[$data['topic_id']] = $data;
+				}
+
+				return $ret;
 				break;
 		}
 	}

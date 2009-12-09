@@ -62,18 +62,23 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 	var $_ENHANCED = false;
 
-  function ForumPPPlugin() {
+  function __construct() {
 
     parent::AbstractStudIPStandardPlugin();
 
-		if (!$this->getId()) { 
+		/* if (!$this->getId()) { 
 			$this->setId(BULLETIN_BOARD);
 		} else {
-			// navigation
-	    $navigation =& new PluginNavigation();
-	    $navigation->setDisplayname(_("Forum"));
-	    $this->setNavigation($navigation);
-		}
+		*/
+   	$this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
+
+		// navigation
+	   $navigation =& new PluginNavigation();
+	   $navigation->setDisplayname(_("Forum"));
+	   $this->setNavigation($navigation);
+
+		//}
+
 
     // AbstractStudIPStandardPlugin specifics
 
@@ -83,10 +88,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
     $this->setShownInOverview(TRUE);
 
 		//$this->seminar_class = $GLOBALS['SessSemName']['class'];
-    $this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
 
 		$this->check_for_enhance();
 		$this->check_write_and_edit();
+
+		$this->buildMenu();
 	}
 
 	function check_write_and_edit() {
@@ -269,6 +275,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 			$stmt->execute($t = array($entry_id, $this->getId(), $topic_id, $pos));
 			$pos++;
 		}
+	}
+
+	function actionEdit_area() {
+		ob_end_clean();
+		if (!$this->rechte) return;
+
+		$stmt = DBManager::get()->prepare("UPDATE forumpp SET entry_name = ?
+			WHERE entry_id = ?");
+		$stmt->execute(array($_REQUEST['new_name'], $_REQUEST['cat_id']));
 	}
 
 	/*
@@ -466,7 +481,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 	function setPluginPath($newpath) {
 		parent::setPluginPath($newpath);
-		$this->buildMenu();
+		// $this->buildMenu();
 	}
 
 	function buildMenu() {
@@ -474,7 +489,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		$navigation->setDisplayname('Forum');
 		$navigation->addLinkParam('source', 'va');
 		$navigation->setActive();
-
 
 		if ($this->rechte) {
 			$sub_nav = new PluginNavigation();
@@ -1363,12 +1377,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 					$zw = array();
 					$zw['name'] = $db->f('entry_name');
 					$zw['areas'] = array();
+
 					$db2 = new DB_Seminar("SELECT * FROM forumpp
-						WHERE entry_type = 'area' AND seminar_id = '". $this->getId() ."' AND entry_id = '". $db->f('entry_id') ."'
+						WHERE entry_type = 'area' AND forumpp.seminar_id = '". $this->getId() ."'
+							AND entry_id = '". $db->f('entry_id') ."'
 						ORDER BY pos ASC");
 					while ($db2->next_record()) {
 						$zw['areas'][] = $db2->f('topic_id');
 					}
+
 					$ret[$db->f('entry_id')] = $zw;
 				}
 
@@ -1895,9 +1912,10 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 			switch ($_REQUEST['action']) {
 				case 'administrate':
 					if (isset($_REQUEST['create_category'])) {
-						new DB_Seminar("INSERT INTO forumpp
+						$stmt = DBManager::get()->prepare("INSERT INTO forumpp
 							(entry_id, seminar_id, entry_type, topic_id, entry_name)
-							VALUES ('". md5(uniqid(rand())) ."', '". $this->getId() ."', 'category', '', '{$_REQUEST['category']}')");
+							VALUES (?, ?, 'category', '', ?)");
+						$stmt->execute(array(md5(uniqid(rand())), $this->getId(), $_REQUEST['category']));
 					}
 
 					if (isset($_REQUEST['add_area'])) {
@@ -1918,7 +1936,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 
 		$categories = $this->getDBData('get_categories');
-		$areas = ForumPPEntry::getFlatList('areas', '0', $this->getId());
+		$areas = ForumPPEntry::getFlatList('areas_no_limit', '0', $this->getId());
 
 		$infobox = $this->getInfobox('config');
 		$infobox->set_attribute('default_forum', $default_forum);
@@ -1932,7 +1950,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		}
 
 		$template->set_layout('html/layout');
-    $template->set_attributes(compact('areas', 'categories', 'infobox', 'default_forum', 'plugin', 'picturepath'));
+    $template->set_attributes(compact('categories', 'areas', 'infobox', 'default_forum', 'plugin', 'picturepath'));
 
 		echo $template->render();
 	}
@@ -2106,35 +2124,27 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 			$plugin = $this;
 			$menubar = $this->show_menubar();
 
-			if ($this->_ENHANCED) {
-				$categories = $this->getDBData('get_categories');
-				foreach($categories as $cat_id => $cat) {
-					$new_areas = array();
-					foreach ($cat['areas'] as $id) {
-						$new_areas[] = $areas[$id];
-						unset($areas[$id]);
-					}
-					if (sizeof($new_areas) == 0) {
-						unset($categories[$cat_id]);
-					} else {
-						$categories[$cat_id]['areas'] = $new_areas;
-					}
+			// if ($this->_ENHANCED) {
+			// $categories = $this->getDBData('get_categories');
+			/*
+			foreach($categories as $cat_id => $cat) {
+				$new_areas = array();
+				foreach ($cat['areas'] as $id) {
+					$new_areas[] = $areas[$id];
+					unset($areas[$id]);
 				}
-
-				// All ares which are not assigned to a predefined category are collected now
-				$unconnected['areas'] = $areas;
-				$unconnected['name'] = 'Keiner Kategorie zugeordnet';
-				$categories[] = $unconnected;
-
-			} else {
-				$categories = array (
-					array (
-						'name' => 'Allgemeine Kategorie',
-						'areas' => $areas
-					)
-				);
+				if (sizeof($new_areas) == 0) {
+					unset($categories[$cat_id]);
+				} else {
+					$categories[$cat_id]['areas'] = $new_areas;
+				}
 			}
 
+			// All ares which are not assigned to a predefined category are collected now
+			$unconnected['areas'] = $areas;
+			$unconnected['name'] = _("Verschiedenes");
+			$categories[] = $unconnected;
+			*/
 
 			$show_area_edit = false;
 			$edit_area = false;
@@ -2157,7 +2167,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 			$template =& $this->template_factory->open($this->output_format . '/show_areas');
 			$template->set_layout($this->output_format . '/layout');
-			$template->set_attributes(compact('categories', 'plugin', 'infobox', 'standard_infobox', 'menubar', 'show_area_edit', 'edit_area'));
+			$template->set_attributes(compact('areas', 'plugin', 'infobox', 'standard_infobox', 'menubar', 'show_area_edit', 'edit_area'));
 			echo $template->render();
 		}
 

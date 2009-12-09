@@ -281,11 +281,11 @@ li.areas {
 	margin-left: -10px;
 }
 
-span.bgtext {
+div.bgtext {
 	display: block;
 	color: #AAAAAA;
 	position: absolute;
 	top: 2px;
 	right: 10px;
-	width: 300px;
+	width: 200px;
 }
