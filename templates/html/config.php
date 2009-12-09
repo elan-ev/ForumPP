@@ -9,6 +9,28 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 ?>
 <script>
 	var delete_link = '<?= str_replace('%25', '%', $delete_link) ?>';
+	var edit_cat = '';
+
+	function editCat( cat_id ) {
+		if (edit_cat != cat_id) {
+			// show edit-fields
+			edit_cat = cat_id;
+			$('catimg_' + cat_id).src = '<?= $picturepath ?>/icons/accept.png';
+			var text = $('catname_' + cat_id).innerHTML;
+			$('catname_' + cat_id).innerHTML = '<input type="text" id="cattext_'+ cat_id +'" value="'+ text +'">';
+		} 
+		
+		else {
+			// save new name for categorie
+			$('catimg_' + cat_id).src = '<?= $picturepath ?>/icons/edit.png';
+			$('catname_'+ cat_id).innerHTML = $('cattext_'+ cat_id).value;
+			new Ajax.Request(url = '<?=PluginEngine::getURL($plugin, array(), 'edit_area') ?>&cat_id='+ cat_id +'&new_name='+ $('catname_'+ cat_id).innerHTML, {
+					asynchronous:true
+				}
+			);
+			edit_cat = '';
+		}
+	}
 
 	function sprintf() {
 		if( sprintf.arguments.length < 2 ) {
@@ -72,15 +94,18 @@ $delete_link = '&nbsp&nbsp;<a href="'.
 			echo '<form action="" method="post">';
 			foreach($categories as $cat_id => $cat) : ?>
 				<div id="cat_<?= $cat_id ?>" class="cat">
-					<span class="bgtext"><?= _("Zum Hinzufügen ziehen sie eine &Uuml;berschrift in diesen Bereich!") ?></span>
-					&nbsp;&nbsp;
 					<a href="<?=  PluginEngine::getLink($plugin, array(
 						'plugin_subnavi_params' => 'config',
 						'action' => 'delete_category',
 						'category_id' => $cat_id)) ?>">
 						<img src="<?= $picturepath ?>/icons/delete.png">
 					</a>
-					&nbsp;<b><?= $cat['name'] ?></b>
+					&nbsp;&nbsp;
+					<b><span id="catname_<?= $cat_id ?>"><?= $cat['name'] ?></span></b>
+					<img id="catimg_<?= $cat_id ?>" src="<?= $picturepath ?>/icons/edit.png" onClick="editCat('<?= $cat_id ?>')">
+
+					<div class="bgtext"><?= _("Zum Hinzufügen ziehen sie eine &Uuml;berschrift in diesen Bereich!") ?></div>
+					&nbsp;
 					<?
 					//echo '&nbsp&nbsp;<a href="'. PluginEngine::getLink($plugin, array('plugin_subnavi_params' => 'config', 'action' => 'delete_category', 'category_id' => $cat_id)).'">X</a>';
 					// echo '<br/>';
