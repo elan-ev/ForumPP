@@ -1,4 +1,5 @@
 <? if (sizeof($threads)) : ?>
+<div style="text-align: right"><?= $plugin->get_page_chooser($_REQUEST['root_id']) ?></div>
 <table cellspacing="0" cellpadding="1" border="0" width="100%">
   <tr>
 		<td class="forum_header" colspan="3" align="left">
@@ -76,4 +77,5 @@
 	"Erstellen Sie doch einfach eins &gt;&gt; %sThema erstellen%s"),
 	'<a href="'. PluginEngine::getLink($plugin, array('section' => 'create_thread', 'root_id' => Request::get('root_id'))) .'#create_thread">', '</a>'));
 ?>
+<div style="text-align: right"><?= $plugin->get_page_chooser($_REQUEST['root_id']) ?></div>
 <? endif; ?>
