@@ -270,6 +270,13 @@ class ForumPPEntry {
 		return $stmt->fetchColumn();
 	}
 
+	static function countThreads($root_id) {
+		$stmt = DBManager::get()->prepare("SELECT COUNT(*) as c FROM px_topics
+			WHERE parent_id = ?");
+		$stmt->execute(array($root_id));
+		return $stmt->fetchColumn();
+	}
+
 	static function countPostings($parent) {
 		$data = ForumPPEntry::getConstraints($parent);
 		return (($data['rgt'] - $data['lft'] - 1) / 2) + 1;

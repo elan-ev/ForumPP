@@ -40,15 +40,16 @@ foreach ((array)$postings as $post) {
 
 	// if available, give further information on where the posting is located
 	$name = '';
-	if ($post['area_name']) $name .= $post['area_name'] . ' >> ';
-	if ($post['thread_name']) $name .= $post['thread_name']. ' >> ';
+	if ($post['area_name']) $name .= html_entity_decode($post['area_name']) . ' >> ';
+	if ($post['thread_name']) $name .= html_entity_decode($post['thread_name']). ' >> ';
 	$name .= $post['name'];
 
 	$item->title = $name;
 
 
-	$link = PluginEngine::getUrl($plugin, array('root_id' => $post['root_id'], 'thread_id' => $post['thread_id'], 'jump_to' => $post['topic_id'])) . '#' . $post['topic_id'];
-	$item->link  = $GLOBALS['ABSOLUTE_URI_STUDIP'] . $link;
+	URLHelper::setBaseUrl($GLOBALS['ABSOLUTE_URI_STUDIP']);
+	$item->link = PluginEngine::getUrl($plugin, array('root_id' => $post['root_id'], 'thread_id' => $post['thread_id'], 'jump_to' => $post['topic_id'])) . '#' . $post['topic_id'];
+	// $item->link  = $GLOBALS['ABSOLUTE_URI_STUDIP'] . $link;
 
 
 	$description = quotes_decode($post['description']);

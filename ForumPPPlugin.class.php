@@ -35,14 +35,14 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 	var $THREAD_PREVIEW_LENGTH = 100;
 	var $POSTINGS_PER_PAGE = 10;
-	var $FEED_POSTINGS = 100;
+	var $FEED_POSTINGS = 10;
 	var $OUTPUT_FORMATS = array('html' => 'html', 'feed' => 'feed');
 
 	var $FEED_FORMATS = array(
 		'RSS0.91' => 'application/rss+xml',
-		'RSS1.0'  => 'application/xml',
+		/*'RSS1.0'  => 'application/xml',
 		'RSS2.0'  => 'application/xml',
-		'ATOM0.3' => 'application/atom+xml',
+		'ATOM0.3' => 'application/atom+xml',*/
 		'ATOM1.0' => 'application/atom+xml'
 	);
 
@@ -60,36 +60,25 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 	 */
 	var $output_format = 'html';
 
-	var $_ENHANCED = false;
+	function __construct() {
 
-  function __construct() {
+		parent::AbstractStudIPStandardPlugin();
 
-    parent::AbstractStudIPStandardPlugin();
-
-		/* if (!$this->getId()) { 
-			$this->setId(BULLETIN_BOARD);
-		} else {
-		*/
-   	$this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
+		$this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
 
 		// navigation
-	   $navigation =& new PluginNavigation();
-	   $navigation->setDisplayname(_("Forum"));
-	   $this->setNavigation($navigation);
+		$navigation =& new PluginNavigation();
+		$navigation->setDisplayname(_("Forum"));
+		$this->setNavigation($navigation);
 
-		//}
-
-
-    // AbstractStudIPStandardPlugin specifics
-
+		// AbstractStudIPStandardPlugin specifics
 		$this->setPluginiconname("img/pages.png");
-    $this->setChangeIndicatorIconName('img/pages_red.png');
+		$this->setChangeIndicatorIconName('img/pages_red.png');
 
-    $this->setShownInOverview(TRUE);
+		$this->setShownInOverview(TRUE);
 
 		//$this->seminar_class = $GLOBALS['SessSemName']['class'];
 
-		$this->check_for_enhance();
 		$this->check_write_and_edit();
 
 		$this->buildMenu();
@@ -179,14 +168,11 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 					'token' => $this->token
 					);
 
+			URLHelper::setBaseUrl($GLOBALS['ABSOLUTE_URI_STUDIP']);
 			$GLOBALS['_include_additional_header'] .= $this->template_factory->render('feed/links', $params);
+			URLHelper::setBaseUrl(null);
 
 		}
-	}
-
-	function check_for_enhance() {
-		$db = new DB_Seminar("SHOW TABLES LIKE 'forumpp'");
-		if ($db->num_rows() == 1) $this->_ENHANCED = true;
 	}
 
 	function getPluginname() {
@@ -253,6 +239,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 		if ($_REQUEST['token'] != $this->token) die;
 
+		header('Content-Type: '. $this->FEED_FORMATS[Request::get('format')]);
 		$this->last_visit = time();
 		$this->output_format = 'feed';
 		$this->POSTINGS_PER_PAGE = $this->FEED_POSTINGS;
@@ -968,7 +955,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		// the user-picture of the poster
 		//if ($this->avatar_class) {
 		if (is_callable(array('Avatar', 'getAvatar'))) {
-			$tmpl_picture = Avatar::getAvatar($owner_id)->getImageTag(Avatar::MEDIUM, get_username($owner_id));
+			$tmpl_picture = Avatar::getAvatar($owner_id)->getImageTag(Avatar::MEDIUM, array('title' => get_username($owner_id)));
 		} else {
 			if (!file_exists($GLOBALS['DYNAMIC_CONTENT_PATH'].'/user/'. $entry['owner_id'] .'.jpg')) {
 				if (file_exists($GLOBALS['DYNAMIC_CONTENT_PATH'].'/user/nobody.jpg')) {   // switch for backwards-compatibility
@@ -1078,7 +1065,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 				'author' => $post['author'],
 				'topic_id' => $post['topic_id'],
 				'name' => formatReady($post['name']),
-				'description' => formatReady($this->forumParseEdit($post['description'])),
+				'description' => formatReady(ForumPPEntry::parseEdit($post['description'])),
 				'chdate' => $post['chdate'],
 				'mkdate' => $post['mkdate'],
 				'owner_id' => $post['user_id'],
@@ -1402,7 +1389,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
     }
   }
 
-	/* the page chooser for ar list of postings */
+	/* the page chooser for a list of postings */
 	function get_page_chooser_NP($num_postings) {
 		$pages = ceil($num_postings / $this->POSTINGS_PER_PAGE);
 		if ($pages <= 1) return;
@@ -1490,6 +1477,8 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		if (!$area_id) {
 			$num_postings = ForumPPEntry::countAreas(Request::quoted('cid'));
 			$area = true;
+		} else if (!$thread_id) 	{
+			$num_postings = ForumPPEntry::countThreads($area_id);
 		} else {
 			$num_postings = ForumPPEntry::countPostings($thread_id);
 		}
@@ -2123,28 +2112,6 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 			$areas = ForumPPEntry::getFlatList('areas', '0', $this->getId());
 			$plugin = $this;
 			$menubar = $this->show_menubar();
-
-			// if ($this->_ENHANCED) {
-			// $categories = $this->getDBData('get_categories');
-			/*
-			foreach($categories as $cat_id => $cat) {
-				$new_areas = array();
-				foreach ($cat['areas'] as $id) {
-					$new_areas[] = $areas[$id];
-					unset($areas[$id]);
-				}
-				if (sizeof($new_areas) == 0) {
-					unset($categories[$cat_id]);
-				} else {
-					$categories[$cat_id]['areas'] = $new_areas;
-				}
-			}
-
-			// All ares which are not assigned to a predefined category are collected now
-			$unconnected['areas'] = $areas;
-			$unconnected['name'] = _("Verschiedenes");
-			$categories[] = $unconnected;
-			*/
 
 			$show_area_edit = false;
 			$edit_area = false;
