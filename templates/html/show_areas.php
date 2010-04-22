@@ -99,7 +99,7 @@
 			<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$area['last_posting']['date']) ?>
 			<? else: ?>
 			<?= _("von") ?>
-			<a href="about.php?username=<?= get_username($area['owner_id']) ?>">
+			<a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
 				<?= $area['author'] ?>
 			</a>
 			<? endif; ?>

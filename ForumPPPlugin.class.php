@@ -168,9 +168,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 					'token' => $this->token
 					);
 
-			URLHelper::setBaseUrl($GLOBALS['ABSOLUTE_URI_STUDIP']);
 			$GLOBALS['_include_additional_header'] .= $this->template_factory->render('feed/links', $params);
-			URLHelper::setBaseUrl(null);
 
 		}
 	}
