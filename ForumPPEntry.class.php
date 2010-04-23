@@ -108,7 +108,7 @@ class ForumPPEntry {
 		}
 	}
 
-	static function getEntries($parent, $sem_id, $with_childs = false) {
+	static function getEntries($parent, $sem_id, $with_childs = false, $limit = true) {
 		// calculate constraint for pagination
 		$page = 1;
 
@@ -154,8 +154,8 @@ class ForumPPEntry {
 			$data = ForumPPEntry::getConstraints($parent);
 			$stmt = DBManager::get()->prepare("SELECT px_topics.*, ou.flag as fav FROM px_topics 
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
-				WHERE lft >= ? AND rgt <= ? AND root_id = ? AND Seminar_id = ?
-				ORDER BY mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+				WHERE lft >= ? AND rgt <= ? AND root_id = ? AND Seminar_id = ? ORDER BY mkdate ". 
+                ($limit ? ("LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE) : ''));
 			$stmt->execute(array($GLOBALS['user']->id, $data['lft'], $data['rgt'], $data['root_id'], $sem_id ));
 		} 
 
@@ -166,7 +166,8 @@ class ForumPPEntry {
 				LEFT JOIN object_user as ou ON (ou.object_id = px_topics.topic_id AND ou.user_id = ?)
 				LEFT JOIN forumpp as fpp ON (fpp.topic_id = px_topics.topic_id)
 				WHERE parent_id = ? AND px_topics.Seminar_id = ? 
-				ORDER BY fpp.entry_id DESC, fpp.pos, mkdate LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+				ORDER BY fpp.entry_id DESC, fpp.pos, mkdate ".
+                ($limit ? ("LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE) : ''));
 			$stmt->execute(array($GLOBALS['user']->id, $parent, $sem_id));
 		}
 
