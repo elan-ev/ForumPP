@@ -156,6 +156,7 @@
 			</tr>
 
 			<!-- Designauswahl -->
+      <? if (sizeof($plugin->getDesigns()) > 1) : ?>
       <tr>
         <td class="infobox" width="100%" colspan="2">
           <font size="-1"><b><?=_("Design")?>:</b></font>
@@ -193,7 +194,7 @@
 					<br />
 				</td>
 			</tr>
-
+        <? endif; ?>
     </table>
     </td>
   </tr>

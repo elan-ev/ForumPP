@@ -235,6 +235,11 @@ class ForumPPEntry {
 						}
 
 						$last_posting['text'] = $text;
+                        $last_posting['link_params'] = array(
+                            'root_id'   => $data['root_id']['id'],
+                            'thread_id' => $data['thread_id']['id'],
+                            'jump_to'   => $data['topic_id']
+                        );
 					} else {
 						$last_posting = _("keine Beitr&auml;ge");
 					}

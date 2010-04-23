@@ -36,7 +36,7 @@
 					</span>
         </a><br/>
 				<span class="threadauthor">
-					<?= _("von") ?> <a href="about.php?username=<?= get_username($thread['owner_id']) ?>">
+					<?= _("von") ?> <a href="<?= UrlHelper::getLink('about.php?username='. get_username($thread['owner_id'])) ?>">
 						<?= $thread['author'] ?>
 					</a>
 					<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$thread['mkdate']) ?>
@@ -50,11 +50,11 @@
 				<? if (!is_array($thread['last_posting'])) : ?>
 				<?= $thread['last_posting'] ?>
 				<? else : ?>
-				<?= _("von") ?>	<a href="about.php?username=<?= $thread['last_posting']['username'] ?>">
+				<?= _("von") ?>	<a href="<?= UrlHelper::getLink('about.php?username='. $thread['last_posting']['username']) ?>">
 					<?= $thread['last_posting']['user_fullname'] ?>
 				</a>
         <? $infotext = _("Direkt zum Beitrag...") ?>
-				<a href="<?= $thread['last_posting']['link'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+				<a href="<?= PluginEngine::getLink($plugin, $thread['last_posting']['link_params']) ?>#<?= $thread['last_posting']['link_params']['jump_to'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 					<img src="<?= $plugin->picturepath ?>/goto_posting.png" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 				</a><br/>
 				<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$thread['last_posting']['date']) ?>

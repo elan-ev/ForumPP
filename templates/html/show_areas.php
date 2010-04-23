@@ -89,11 +89,11 @@
 		<td width="30%" align="left" valign="top" class="areaentry2">
 			<? if (is_array($area['last_posting'])) : ?>
 			<?= _("von") ?>
-			<a href="about.php?username=<?= $area['last_posting']['username'] ?>">
+			<a href="<?= UrlHelper::getLink('about.php?username='. $area['last_posting']['username']) ?>">
 				<?= $area['last_posting']['user_fullname'] ?>
 			</a>
 			<? $infotext = _("Direkt zum Beitrag...") ?>
-			<a href="<?= $area['last_posting']['link'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+			<a href="<?= PluginEngine::getLink($plugin, $area['last_posting']['link_params']) ?>#<?= $area['last_posting']['link_params']['jump_to'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 				<img src="<?= $plugin->picturepath ?>/goto_posting.png" alt="<?= $infotext ?>" title="<?= $infotext ?>">
 			</a><br/>
 			<?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$area['last_posting']['date']) ?>
