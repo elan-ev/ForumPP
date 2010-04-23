@@ -10,7 +10,6 @@ foreach($categories as $cat_id => $cat) {
 ?>
 <script>
 	var loaded_childs = Array();
-	var url = '<?= PluginEngine::getLink($plugin) ?>';
 
 	function deleteChilds(area_id) {
 		var elem = 'area_' + area_id;
@@ -27,7 +26,7 @@ foreach($categories as $cat_id => $cat) {
 		// if not set load childs
 		if (typeof(loaded_childs[area_id]) == 'undefined') {
 			var elem = 'area_' + area_id;
-			new Ajax.Request(url + 'loadchilds/?area_id=' + area_id, {
+			new Ajax.Request('<?= PluginEngine::getUrl($plugin, array(), 'loadchilds') ?>&area_id=' + area_id, {
 				asynchronous: false,
 				onSuccess: function(response) {
 					Element.insert(elem, response.responseText);
@@ -69,7 +68,7 @@ foreach($categories as $cat_id => $cat) {
 			loadChilds(id);
 		}
 
-		new Ajax.Request(url + 'changeparent/?topic_id=' + copyid + '&new_parent=' + id , {
+		new Ajax.Request('<?= PluginEngine::getUrl($plugin, array(), 'changeparent') ?>&topic_id=' + copyid + '&new_parent=' + id , {
 			asynchronous:true,
 			onSuccess: function(response) {
 				ul = new Element('ul');

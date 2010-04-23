@@ -313,7 +313,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		}
 
 		// get the left pott
-		$stmt = DBManager::get()->prepare("SELECT pxb.topic_id, pxb.left 
+		$stmt = DBManager::get()->prepare("SELECT pxb.topic_id, pxb.lft 
 			FROM px_topics as pxa 
 			LEFT JOIN px_topics pxb ON (pxa.parent_id = pxb.topic_id) 
 			WHERE pxa.topic_id = ?");
@@ -328,7 +328,12 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 
 		// rebuild the two sub-trees
 		ForumPPTraversal::recreate($new_parent, $this->getId(), $new_left);
-		ForumPPTraversal::recreate($old_parent, $this->getId(), $old_left);
+        if (!isset($old_parent)) {
+            $old_parent = 0;
+            $old_left = 0;
+        }
+	    ForumPPTraversal::recreate($old_parent, $this->getId(), $old_left);
+        ForumPPTraversal::repair_root_ids($this->getId());
 	}
 
 	function actionLoadChilds() {
@@ -336,12 +341,15 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 		if (!$this->rechte) return;
 
 		if ($this->rechte) {
-			$childs = $this->getDBData('get_child_postings', array('parent_id' => $_REQUEST['area_id']));
+			//$childs = $this->getDBData('get_child_postings', array('parent_id' => $_REQUEST['area_id']));
+
+            $childs = ForumPPEntry::getEntries(Request::get('area_id'), $this->getId(), false, false);
 			echo '<ul>';
 			foreach ($childs as $entry) {
 				echo '<li id="area_'. $entry['topic_id'] .'">';
 
-				if ($entry['has_childs']) {
+                if (ForumPPEntry::getEntries($entry['topic_id'], $this->getId())) {
+				// if ($entry['has_childs']) {
 					echo '<a href="javascript:loadChilds(\''. $entry['topic_id'] .'\')" ';
 					echo 'onMouseOver="showTooltip(\'area_'. $entry['topic_id'] .'\', \''.  preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $entry['description']) .'\')" ';
 					echo 'onMouseOut="hideTooltip()">';
