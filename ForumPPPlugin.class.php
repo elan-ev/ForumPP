@@ -24,6 +24,7 @@ require_once('db/ForumPPDB.php');
 require_once('ForumPPTraversal.class.php');
 require_once('ForumPPEntry.class.php');
 require_once('lib/classes/AdminModules.class.php');
+require_once('lib/classes/Config.class.php');
 
 if (!defined('FEEDCREATOR_VERSION')) {
 	require_once( dirname(__FILE__) . '/vendor/feedcreator/feedcreator.class.php');
@@ -37,6 +38,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 	var $POSTINGS_PER_PAGE = 10;
 	var $FEED_POSTINGS = 10;
 	var $OUTPUT_FORMATS = array('html' => 'html', 'feed' => 'feed');
+    var $AVAILABLE_DESIGNS = array('studip', 'web20');
 
 	var $FEED_FORMATS = array(
 		'RSS0.91' => 'application/rss+xml',
@@ -61,6 +63,13 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 	var $output_format = 'html';
 
 	function __construct() {
+
+        $config = new Config();
+        if (!$designs = $config->getValue('FORUMPP_DESIGNS')) {
+            $config->setValue(implode(',', $this->AVAILABLE_DESIGNS), 'FORUMPP_DESIGNS', 'Available designs: web20,studip');
+        } else {
+            $this->AVAILABLE_DESIGNS = explode(',', $designs);
+        }
 
 		parent::AbstractStudIPStandardPlugin();
 
@@ -182,10 +191,16 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 	}
 
 	function getDesigns() {
-		return array(
-			array('value' => 'web20', 'name' => 'Blue Star'),
-			array('value' => 'studip', 'name' => 'Safir&eacute; (Stud.IP)')
+		$designs = array(
+			'web20'  => array('value' => 'web20', 'name' => 'Blue Star'),
+			'studip' => array('value' => 'studip', 'name' => 'Safir&eacute; (Stud.IP)')
 		);
+
+        foreach ($this->AVAILABLE_DESIGNS as $design) {
+            $ret[] = $designs[$design];
+        }
+
+        return $ret;
 	}
 
 	function setDesign($design) {
@@ -193,6 +208,9 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 	}
 
 	function getDesign() {
+        if (in_array($_SESSION['forumpp_template'][$this->getId()], $this->AVAILABLE_DESIGNS) === false) {
+            $_SESSION['forumpp_template'][$this->getId()] = $this->AVAILABLE_DESIGNS[0];
+        }
 		return $_SESSION['forumpp_template'][$this->getId()];
 	}
 
