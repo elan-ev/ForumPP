@@ -4,7 +4,7 @@
   
   <tr>
     <td class="infobox" width="100%" align="right">
-      <img src="<?=Assets::url('images/infobox/' . $picture)?>">
+      <img src="<?=Assets::url('images/' . $picture)?>">
     </td>
   </tr>
 
