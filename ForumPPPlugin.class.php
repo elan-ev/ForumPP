@@ -1878,7 +1878,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 			$infobox =& $this->template_factory->open('html/infobox_config');
 			$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
 			$infobox->set_attribute('standard_infobox', $standard_infobox);
-			$infobox->set_attribute('picture', 'sms3.jpg');
+			$infobox->set_attribute('picture', 'infobox/messages.jpg');
 			$infobox->set_attribute('plugin', $this);
 		}
 
@@ -1887,7 +1887,7 @@ class ForumPPPlugin extends AbstractStudIPStandardPlugin implements StandardPlug
 			$infobox =& $this->template_factory->open($this->output_format . '/infobox');
 			$standard_infobox =& $GLOBALS['template_factory']->open('infobox/infobox_raumzeit');
 			$infobox->set_attribute('standard_infobox', $standard_infobox);
-			$infobox->set_attribute('picture', 'sms3.jpg');
+			$infobox->set_attribute('picture', 'infobox/messages.jpg');
 			$infobox->set_attribute('plugin', $this);
 			$infobox->set_attribute('section', $section);
 			$infobox->set_attribute('_REQUEST', $_REQUEST);
