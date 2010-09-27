@@ -30,7 +30,7 @@
 
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
-            <?= Assets::img('icons/16/black/exlaim.png') ?>
+            <?= Assets::img('icons/16/black/exclaim.png') ?>
           </td>
           <td class="infobox" width="99%" align="left">
             <font size="-1">
@@ -41,7 +41,7 @@
 
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
-            <?= Assets::img('icons/16/black/exlaim.png') ?>
+            <?= Assets::img('icons/16/black/exclaim.png') ?>
           </td>
           <td class="infobox" width="99%" align="left">
             <font size="-1">
@@ -61,7 +61,7 @@
 
       <tr>
           <td class="infobox" align="center" valign="center" width="1%">
-            <?= Assets::img('icons/16/black/exlaim.png') ?>
+            <?= Assets::img('icons/16/black/exclaim.png') ?>
           </td>
           <td class="infobox" width="99%" align="left">
             <font size="-1">
