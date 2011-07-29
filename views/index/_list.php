@@ -1,29 +1,16 @@
-<? $_areaname = -1 ?>
-<div style="text-align: right">
-<?= $plugin->get_page_chooser() ?>
-</div>
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum">
-    <? foreach ($areas as $area) :
-        // echo '<tr><td colspan="5">', var_dump($area), '</td></tr>';
-    if ($_areaname != $area['area_name']) : ?>
+    <? foreach ($list as $area_name => $entries) : ?>
 
-        <? if ($_areaname != -1) : ?>
-	<!-- bottom border -->
-	<tr>
-            <td class="areaborder" colspan="7">
-                <span class="corners-bottom"><span></span></span>
-            </td>
-	</tr>
-	<tr>
-            <td colspan="6">&nbsp;</td>
-	</tr>
-	<? endif; ?>
-
-	<? $_areaname = $area['area_name']; ?>
     <tr>
         <td class="forum_header" colspan="3" align="left">
             <span class="corners-top"></span>
-            <span class="heading"><?= strtoupper($area['area_name']) ?>&nbsp;</span>
+            <span class="heading">
+                <? if (!$area_name) : ?>
+                <?= strtoupper(_('Themen')) ?>
+                <? else: ?>
+                <?= strtoupper($area_name) ?>&nbsp;
+                <? endif ?>
+            </span>
         </td>
 
         <? if ($show_area_edit) : ?>
@@ -43,8 +30,9 @@
             <span class="heading"><?= _("LETZTE ANTWORT") ?></span>
         </td>
     </tr>
-    <? endif; ?>
 
+
+    <? foreach ($entries as $area) : ?>
     <tr>
         <td class="areaborder">&nbsp;</td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
@@ -55,7 +43,7 @@
         <? if ($edit_area == $area['topic_id']) : ?>
             <form action="<?= PluginEngine::getLink($plugin) ?>" method="post">
                 <input type="text" name="posting_title" style="width: 99%" value="<?= $area['name_raw'] ?>"><br/>
-                <textarea name="posting_data" class="add_toolbar" style="width: 99%" rows="7"><?= $area['description_raw'] ?></textarea><br/>
+                <textarea name="posting_data" class="add_toolbar" style="width: 99%" rows="7"><?= $area['content_raw'] ?></textarea><br/>
                 <div class="buttons">
                     <input type="image" <?= makebutton('speichern', 'src') ?>>&nbsp;&nbsp;&nbsp;
                     <a href="<?= PluginEngine::getLink('ForumPPPlugin') ?>">
@@ -67,10 +55,15 @@
             </form>
             <? else : ?>
 
-            <a href="<?= PluginEngine::getLink($plugin, array('root_id' => $area['topic_id'])) ?>">
+            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $area['topic_id']) ?>">
                 <span class="areaname"><?= $area['name'] ?></span>
             </a><br/>
-            <?= $area['description'] ?>
+
+            <? if ($this->constraint['depth'] == 1) : ?>
+            <?= $area['content_short'] ?>...
+            <? else: ?>
+            <?= $area['content'] ?>
+            <? endif ?>
         <? endif; ?>
 
         </td>
@@ -88,16 +81,15 @@
         </td>
 
         <td width="30%" align="left" valign="top" class="areaentry2">
-            <? if (is_array($area['last_posting'])) : ?>
+            <? if (!empty($area['last_posting'])) : ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $area['last_posting']['username']) ?>">
                     <?= htmlReady($area['last_posting']['user_fullname']) ?>
             </a>
-            <? $infotext = _("Direkt zum Beitrag...") ?>
-            <a href="<?= PluginEngine::getLink($plugin, $area['last_posting']['link_params']) ?>#<?= $area['last_posting']['link_params']['jump_to'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
-                    <img src="<?= $plugin->picturepath ?>/goto_posting.png" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+            <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $area['last_posting']['topic_id']) ?>#<?= $area['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+                <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
             </a><br/>
-            <?= _("am") ?> <?= strftime($plugin->time_format_string_short, (int)$area['last_posting']['date']) ?>
+            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['last_posting']['date']) ?>
             <? else: ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
@@ -107,18 +99,19 @@
         </td>
         <td class="areaborder">&nbsp;</td>
     </tr>
+        <? endforeach; ?>
 
-  <? endforeach; ?>
+    <? endforeach; ?>
 
 	<!-- bottom border -->
 	<tr>
-		<td class="areaborder" colspan="7">
-			<span class="corners-bottom"><span></span></span>
-		</td>
+            <td class="areaborder" colspan="7">
+                <span class="corners-bottom"><span></span></span>
+            </td>
+	</tr>
+	<tr>
+            <td colspan="6">&nbsp;</td>
 	</tr>
 </table>
-<div style="text-align: right">
-	<?= $plugin->get_page_chooser() ?>
-</div>
 <br>
 <br>
