@@ -26,12 +26,15 @@ foreach($categories as $cat_id => $cat) {
 		// if not set load childs
 		if (typeof(loaded_childs[area_id]) == 'undefined') {
 			var elem = 'area_' + area_id;
+            jQuery('#area_' + area_id).load('<?= PluginEngine::getUrl($plugin, array(), 'loadchilds') ?>&area_id=' + area_id);
+            /*
 			new Ajax.Request('<?= PluginEngine::getUrl($plugin, array(), 'loadchilds') ?>&area_id=' + area_id, {
 				asynchronous: false,
 				onSuccess: function(response) {
 					Element.insert(elem, response.responseText);
 				}
 			});
+            */
 			loaded_childs[area_id] = true;
 		} 
 		
