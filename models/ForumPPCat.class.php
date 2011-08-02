@@ -2,9 +2,10 @@
 
 class ForumPPCat {
     static function getList($seminar_id) {
-        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_categories
-            WHERE seminar_id = ?
-            ORDER BY pos ASC");
+        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_categories AS fc
+            LEFT JOIN forumpp_categories_entries AS fce USING (category_id)
+            WHERE seminar_id = ? AND fce.topic_id IS NOT NULL
+            ORDER BY fc.pos ASC, fce.pos ASC");
 
         $stmt->execute(array($seminar_id));
 
@@ -18,6 +19,11 @@ class ForumPPCat {
 
         $stmt->execute(array(md5(uniqid(rand())), $seminar_id, $name));
     }
+
+    static function addArea($area_id, $category_id) {}
+
+    static function setAreaPosition($area_id, $pos) {}
+
 
     static function addEntry($area_id, $entry_id) {
     }

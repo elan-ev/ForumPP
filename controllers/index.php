@@ -24,7 +24,6 @@ require_once 'lib/classes/AdminModules.class.php';
 require_once 'lib/classes/Config.class.php';
 require_once $this->trails_root .'/models/ForumPPEntry.class.php';
 require_once $this->trails_root .'/models/ForumPPHelpers.class.php';
-require_once $this->trails_root .'/models/ForumPPAreas.class.php';
 require_once $this->trails_root .'/models/ForumPPCat.class.php';
 
 /*
@@ -62,14 +61,18 @@ class IndexController extends StudipController {
     /*  V   I   E   W   -   A   C   T   I   O   N   S  */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    function index_action($topic_id = null)
+    function index_action($topic_id = null, $page = null)
     {
         Navigation::activateItem('course/forum/index');
 
         // check, if the root entry is present
         ForumPPEntry::checkRootEntry($this->getId());
-        $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
 
+        /* * * * * * * * * * * * * * * * * * *
+         * V A R I A B L E N   F U E L L E N *
+         * * * * * * * * * * * * * * * * * * */
+
+        $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
         $this->section = 'forum';
 
         if ($this->flash['new_entry']) {
@@ -80,28 +83,67 @@ class IndexController extends StudipController {
             }
         }
 
-        // ForumPPEntry::getPathToPosting($topic_id);
-        $this->topic_id = $topic_id ? $topic_id : $this->getId();
-        $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
+        $this->topic_id     = $topic_id ? $topic_id : $this->getId();
+        $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
+
+        // set page to which we shall jump
+        if ($page) {
+            ForumPPHelpers::setPage($page);
+        }
+
+        // we do not crawl deeper than level 2, we show a page chooser instead
+        if ($this->constraint['depth'] > 2) {
+            ForumPPHelpers::setPage(ForumPPEntry::getPostingPage($this->topic_id));
+
+            $path               = ForumPPEntry::getPathToPosting($this->topic_id);
+            $this->child_topic  = $this->topic_id;
+            $this->topic_id     = $path[2]['id'];
+            $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
+        }
+
+
+        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+         * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
         // TODO: Kategorien berücksichtigen
-        if ($this->constraint['depth'] > 1) {
+        if ($this->constraint['depth'] > 1) {   // POSTINGS
             $list = ForumPPEntry::getList('postings', $this->topic_id);
             if (!empty($list['list'])) {
                 $this->postings          = $list['list'];
                 $this->number_of_entries = $list['count'];
             }
         } else {
-            $list = ForumPPEntry::getList('list', $this->topic_id);
+            if ($this->constraint['depth'] == 0) {  // BEREICHE
+                $list = ForumPPEntry::getList('area', $this->topic_id);
+            } else {
+                $list = ForumPPEntry::getList('list', $this->topic_id);
+            }
+
             if (!empty($list['list'])) {
-                if ($this->constraint['depth'] == 0) {
-                    $this->list = array('Allgemein' => $list['list']);
-                } else if ($this->constraint['depth'] == 1) {
+                if ($this->constraint['depth'] == 0) {  // BEREICHE
+                    $new_list = array();
+                    foreach (ForumPPCat::getList($this->getId()) as $category) {
+                        $new_list[$category['entry_name']][] = $list['list'][$category['topic_id']];
+                        unset($list['list'][$category['topic_id']]);
+                    }
+
+                    if (!empty($list['list'])) {
+                        $new_list['Allgemein'] = $list['list'];
+                    }
+
+                    $this->list = $new_list;
+                } else if ($this->constraint['depth'] == 1) {   // THREADS
                     $this->list = array($list['list']);
                 }
                 $this->number_of_entries = $list['count'];
             }
         }
+
+
+        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+         * A K T I O N S L I N K S   I N   D E R   I N F O B O X *
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
         if ($this->constraint['depth'] == 0) {
             if ($this->writable && $this->rechte) {
@@ -211,7 +253,7 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/'. $topic_id));
     }
 
-    function add_entry_action()
+    function add_entry_action($topic_id)
     {
         if (!Request::option('parent')) {
             throw new Exception('missing seminar_id/topic_id while adding a new entry!');
@@ -227,7 +269,7 @@ class IndexController extends StudipController {
             'author_host' => getenv('REMOTE_ADDR')
         ), Request::option('parent'));
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . Request::option('parent')));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
     }
 
     function cite_action($topic_id)
@@ -245,6 +287,10 @@ class IndexController extends StudipController {
     {
         object_switch_fav($topic_id);
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
+    }
+
+    function goto_page_action($topic_id, $page) {
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. $page));
     }
 
 
@@ -334,7 +380,7 @@ class IndexController extends StudipController {
      */
     function before_filter(&$action, &$args)
     {
-        $this->validate_args($args, array('option'));
+        $this->validate_args($args, array('option', 'int'));
 
         parent::before_filter($action, $args);
 
@@ -355,6 +401,8 @@ class IndexController extends StudipController {
         // the default for displaying timestamps
         $this->time_format_string = "%A %d. %B %Y, %H:%M";
         $this->time_format_string_short = "%a %d. %B %Y, %H:%M";
+
+        $this->rechte = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
 
         $this->template_factory =
             new Flexi_TemplateFactory(dirname(__FILE__) . '/../templates');
