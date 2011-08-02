@@ -1,6 +1,6 @@
 <? if ($has_rights) : ?>
 <a name="#create"></a>
-<form action="<?= PluginEngine::getLink('forumpp/index/add_entry') ?>" method="post">
+<form action="<?= PluginEngine::getLink('forumpp/index/add_entry/'. ($child_topic ? $child_topic : $topic_id)) ?>" method="post">
     <div class="posting bg2">
         <span class="corners-top"><span></span></span>
 

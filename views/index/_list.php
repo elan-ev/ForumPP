@@ -1,6 +1,5 @@
+<? foreach ($list as $area_name => $entries) : ?>
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum">
-    <? foreach ($list as $area_name => $entries) : ?>
-
     <tr>
         <td class="forum_header" colspan="3" align="left">
             <span class="corners-top"></span>
@@ -85,11 +84,11 @@
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $area['last_posting']['username']) ?>">
                     <?= htmlReady($area['last_posting']['user_fullname']) ?>
-            </a>
+            </a><br>
+            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['last_posting']['date']) ?>
             <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $area['last_posting']['topic_id']) ?>#<?= $area['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
                 <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
-            </a><br/>
-            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['last_posting']['date']) ?>
+            </a>
             <? else: ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
@@ -101,17 +100,16 @@
     </tr>
         <? endforeach; ?>
 
-    <? endforeach; ?>
+
 
 	<!-- bottom border -->
 	<tr>
-            <td class="areaborder" colspan="7">
-                <span class="corners-bottom"><span></span></span>
-            </td>
+        <td class="areaborder" colspan="7">
+            <span class="corners-bottom"><span></span></span>
+        </td>
 	</tr>
 	<tr>
-            <td colspan="6">&nbsp;</td>
+        <td colspan="6">&nbsp;</td>
 	</tr>
 </table>
-<br>
-<br>
+<? endforeach; ?>

@@ -7,6 +7,7 @@
 
 class ForumPPEntry {
     const WITH_CHILDS = true;
+    const WITHOUT_CHILDS = false;
     const THREAD_PREVIEW_LENGTH = 100;
     const POSTINGS_PER_PAGE = 10;
     const FEED_POSTINGS = 100;
@@ -75,6 +76,28 @@ class ForumPPEntry {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * D   A   T   A   -   R   E   T   R   I   E   V   A   L *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+     /**
+      * get the page the passed posting is on
+      * 
+      * @param  string  $topic_id
+      * @return  int
+      */
+    static function getPostingPage($topic_id) {
+        $constraint = ForumPPEntry::getConstraints($topic_id);
+        $path   = ForumPPEntry::getPathToPosting($topic_id);
+        array_pop($path);
+        $parent = array_pop($path);
+
+        if (!empty($parent)) {
+            $parent_constraint = ForumPPEntry::getConstraints($parent['id']);
+
+            return floor((($constraint['lft'] - $parent_constraint['lft']) / 2) / self::POSTINGS_PER_PAGE) + 1;
+        }
+
+        return 0;
+    }
+
     /*
      * retrieve the the latest posting under $parent_id
      * or false if the postings itself is the latest
@@ -82,7 +105,6 @@ class ForumPPEntry {
      * @param string $parent_id the node to lookup the childs in
      * @return mixed the data for the latest postings or false
      */
-
     static function getLatestPosting($parent_id) {
         $data = ForumPPEntry::getConstraints($parent_id);
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
@@ -167,38 +189,40 @@ class ForumPPEntry {
                 . ($limit ? " LIMIT $start, $limit" : ''));
             $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
-            $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
+            $count_stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.Seminar_id = ?
                     AND forumpp_entries.Seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . $add
-                . " ORDER BY forumpp_entries.mkdate $sort_order"
-                . ($limit ? " LIMIT $start, $limit" : ''));
-            $count_stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
+                . " ORDER BY forumpp_entries.mkdate $sort_order");
+            $count_stmt->execute($data = array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
+
+            // vprintf(str_replace('?', "'%s'", $query), $data);die;
 
         } else {
             $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, ou.flag as fav
                     FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE (depth = ? AND forumpp_entries.Seminar_id = ? "
+                WHERE ((depth = ? AND forumpp_entries.Seminar_id = ?
+                    AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . ') '. $add
                 . " ORDER BY forumpp_entries.mkdate $sort_order"
                 . ($limit ? " LIMIT $start, $limit" : ''));
-            $stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id));
+            $stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
             $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE (depth = ? AND forumpp_entries.Seminar_id = ?
-                    AND forumpp_entries.Seminar_id != forumpp_entries.topic_id"
+                WHERE ((depth = ? AND forumpp_entries.Seminar_id = ?
+                    AND forumpp_entries.Seminar_id != forumpp_entries.topic_id
+                    AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . ') '. $add
-                . " ORDER BY forumpp_entries.mkdate $sort_order"
-                . ($limit ? " LIMIT $start, $limit" : ''));
-            $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id));
+                . " ORDER BY forumpp_entries.mkdate $sort_order");
+            $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
         }
         
@@ -206,11 +230,43 @@ class ForumPPEntry {
             throw new Exception("Error while retrieving postings in " . __FILE__ . " on line " . __LINE__);
         }
 
-        if (ForumPPEntry::POSTINGS_PER_PAGE * $start > $count) {
+        if ($start > $count) {
             throw new Exception('The requested page does not exist!');
         }
 
         return array('list' => self::parseEntries($stmt), 'count' => $count);
+    }
+
+
+    function getLastPostings($postings) {
+        foreach ($postings as $key => $posting) {
+
+            if ($data = ForumPPEntry::getLatestPosting($posting['topic_id'])) {
+                $last_posting['topic_id']      = $data['topic_id'];
+                $last_posting['date']          = $data['mkdate'];
+                $last_posting['user_id']       = $data['user_id'];
+                $last_posting['user_fullname'] = $data['author'];
+                $last_posting['username']      = get_username($data['user_id']);
+
+                // we throw away all formatting stuff, tags, etc, so we have just the important bit of information
+                $text = strip_tags($data['name']);
+                $text = ForumPPEntry::br2space($text);
+                $text = kill_format(ForumPPEntry::killQuotes($text));
+
+                if (strlen($text) > 42) {
+                    $text = substr($text, 0, 40) . '...';
+                }
+
+                $last_posting['text'] = $text;
+            } else {
+                $last_posting = _("keine Beitr&auml;ge");
+            }
+
+            $postings[$key]['last_posting'] = $last_posting;
+            $postings[$key]['num_postings'] = ForumPPEntry::countEntries($posting['topic_id']);
+        }
+        
+        return $postings;
     }
 
     /**
@@ -222,45 +278,27 @@ class ForumPPEntry {
      */
     static function getList($type, $parent_id) {
         $start = ForumPPHelpers::getPage() * ForumPPEntry::POSTINGS_PER_PAGE;
-        $limit = ForumPPEntry::POSTINGS_PER_PAGE;
 
         switch ($type) {
-            case 'list':
-                $list = ForumPPEntry::getEntries($parent_id);
+            case 'area':
+                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', 0, 100);
                 $postings = $list['list'];
 
-                foreach ($postings as $key => $posting) {
+                $postings = ForumPPEntry::getLastPostings($postings);
+                return array('list' => $postings, 'count' => $list['count']);
 
-                    if ($data = ForumPPEntry::getLatestPosting($posting['topic_id'])) {
-                        $last_posting['topic_id']      = $data['topic_id'];
-                        $last_posting['date']          = $data['mkdate'];
-                        $last_posting['user_id']       = $data['user_id'];
-                        $last_posting['user_fullname'] = $data['author'];
-                        $last_posting['username']      = get_username($data['user_id']);
+                break;
+            
+            case 'list':
+                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', $start);
+                $postings = $list['list'];
 
-                        // we throw away all formatting stuff, tags, etc, so we have just the important bit of information
-                        $text = strip_tags($data['name']);
-                        $text = ForumPPEntry::br2space($text);
-                        $text = kill_format(ForumPPEntry::killQuotes($text));
-
-                        if (strlen($text) > 42) {
-                            $text = substr($text, 0, 40) . '...';
-                        }
-
-                        $last_posting['text'] = $text;
-                    } else {
-                        $last_posting = _("keine Beitr&auml;ge");
-                    }
-
-                    $postings[$key]['last_posting'] = $last_posting;
-                    $postings[$key]['num_postings'] = ForumPPEntry::countEntries($posting['topic_id']);
-                }
-
+                $postings = ForumPPEntry::getLastPostings($postings);
                 return array('list' => $postings, 'count' => $list['count']);
                 break;
 
             case 'postings':
-                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, '', 'ASC');
+                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, '', 'ASC', $start);
                 break;
 
             case 'newest':
@@ -272,12 +310,12 @@ class ForumPPEntry {
 
                 $add = 'AND forumpp_entries.mkdate >= '. DBManager::get()->quote($last_visit);
 
-                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add);
+                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC'. $start);
                 break;
 
             case 'favorites':
                 $add = "AND ou.flag = 'fav'";
-                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add);
+                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
         }
     }
@@ -302,15 +340,15 @@ class ForumPPEntry {
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * D   A   T   A   -   C   R   E   A   T  I   O   N    * *
+     *   D   A   T   A   -   C   R   E   A   T   I   O   N   *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     static function insert($data, $parent_id) {
         $constraint = self::getConstraints($parent_id);
 
         // TODO: Zusammenfassen in eine Transaktion!!!
-        DBManager::get()->exec('UPDATE forumpp_entries SET rgt = rgt + 2 WHERE rgt > '. $constraint['lft']);
-        DBManager::get()->exec('UPDATE forumpp_entries SET lft = lft + 2 WHERE lft > '. $constraint['lft']);
+        DBManager::get()->exec('UPDATE forumpp_entries SET lft = lft + 2 WHERE lft > '. $constraint['rgt']);
+        DBManager::get()->exec('UPDATE forumpp_entries SET rgt = rgt + 2 WHERE rgt >= '. $constraint['rgt']);
 
         $stmt = DBManager::get()->prepare("INSERT INTO forumpp_entries
             (topic_id, seminar_id, user_id, name, content, mkdate, chdate, author,
@@ -318,7 +356,7 @@ class ForumPPEntry {
             VALUES (? ,?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ?, ?, ?, ?, ?, ?)");
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
-            $constraint['lft'] + 1, $constraint['lft'] + 2, $constraint['depth'] + 1, 0));
+            $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
     }
 
     function checkRootEntry($seminar_id) {

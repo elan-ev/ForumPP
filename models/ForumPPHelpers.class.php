@@ -2,6 +2,8 @@
 
 class ForumPPHelpers {
 
+    static $page = 1;
+
     /**
      * helper_function for highlight($text, $highlight)
      *
@@ -141,6 +143,15 @@ class ForumPPHelpers {
      * @return  int
      */
     static function getPage() {
-        return Request::int('page', 0);
+        return self::$page - 1;
+    }
+
+    /**
+     * set the current page
+     *
+     * @return  int
+     */
+    static function setPage($page_num) {
+        self::$page = $page_num;
     }
 }
