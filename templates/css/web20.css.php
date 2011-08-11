@@ -264,21 +264,30 @@ blockquote.quote {
 div.cat, div.dropcat {
 	background-color: #CFCFEF;
 	min-height: 60px;
+    padding: 3px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.category_title {
+    font-weight: bold;
 }
 
 div.droparea {
 	background-color: #AFAFEF;
 }
 
-li.pointer {
+.pointer {
 	cursor: pointer;
 }
 
-li.areas {
+.areas {
 	border: 1px solid #CFCFEF;
 	background-color: #CFCFEF;
 	margin-bottom: 5px;
-	margin-left: -10px;
+    width: 95%;
+    padding: 3px;
+    border-radius: 5px;
 }
 
 div.bgtext {

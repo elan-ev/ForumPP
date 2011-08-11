@@ -108,7 +108,7 @@ class ForumPPEntry {
     static function getLatestPosting($parent_id) {
         $data = ForumPPEntry::getConstraints($parent_id);
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
-			WHERE lft >= ? AND rgt <= ? AND Seminar_id = ?
+			WHERE lft > ? AND rgt < ? AND seminar_id = ?
 			ORDER BY mkdate DESC LIMIT 1");
         $stmt->execute(array($data['lft'], $data['rgt'], $data['seminar_id']));
 
@@ -116,14 +116,14 @@ class ForumPPEntry {
             return false;
         }
 
-        return array_merge($data, ForumPPEntry::getPathToPosting($data['topic_id']));
+        return $data;
     }
 
     static function getPathToPosting($topic_id) {
         $data = ForumPPEntry::getConstraints($topic_id);
 
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
-            WHERE lft <= ? AND rgt >= ? AND Seminar_id = ? ORDER BY lft ASC");
+            WHERE lft <= ? AND rgt >= ? AND seminar_id = ? ORDER BY lft ASC");
         $stmt->execute(array($data['lft'], $data['rgt'], $data['seminar_id']));
 
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -136,11 +136,17 @@ class ForumPPEntry {
         return $ret;
     }
 
-    static function parseEntries($stmt) {
+    /**
+     * fill the passed postings with additional data
+     *
+     * @param  array $postings
+     * @return array
+     */
+    static function parseEntries($postings) {
         $posting_list = array();
 
         // retrieve the postings
-        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        foreach ($postings as $data) {
             // we throw away all formatting stuff, tags, etc, leaving the important bit of information
             $desc_short = ForumPPEntry::br2space(kill_format(strip_tags($data['content'])));
             if (strlen($desc_short) > (ForumPPEntry::THREAD_PREVIEW_LENGTH + 2)) {
@@ -180,8 +186,8 @@ class ForumPPEntry {
             $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, ou.flag as fav
                     FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE (forumpp_entries.Seminar_id = ?
-                    AND forumpp_entries.Seminar_id != forumpp_entries.topic_id
+                WHERE (forumpp_entries.seminar_id = ?
+                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . $add
@@ -191,8 +197,8 @@ class ForumPPEntry {
 
             $count_stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE (forumpp_entries.Seminar_id = ?
-                    AND forumpp_entries.Seminar_id != forumpp_entries.topic_id
+                WHERE (forumpp_entries.seminar_id = ?
+                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . $add
@@ -206,7 +212,7 @@ class ForumPPEntry {
             $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, ou.flag as fav
                     FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE ((depth = ? AND forumpp_entries.Seminar_id = ?
+                WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . ') '. $add
@@ -216,8 +222,8 @@ class ForumPPEntry {
 
             $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
                 LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE ((depth = ? AND forumpp_entries.Seminar_id = ?
-                    AND forumpp_entries.Seminar_id != forumpp_entries.topic_id
+                WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
+                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . ') '. $add
@@ -234,14 +240,14 @@ class ForumPPEntry {
             throw new Exception('The requested page does not exist!');
         }
 
-        return array('list' => self::parseEntries($stmt), 'count' => $count);
+        return array('list' => self::parseEntries($stmt->fetchAll(PDO::FETCH_ASSOC)), 'count' => $count);
     }
 
 
     function getLastPostings($postings) {
         foreach ($postings as $key => $posting) {
 
-            if ($data = ForumPPEntry::getLatestPosting($posting['topic_id'])) {
+            if ($data = self::getLatestPosting($posting['topic_id'])) {
                 $last_posting['topic_id']      = $data['topic_id'];
                 $last_posting['date']          = $data['mkdate'];
                 $last_posting['user_id']       = $data['user_id'];
@@ -250,20 +256,20 @@ class ForumPPEntry {
 
                 // we throw away all formatting stuff, tags, etc, so we have just the important bit of information
                 $text = strip_tags($data['name']);
-                $text = ForumPPEntry::br2space($text);
-                $text = kill_format(ForumPPEntry::killQuotes($text));
+                $text = self::br2space($text);
+                $text = kill_format(self::killQuotes($text));
 
                 if (strlen($text) > 42) {
                     $text = substr($text, 0, 40) . '...';
                 }
 
                 $last_posting['text'] = $text;
-            } else {
-                $last_posting = _("keine Beitr&auml;ge");
             }
 
             $postings[$key]['last_posting'] = $last_posting;
-            $postings[$key]['num_postings'] = ForumPPEntry::countEntries($posting['topic_id']);
+            $postings[$key]['num_postings'] = self::countEntries($posting['topic_id']);
+
+            unset($last_posting);
         }
         
         return $postings;
@@ -277,24 +283,51 @@ class ForumPPEntry {
      * @return <type> 
      */
     static function getList($type, $parent_id) {
-        $start = ForumPPHelpers::getPage() * ForumPPEntry::POSTINGS_PER_PAGE;
+        $start = ForumPPHelpers::getPage() * self::POSTINGS_PER_PAGE;
 
         switch ($type) {
             case 'area':
-                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', 0, 100);
+                $list = self::getEntries($parent_id, self::WITHOUT_CHILDS, '', 'DESC', 0, 100);
                 $postings = $list['list'];
 
-                $postings = ForumPPEntry::getLastPostings($postings);
+                $postings = self::getLastPostings($postings);
                 return array('list' => $postings, 'count' => $list['count']);
 
                 break;
             
             case 'list':
-                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', $start);
-                $postings = $list['list'];
+                $constraint = self::getConstraints($parent_id);
 
+                // purpose of the following query is to retrieve the threads
+                // for an area ordered by the mkdate of their latest posting
+                $stmt = DBManager::get()->prepare("SELECT topic_id as en_topic_id,
+                        IF (
+                            (SELECT MAX(f1.mkdate) FROM forumpp_entries as f1
+                                WHERE fe.seminar_id = '834499e2b8a2cd71637890e5de31cba3'
+                                AND f1.lft > fe.lft AND f1.rgt < fe.rgt) IS NULL,
+                            fe.mkdate, (SELECT MAX(f1.mkdate)
+                                FROM forumpp_entries as f1
+                                WHERE fe.seminar_id = '834499e2b8a2cd71637890e5de31cba3'
+                                    AND f1.lft > fe.lft AND f1.rgt < fe.rgt)
+                            ) as en_mkdate, f2.*
+                    FROM forumpp_entries AS fe
+                    LEFT JOIN forumpp_entries f2 USING (topic_id)
+                    WHERE fe.seminar_id = ? AND fe.lft > ?
+                        AND fe.rgt < ? AND fe.depth = 2
+                    ORDER BY en_mkdate DESC
+                    LIMIT $start, ". self::POSTINGS_PER_PAGE);
+                $stmt->execute(array($constraint['seminar_id'], $constraint['lft'], $constraint['rgt']));
+
+                $postings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $postings = self::parseEntries($postings);
                 $postings = ForumPPEntry::getLastPostings($postings);
-                return array('list' => $postings, 'count' => $list['count']);
+
+                $stmt_count = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
+                    WHERE seminar_id = ? AND lft > ? AND rgt < ? AND depth = 2");
+                $stmt_count->execute(array($constraint['seminar_id'], $constraint['lft'], $constraint['rgt']));
+
+                return array('list' => $postings, 'count' => $stmt_count->fetchColumn());
                 break;
 
             case 'postings':
