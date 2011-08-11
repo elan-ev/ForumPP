@@ -67,7 +67,8 @@ class ForumPPEntry {
             FROM forumpp_entries WHERE topic_id = ?");
         $range_stmt->execute(array($topic_id));
         if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
-            throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
+            return false;
+            // throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
         }
 
         return $data;
@@ -390,6 +391,14 @@ class ForumPPEntry {
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
+    }
+
+    function delete($topic_id) {
+        $constraints = self::getConstraints($topic_id);
+
+        $stmt = DBManager::get()->prepare("DELETE FROM forumpp_entries
+            WHERE seminar_id = ? AND lft >= ? AND rgt <= ?");
+        $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
     }
 
     function checkRootEntry($seminar_id) {
