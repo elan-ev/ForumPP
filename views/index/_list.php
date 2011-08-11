@@ -1,4 +1,5 @@
 <? foreach ($list as $area_name => $entries) : ?>
+    <? if (!empty($entries)) : /* show category only if areas are assigned to it */ ?>
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum">
     <tr>
         <td class="forum_header" colspan="3" align="left">
@@ -39,13 +40,13 @@
         </td>
         <td class="areaentry" valign="top">
 
-        <? if ($edit_area == $area['topic_id']) : ?>
-            <form action="<?= PluginEngine::getLink($plugin) ?>" method="post">
+        <? if ($edit_area && $edit_area == $area['topic_id']) : ?>
+            <form action="<?= PluginEngine::getLink('forumpp/index/index') ?>" method="post">
                 <input type="text" name="posting_title" style="width: 99%" value="<?= $area['name_raw'] ?>"><br/>
                 <textarea name="posting_data" class="add_toolbar" style="width: 99%" rows="7"><?= $area['content_raw'] ?></textarea><br/>
                 <div class="buttons">
                     <input type="image" <?= makebutton('speichern', 'src') ?>>&nbsp;&nbsp;&nbsp;
-                    <a href="<?= PluginEngine::getLink('ForumPPPlugin') ?>">
+                    <a href="<?= PluginEngine::getLink('forumpp/index/index') ?>">
                         <?= makebutton('abbrechen') ?>
                     </a>
                 </div>
@@ -56,10 +57,22 @@
 
             <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $area['topic_id']) ?>">
                 <span class="areaname"><?= $area['name'] ?></span>
-            </a><br/>
+            </a>
+            <br/>
+
+            <?= _("von") ?>
+            <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
+                <?= htmlReady($area['author']) ?>
+            </a>
+            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['mkdate']) ?>
+            <br>
 
             <? if ($this->constraint['depth'] == 1) : ?>
-            <?= $area['content_short'] ?>...
+                <? if ($area['content_short'] && strlen($area['content'] > strlen($area['content_short']))) : ?>
+                    <?= $area['content_short'] ?>...
+                <? else : ?>
+                    <?= $area['content_short'] ?>
+                <? endif ?>
             <? else: ?>
             <?= $area['content'] ?>
             <? endif ?>
@@ -75,12 +88,13 @@
         </td>
         <? endif; ?>
 
-        <td width="40" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
+        <td width="40" align="center" valign="top" class="areaentry2">
+            <br>
             <?= ($area['num_postings'] > 0) ? ($area['num_postings'] - 1) : 0 ?>
         </td>
 
         <td width="30%" align="left" valign="top" class="areaentry2">
-            <? if (!empty($area['last_posting'])) : ?>
+            <? if (is_array($area['last_posting'])) : ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $area['last_posting']['username']) ?>">
                     <?= htmlReady($area['last_posting']['user_fullname']) ?>
@@ -90,10 +104,8 @@
                 <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
             </a>
             <? else: ?>
-            <?= _("von") ?>
-            <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
-                    <?= htmlReady($area['author']) ?>
-            </a>
+            <br>
+            <?= _('keine Beiträge') ?>
             <? endif; ?>
         </td>
         <td class="areaborder">&nbsp;</td>
@@ -112,4 +124,5 @@
         <td colspan="6">&nbsp;</td>
 	</tr>
 </table>
+    <? endif ?>
 <? endforeach; ?>

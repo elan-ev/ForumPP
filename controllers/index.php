@@ -124,7 +124,7 @@ class IndexController extends StudipController {
                 if ($this->constraint['depth'] == 0) {  // BEREICHE
                     $new_list = array();
                     foreach (ForumPPCat::getList($this->getId()) as $category) {
-                        $new_list[$category['entry_name']][] = $list['list'][$category['topic_id']];
+                        $new_list[$category['entry_name']][$category['topic_id']] = $list['list'][$category['topic_id']];
                         unset($list['list'][$category['topic_id']]);
                     }
 
@@ -301,40 +301,22 @@ class IndexController extends StudipController {
     function config_areas_action() {
         Navigation::activateItem('course/forum/config_areas');
 
-        $admin_modules = new AdminModules();
-        $bitmask = $admin_modules->getBin($this->getId());
+        $areas = ForumPPEntry::getList('area', $this->getId());
+       
+        foreach (ForumPPCat::getList($this->getId(), false) as $category) {
+            $new_list[$category['entry_name']]['cat'] = $category;
+            if ($areas['list'][$category['topic_id']]) {
+                $new_list[$category['entry_name']]['areas'][] = $areas['list'][$category['topic_id']];
+                unset($areas['list'][$category['topic_id']]);
+            }
+        }
 
-        $this->default_forum = $admin_modules->isBit($bitmask,
-            $admin_modules->registered_modules['forum']['id']);
-
-        $this->categories = ForumPPCat::getList($this->getId());
-        $this->areas      = ForumPPEntry::getList('list', $this->getId());
+        $this->categories = $new_list;
+        $this->areas      = $areas['list'];
     }
 
-    function deactivate_forum_action() {
-        $admin_modules = new AdminModules();
-        $bitmask = $admin_modules->getBin($this->getId());
-
-        $admin_modules->clearBit($bitmask, $admin_modules->registered_modules['forum']['id']);
-        $admin_modules->writeBin($this->getId(), $bitmask);
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
-    }
-
-    function activate_forum_action() {
-        $admin_modules = new AdminModules();
-        $bitmask = $admin_modules->getBin($this->getId());
-
-        $admin_modules->setBit($bitmask, $admin_modules->registered_modules['forum']['id']);
-        $admin_modules->writeBin($this->getId(), $bitmask);
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
-    }
-
-
-
-    function add_area_action() {
-        ForumPPAreas::add($this->getId(), Request::get('category'));
+    function add_category_action() {
+        ForumPPCat::add($this->getId(), Request::get('category'));
 
         $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
     }

@@ -5,7 +5,7 @@
         <span class="corners-top"><span></span></span>
 
         <div class="postbody">
-            <span class="title"><? switch ($depth):
+            <span class="title"><? switch ($constraint['depth']):
                 case 0:
                     echo _('Neuen Bereich erstellen');
                     break;

@@ -1,11 +1,12 @@
 <?php
 
 class ForumPPCat {
-    static function getList($seminar_id) {
-        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_categories AS fc
+    static function getList($seminar_id, $exclude_null = true) {
+        $stmt = DBManager::get()->prepare($query = "SELECT * FROM forumpp_categories AS fc
             LEFT JOIN forumpp_categories_entries AS fce USING (category_id)
-            WHERE seminar_id = ? AND fce.topic_id IS NOT NULL
-            ORDER BY fc.pos ASC, fce.pos ASC");
+            WHERE seminar_id = ? "
+            . ($exclude_null ? 'AND fce.topic_id IS NOT NULL ' : '')
+            . "ORDER BY fc.pos ASC, fce.pos ASC");
 
         $stmt->execute(array($seminar_id));
 
@@ -20,13 +21,18 @@ class ForumPPCat {
         $stmt->execute(array(md5(uniqid(rand())), $seminar_id, $name));
     }
 
-    static function addArea($area_id, $category_id) {}
+    static function setPosition($area_id, $pos) {
 
-    static function setAreaPosition($area_id, $pos) {}
-
-
-    static function addEntry($area_id, $entry_id) {
     }
 
-    static function setPosition($area_id, $pos) {}
+    static function addArea($category_id, $area_id) {
+        // #TODO: check if passed category/area exists
+        $stmt = DBManager::get()->prepare("INSERT INTO
+            forumpp_categories_entries
+            (category_id, topic_id) VALUES (?, ?)");
+        $stmt->execute(array($category_id, $ara_id));
+    }
+
+    static function setAreaPosition($area_id, $pos) {
+    }
 }
