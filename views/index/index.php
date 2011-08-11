@@ -50,7 +50,13 @@ $infobox_content[] = array(
 $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
 ?>
 
+<!-- Breadcrumb navigation -->
 <?= $this->render_partial('index/_breadcrumb') ?>
+
+<!-- Message area -->
+<? foreach (PageLayout::getMessages() as $message) : ?>
+    <?= $message ?>
+<? endforeach ?>
 
 <? if ($flash['new_entry']) : ?>
     <?= $this->render_partial('index/_new_entry') ?>

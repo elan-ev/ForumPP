@@ -272,6 +272,17 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
     }
 
+    function delete_entry_action($topic_id) {
+        $path = ForumPPEntry::getPathToPosting($topic_id);
+        array_pop($path);
+        $parent = array_pop($path);
+        ForumPPEntry::delete($topic_id);
+
+        $this->flash['message'] = 'Der Eintrag wurde gelöscht!';
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $parent['id']));
+    }
+
     function cite_action($topic_id)
     {
         ## TODO: request-Variable nicht ungeprüft übernehmen!
@@ -373,6 +384,10 @@ class IndexController extends StudipController {
         $this->set_layout($layout);
 
         PageLayout::setTitle(getHeaderLine($this->getId()) .' - '. _('Forum'));
+        if ($this->flash['message']) {
+            PageLayout::postMessage(MessageBox::success($this->flash['message']));
+        }
+
 
         $this->AVAILABLE_DESIGNS = array('web20', 'studip');
         $this->picturepath = $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] .'/'. $this->dispatcher->trails_root . '/img';
