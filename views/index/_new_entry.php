@@ -22,13 +22,13 @@
 
             <p class="content" style="margin-bottom: 0pt">
                 <strong><?= _('Titel:') ?></strong><br/>
-                <input type="text" name="name" style="width: 100%" value="<?= $name_value ?>"><br/>
+                <input type="text" name="name" style="width: 100%" value="<?= $this->flash['new_entry_title'] ?>"><br/>
                 <br/>
             </p>
         </div>
 
         <div class="postbody">
-            <textarea class="add_toolbar" id="inhalt" name="content" style="width: 100%" rows="10"><?= $content_value ?></textarea><br/>
+            <textarea class="add_toolbar" id="inhalt" name="content"><?= $this->flash['new_entry_content'] ?></textarea><br/>
         </div>
 
         <dl class="postprofile">
@@ -38,7 +38,7 @@
         </dl>
 
         <div class="buttons">
-            <input type="image" <?= makebutton('erstellen', 'src') ?> style="margin-right: 20px">
+            <input type="image" <?= makebutton('erstellen', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
             <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id) ?>">
                 <?= makebutton('abbrechen') ?>
             </a>
