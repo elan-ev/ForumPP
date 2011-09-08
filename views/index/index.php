@@ -58,18 +58,6 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
     <?= $message ?>
 <? endforeach ?>
 
-<? if ($flash['new_entry']) : ?>
-    <?= $this->render_partial('index/_new_entry') ?>
-<? endif ?>
-
-<? if (!empty($list)) : ?>
-    <?= $this->render_partial('index/_list') ?>
-<? endif ?>
-
-<? if (!empty($postings)) : ?>
-    <?= $this->render_partial('index/_postings') ?>
-<? endif ?>
-
 <? if ($no_entries) : ?>
 <?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
 <? elseif (empty($list) && empty($postings) && !$flash['new_entry']) : ?>
@@ -82,4 +70,16 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
             . 'Möchten Sie ein neues Thema %serstellen%s?'),
             '<a href="'. PluginEngine::getLink('forumpp/index/new_entry/'. $topic_id) .'">', '</a>')); ?>
     <? endif ?>
+<? endif ?>
+
+<? if ($flash['new_entry']) : ?>
+    <?= $this->render_partial('index/_new_entry') ?>
+<? endif ?>
+
+<? if (!empty($list)) : ?>
+    <?= $this->render_partial('index/_list') ?>
+<? endif ?>
+
+<? if (!empty($postings)) : ?>
+    <?= $this->render_partial('index/_postings') ?>
 <? endif ?>

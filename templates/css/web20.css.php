@@ -298,3 +298,8 @@ div.bgtext {
 	right: 10px;
 	width: 200px;
 }
+
+textarea {
+    width: 100%;
+    height: 20em;
+}

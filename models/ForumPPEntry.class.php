@@ -344,7 +344,7 @@ class ForumPPEntry {
 
                 $add = 'AND forumpp_entries.mkdate >= '. DBManager::get()->quote($last_visit);
 
-                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC'. $start);
+                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
 
             case 'favorites':
@@ -352,6 +352,14 @@ class ForumPPEntry {
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
         }
+    }
+
+    static function getEntry($topic_id) {
+        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic_id));
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     static function countEntries($parent_id) {

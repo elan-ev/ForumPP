@@ -14,6 +14,8 @@
  */
 
 require_once 'vendor/trails/trails.php';
+require_once 'models/ForumPPEntry.class.php';
+require_once 'models/ForumPPHelpers.class.php';
 
 class ForumPP extends StudipPlugin implements StandardPlugin
 {
@@ -29,7 +31,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         if (!PluginManager::isPluginActivated($this->getPluginId(), Request::get('cid', $GLOBALS['SessSemName'][1]))) return;
 
         $navigation = new Navigation(_('Forum'), PluginEngine::getLink('forumpp/index'));
-        $navigation->setImage('icons/16/grey/forum.png');
+        $navigation->setImage('icons/16/white/forum.png');
 
         if ($GLOBALS['perm']->have_studip_perm('tutor', Request::get('cid', $GLOBALS['SessSemName'][1]))) {
             $sub_nav = new Navigation(_("Beiträge"),
@@ -71,22 +73,23 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
     function getIconNavigation($course_id, $last_visit) {
         //echo date('d.m.Y H:i', $lastlogin);
-        $this->last_visit = object_get_visit($this->getId(), "forum", "visitdate");
+        $this->last_visit = object_get_visit($course_id, "forum", "visitdate");
         if (!$this->last_visit) {
             $this->last_visit = $last_visit;
         }
 
-        $c = $this->getDBData('get_new_postings_count');
 
-        if ($c == 1) {
+        $list = ForumPPEntry::getList('newest', $course_id);
+
+        if ($list['count'] == 1) {
             $text = _("Ein neuer Beitrag vorhanden");
-        } else if ($c > 1) {
-            $text = sprintf(_("%s neue Beiträge vorhanden."), $c);
+        } else if ($list['count'] > 1) {
+            $text = sprintf(_("%s neue Beiträge vorhanden."), $list['count']);
         } else {
             $text = _("Keine neuen Beiträge.");
         }
 
-        $navigation = new Navigation('forumpp', PluginEngine::getLink($this, array(), 'new_postings'));
+        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/newest'));
         $navigation->setTitle($text);
         $navigation->setImage('icons/16/red/new/forum.png');
 

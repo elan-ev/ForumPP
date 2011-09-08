@@ -283,15 +283,23 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $parent['id']));
     }
 
+    function edit_entry_action($topic_id) {
+        $this->flash['edit_entry'] = $topic_id;
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
+    }
+
     function cite_action($topic_id)
     {
-        ## TODO: request-Variable nicht ungeprüft übernehmen!
-        $db = new DB_Seminar("SELECT * FROM forumpp_entries WHERE topic_id = '" . $_REQUEST['posting_id'] . "'");
-
-        if ($db->next_record()) {
-            $content_value = htmlReady(quotes_encode(ForumPPEntry::killEdit($db->f('description')), $db->f('author')));
-            $content_value .= "\n\n";
+        if ($entry = ForumPPEntry::getEntry($topic_id)) {
+            $content  = htmlReady(quotes_encode(ForumPPEntry::killEdit($entry['content']), $entry['author']));
+            $content .= "\n\n";
+            
+            $this->flash['new_entry'] = true;
+            $this->flash['new_entry_content'] = $content;
+            $this->flash['new_entry_title'] = _('Re:') . ' ' . $entry['name'];
         }
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
     }
 
     function switch_favorite_action($topic_id)

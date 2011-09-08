@@ -20,13 +20,17 @@
             <div class="postbody">
             <span class="title">
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
-                    <? if ($show_full_path) : ?>
-                        <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
-                            <? if ($pos > 1) : ?> &bullet; <? endif ?>
-                            <?= $path_part['name'] ?>
-                        <? endforeach ?>
+                    <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+                        <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
                     <? else : ?>
-                    <?= ($post['name']) ? $post['name'] : ''?>
+                        <? if ($show_full_path) : ?>
+                            <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
+                                <? if ($pos > 1) : ?> &bullet; <? endif ?>
+                                <?= $path_part['name'] ?>
+                            <? endforeach ?>
+                        <? else : ?>
+                        <?= ($post['name']) ? $post['name'] : ''?>
+                        <? endif ?>
                     <? endif ?>
                 </a>
                 
@@ -54,7 +58,7 @@
 
                 // cite
                 $icon = array();
-                $icon['link'] = PluginEngine::getLink('forumpp/index/cite_entry/'. $post['topic_id']);
+                $icon['link'] = PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id']);
                 $icon['image'] = Assets::image_path('/images/icons/16/blue/quote.png');
                 $icon['title'] = _("Aus diesem Eintrag zitieren");
                 $icons[] = $icon;
@@ -82,14 +86,18 @@
                 ?>
                 <? if (!empty($icons)) foreach ($icons as $an_icon) : ?>
                 <a href="<?= $an_icon['link'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
-                    <img src="<?= $an_icon['image'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
+                    <img src="<?= $an_icon['image'] ?>" title="<?= $an_icon['title'] ?>">
                 </a>&nbsp;
                 <? endforeach; ?>
             </span>
 
             <!-- Postinginhalt -->
             <p class="content">
-              <?= $post['content'] ?>
+                <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+                <textarea name="content"><?= $post['content_raw'] ?></textarea>
+                <? else : ?>
+                    <?= $post['content'] ?>
+                <? endif ?>
             </p>
             </div>
 
@@ -111,11 +119,16 @@
               Beiträge:
               <?= ForumPPEntry::countUserEntries($post['owner_id']) ?>
           </dl>
-          <? if ($post['buttons']) : ?>
-            <span class="buttons">
-              <?= $post['buttons'] ?>
-            </span>
-          <? endif; ?>
+
+            <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+            <div class="buttons">
+                <input type="image" <?= makebutton('speichern', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
+                <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id) ?>">
+                    <?= makebutton('abbrechen') ?>
+                </a>
+            </div>
+            <? endif ?>
+
           <span class="corners-bottom"><span></span></span>
         </div>
     </td>
