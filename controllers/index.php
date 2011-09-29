@@ -30,7 +30,7 @@ require_once $this->trails_root .'/models/ForumPPCat.class.php';
 if (!defined('FEEDCREATOR_VERSION')) {
     require_once( dirname(__FILE__) . '/vendor/feedcreator/feedcreator.class.php');
 }
- * 
+ *
  */
 
 class IndexController extends StudipController {
@@ -63,6 +63,8 @@ class IndexController extends StudipController {
 
     function index_action($topic_id = null, $page = null)
     {
+        $nav = Navigation::getItem('course/forum');
+        $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum/index');
 
         // check, if the root entry is present
@@ -171,6 +173,8 @@ class IndexController extends StudipController {
 
     function latest_action()
     {
+        $nav = Navigation::getItem('course/forum');
+        $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum/index');
 
         $this->section = 'latest';
@@ -178,7 +182,7 @@ class IndexController extends StudipController {
         $this->topic_id = $this->getId();
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
 
-        $list = ForumPPEntry::getList('postings', $this->topic_id);
+        $list = ForumPPEntry::getList('latest', $this->topic_id);
         $this->postings          = $list['list'];
         $this->number_of_entries = $list['count'];
         $this->show_full_path    = true;
@@ -196,8 +200,10 @@ class IndexController extends StudipController {
 
     function newest_action()
     {
+        $nav = Navigation::getItem('course/forum');
+        $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum/index');
-        
+
         $this->section = 'newest';
 
         $this->topic_id = $this->getId();
@@ -220,6 +226,8 @@ class IndexController extends StudipController {
 
     function favorites_action()
     {
+        $nav = Navigation::getItem('course/forum');
+        $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum/index');
 
         $this->section = 'favorites';
@@ -244,6 +252,8 @@ class IndexController extends StudipController {
 
     function search_action()
     {
+        $nav = Navigation::getItem('course/forum');
+        $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum/index');
 
         $this->section = 'search';
@@ -255,6 +265,10 @@ class IndexController extends StudipController {
         $this->number_of_entries = $list['count'];
         $this->highlight         = $list['highlight'];
         $this->show_full_path    = true;
+
+        if (empty($this->postings)) {
+            $this->no_search_results = true;
+        }
 
         // set default layout
         $layout = $GLOBALS['template_factory']->open('layouts/base');
@@ -307,7 +321,10 @@ class IndexController extends StudipController {
     }
 
     function edit_entry_action($topic_id) {
-        $this->flash['edit_entry'] = $topic_id;
+        if (ForumPPEntry::hasEditPerms($topic_id)) {
+            $this->flash['edit_entry'] = $topic_id;
+        }
+
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
@@ -327,7 +344,7 @@ class IndexController extends StudipController {
         if ($entry = ForumPPEntry::getEntry($topic_id)) {
             $content  = htmlReady(quotes_encode(ForumPPEntry::killEdit($entry['content']), $entry['author']));
             $content .= "\n\n";
-            
+
             $this->flash['new_entry'] = true;
             $this->flash['new_entry_content'] = $content;
             $this->flash['new_entry_title'] = _('Re:') . ' ' . $entry['name'];
@@ -352,10 +369,12 @@ class IndexController extends StudipController {
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
     function config_areas_action() {
+        $nav = Navigation::getItem('course/forum');
+        $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum/config_areas');
 
         $areas = ForumPPEntry::getList('area', $this->getId());
-       
+
         foreach (ForumPPCat::getList($this->getId(), false) as $category) {
             $new_list[$category['entry_name']]['cat'] = $category;
             if ($areas['list'][$category['topic_id']]) {
@@ -397,6 +416,21 @@ class IndexController extends StudipController {
             $stmt->execute($t = array($entry_id, $this->getId(), $topic_id, $pos));
             $pos++;
         }
+    }
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * */
+    /* * * * * * * I M A G E   A C T I O N * * * * * * */
+    /* * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    function image_action($image) {
+        switch ($image) {
+            case 'quote':
+                $data = file_get_contents(realpath(dirname(__FILE__) . '/../img/icons/quote.png'));
+                break;
+        }
+
+        header('Content-Type: image/png');
+        $this->render_text($data);
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -445,11 +479,11 @@ class IndexController extends StudipController {
 
         $this->template_factory =
             new Flexi_TemplateFactory(dirname(__FILE__) . '/../templates');
-        
+
         //$this->check_token();
         $this->check_write_and_edit();
 
-        object_set_visit_module("forum");
+        object_set_visit($this->getId(), 'forum');
     }
 
     function check_write_and_edit() {
@@ -491,7 +525,7 @@ class IndexController extends StudipController {
 
             $GLOBALS['_include_additional_header'] .= $this->template_factory->render('feed/links', $params);
         }
-         * 
+         *
          */
     }
 
@@ -670,7 +704,7 @@ class IndexController extends StudipController {
         }
         die;
     }
-     * 
+     *
      */
 
     /*

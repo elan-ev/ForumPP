@@ -1,16 +1,5 @@
 <?
-
 if (!is_array($highlight)) $highlight = array();
-/*
-if (is_array($highlight)) {
-    var_dump($post['name']);
-    $post['name'] = ForumPPHelpers::highlight($post['name'], $highlight);
-    var_dump($post['name']);
-    //$inhalt = $this->highlight($inhalt, $highlight);
-    //$titel = $this->highlight($titel, $highlight);
-}
- * 
- */
 ?>
 <!-- Posting -->
 <tr>
@@ -27,88 +16,88 @@ if (is_array($highlight)) {
             <span class="corners-top"><span></span></span>
 
             <div class="postbody">
-            <span class="title">
-                
-                <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-                    <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
-                <? else : ?>
-                    <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
-                    <? if ($show_full_path) : ?>
-                        <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
-                            <? if ($pos > 1) : ?> &bullet; <? endif ?>
-                            <?= htmlReady($path_part['name']) ?>
-                        <? endforeach ?>
+                <div class="title">
+
+                    <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+                        <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
                     <? else : ?>
-                    <?= ($post['name']) ? $post['name'] : ''?>
+                        <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
+                        <? if ($show_full_path) : ?>
+                            <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
+                                <? if ($pos > 1) : ?> &bullet; <? endif ?>
+                                <?= ForumPPHelpers::highlight(htmlReady($path_part['name']), $highlight) ?>
+                            <? endforeach ?>
+                        <? else : ?>
+                        <?= ($post['name']) ? ForumPPHelpers::highlight($post['name'], $highlight) : ''?>
+                        <? endif ?>
+                        </a>
                     <? endif ?>
-                    </a>
-                <? endif ?>
-                
-                <p class="author">
-                    von <strong><a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
-                        <?= htmlReady($post['author']) ?>
-                    </a></strong>
-                    am <?= strftime($time_format_string, (int)$post['mkdate']) ?>
+
+                    <p class="author">
+                        von <strong><a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
+                            <?= ForumPPHelpers::highlight(htmlReady($post['author']), $highlight) ?>
+                        </a></strong>
+                        am <?= strftime($time_format_string, (int)$post['mkdate']) ?>
+                    </p>
+                </div>
+
+                <!-- Aktionsicons -->
+                <span class="icons">
+                    <?
+
+                    // edit
+                    if (ForumPPEntry::hasEditPerms($post['topic_id'])) {
+                        $icon = array();
+
+                        $icon['link'] = PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id']);
+                        $icon['image'] = Assets::image_path('/images/icons/16/blue/edit.png');
+                        $icon['title'] = _("Eintrag bearbeiten");
+                        $icons[] = $icon;
+                    }
+
+                    // cite
+                    $icon = array();
+                    $icon['link'] = PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id']);
+                    $icon['image'] = PluginEngine::getLink('forumpp/index/image/quote', array('cid' => null));
+                    $icon['title'] = _("Aus diesem Eintrag zitieren");
+                    $icons[] = $icon;
+
+                    // favorite
+                    $icon = array();
+                    $icon['link'] = PluginEngine::getLink('forumpp/index/switch_favorite/' . $post['topic_id']);
+                    if (!$post['fav']) {
+                        $icon['image'] = Assets::image_path('/images/icons/16/grey/star.png');
+                        $icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
+                    } else {
+                        $icon['image'] = Assets::image_path('/images/icons/16/red/star.png');
+                        $icon['title'] = _("aus den Favoriten entfernen");
+                    }
+                    $icons[] = $icon;
+
+                    // delete
+                    if ($this->has_perms) {
+                        $icon = array();
+                        $icon['link'] = PluginEngine::getLink('forumpp/index/delete_entry/' . $post['topic_id']);
+                        $icon['image'] = Assets::image_path('/images/icons/16/blue/trash.png');
+                        $icon['title'] = _("Eintrag l&ouml;schen!");
+                        $icons[] = $icon;
+                    }
+                    ?>
+                    <? if (!empty($icons)) foreach ($icons as $an_icon) : ?>
+                    <a href="<?= $an_icon['link'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
+                        <img src="<?= $an_icon['image'] ?>" title="<?= $an_icon['title'] ?>">
+                    </a>&nbsp;
+                    <? endforeach; ?>
+                </span>
+
+                <!-- Postinginhalt -->
+                <p class="content">
+                    <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+                    <textarea name="content" class="add_toolbar"><?= $post['content_raw'] ?></textarea>
+                    <? else : ?>
+                        <?= ForumPPHelpers::highlight($post['content'], $highlight) ?>
+                    <? endif ?>
                 </p>
-            </span>
-
-            <!-- Aktionsicons -->
-            <span class="icons">
-                <?
-
-                // edit
-                if (ForumPPEntry::hasEditPerms($post['topic_id'], $post['owner_id']) && $last_posting || $this->has_perms) {
-                    $icon = array();
-
-                    $icon['link'] = PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id']);
-                    $icon['image'] = Assets::image_path('/images/icons/16/blue/edit.png');
-                    $icon['title'] = _("Eintrag bearbeiten");
-                    $icons[] = $icon;
-                }
-
-                // cite
-                $icon = array();
-                $icon['link'] = PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id']);
-                $icon['image'] = Assets::image_path('/images/icons/16/blue/quote.png');
-                $icon['title'] = _("Aus diesem Eintrag zitieren");
-                $icons[] = $icon;
-
-                // favorite
-                $icon = array();
-                $icon['link'] = PluginEngine::getLink('forumpp/index/switch_favorite/' . $post['topic_id']);
-                if (!$post['fav']) {
-                    $icon['image'] = Assets::image_path('/images/icons/16/grey/star.png');
-                    $icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
-                } else {
-                    $icon['image'] = Assets::image_path('/images/icons/16/red/star.png');
-                    $icon['title'] = _("aus den Favoriten entfernen");
-                }
-                $icons[] = $icon;
-
-                // delete
-                if ($this->has_perms) {
-                    $icon = array();
-                    $icon['link'] = PluginEngine::getLink('forumpp/index/delete_entry/' . $post['topic_id']);
-                    $icon['image'] = Assets::image_path('/images/icons/16/blue/trash.png');
-                    $icon['title'] = _("Eintrag l&ouml;schen!");
-                    $icons[] = $icon;
-                }
-                ?>
-                <? if (!empty($icons)) foreach ($icons as $an_icon) : ?>
-                <a href="<?= $an_icon['link'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
-                    <img src="<?= $an_icon['image'] ?>" title="<?= $an_icon['title'] ?>">
-                </a>&nbsp;
-                <? endforeach; ?>
-            </span>
-
-            <!-- Postinginhalt -->
-            <p class="content">
-                <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-                <textarea name="content" class="add_toolbar"><?= $post['content_raw'] ?></textarea>
-                <? else : ?>
-                    <?= $post['content'] ?>
-                <? endif ?>
-            </p>
             </div>
 
           <!-- Infobox rechts neben jedem Posting -->

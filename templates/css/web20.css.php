@@ -36,7 +36,8 @@ img:onClick {
 /* highlighted search-strings */
 span.highlight {
 	background-color: yellow;
-	font-size: 12pt;
+        border: 1px solid #FF9999;
+        border-radius: 3px;
 }
 
 /* posting lists*/
@@ -152,7 +153,7 @@ span.selected {
 }
 
 .postbody {
-	padding: 0pt 5px;	
+	padding: 0pt 5px;
 	margin: 0pt;
 	width: 78%;
 	float: left;
@@ -167,7 +168,7 @@ span.selected {
 	padding-top: 5px;
 }
 
-span.title {
+div.title {
 	text-align: left;
 	font-weight: bold;
 	font-size: 12pt;

@@ -78,13 +78,27 @@ class ForumPPEntry {
         static $perms;
 
         if (!$perms[$topic_id]) {
+            // find out if the posting is the last in the thread
+            $constraints = self::getConstraints($topic_id);
+
+            $path   = ForumPPEntry::getPathToPosting($topic_id);
+            array_pop($path);
+            $parent = array_pop($path);
+
+            $parent_constraints = self::getConstraints($parent['id']);
+
+            $last_posting = false;
+            if (($parent_constraints['rgt'] - 1 == (int)$constraints['rgt']) && $constraints['depth'] > 2) {
+                $last_posting = true;
+            }
+
             $stmt = DBManager::get()->prepare("SELECT user_id, seminar_id
                 FROM forumpp_entries WHERE topic_id = ?");
             $stmt->execute(array($topic_id));
 
-            $data = $stmt->fetchColumn();
+            $data = $stmt->fetch();
 
-            $perms[$topic_id] = ($GLOBALS['user']->id == $data['user_id'] ||
+            $perms[$topic_id] = (($GLOBALS['user']->id == $data['user_id'] && $last_posting) ||
                 $GLOBALS['perm']->have_studip_perm('tutor', $data['seminar_id']));
         }
 
@@ -97,7 +111,7 @@ class ForumPPEntry {
 
      /**
       * get the page the passed posting is on
-      * 
+      *
       * @param  string  $topic_id
       * @return  int
       */
@@ -249,7 +263,7 @@ class ForumPPEntry {
             $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
         }
-        
+
         if (!$stmt) {
             throw new Exception("Error while retrieving postings in " . __FILE__ . " on line " . __LINE__);
         }
@@ -289,7 +303,7 @@ class ForumPPEntry {
 
             unset($last_posting);
         }
-        
+
         return $postings;
     }
 
@@ -298,7 +312,7 @@ class ForumPPEntry {
      * @param <type> $type
      * @param <type> $parent
      * @param <type> $id
-     * @return <type> 
+     * @return <type>
      */
     static function getList($type, $parent_id) {
         $start = ForumPPHelpers::getPage() * self::POSTINGS_PER_PAGE;
@@ -312,7 +326,7 @@ class ForumPPEntry {
                 return array('list' => $postings, 'count' => $list['count']);
 
                 break;
-            
+
             case 'list':
                 $constraint = self::getConstraints($parent_id);
 
@@ -353,14 +367,13 @@ class ForumPPEntry {
                 break;
 
             case 'newest':
-                $constraint = self::getConstraints($parent_id);
-                $seminar_id = $constraint['seminar_id'];
-                $depth      = $constraint['depth'] + 1;
-
                 $last_visit = object_get_visit($seminar_id, 'forum');
-
                 $add = 'AND forumpp_entries.mkdate >= '. DBManager::get()->quote($last_visit);
 
+                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
+                break;
+
+            case 'latest':
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
 
@@ -406,11 +419,14 @@ class ForumPPEntry {
                     }
                 }
 
-                $add = "AND (" . implode(' OR ', $search_string) . ")";
-                return array_merge(
-                    array('highlight' => $_searchfor),
-                    ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start)
-                );
+                if (!empty($search_string)) {
+                    $add = "AND (" . implode(' OR ', $search_string) . ")";
+                    return array_merge(
+                        array('highlight' => $_searchfor),
+                        ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start)
+                    );
+                }
+                return array('num_postings' => 0, 'list' => array());
                 break;
         }
     }

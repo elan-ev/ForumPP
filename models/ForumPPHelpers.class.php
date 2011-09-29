@@ -151,7 +151,7 @@ class ForumPPHelpers {
     /**
      * set the current page
      *
-     * @return  int
+     * @param int $page_num the page
      */
     static function setPage($page_num) {
         self::$page = $page_num;
