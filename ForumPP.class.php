@@ -33,11 +33,12 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         $navigation = new Navigation(_('Forum'), PluginEngine::getLink('forumpp/index'));
         $navigation->setImage('icons/16/white/forum.png');
 
-        if ($GLOBALS['perm']->have_studip_perm('tutor', Request::get('cid', $GLOBALS['SessSemName'][1]))) {
-            $sub_nav = new Navigation(_("Beiträge"),
-                    PluginEngine::getLink('forumpp/index'));
-            $navigation->addSubNavigation('index', $sub_nav);
+        // add main third-level navigation-item
+        $sub_nav = new Navigation(_("Beiträge"),
+        PluginEngine::getLink('forumpp/index'));
+        $navigation->addSubNavigation('index', $sub_nav);
 
+        if ($GLOBALS['perm']->have_studip_perm('tutor', Request::get('cid', $GLOBALS['SessSemName'][1]))) {
             $sub_nav = new Navigation(_("Bereiche administrieren"),
                     PluginEngine::getLink('forumpp/index/config_areas'));
             $navigation->addSubNavigation('config_areas', $sub_nav);
@@ -47,6 +48,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
             $navigation->addSubNavigation('config_threads', $sub_nav);
         }
 
+        // hijack the default forum-navigation
         Navigation::insertItem('/course/forum', $navigation, 'members');
 
 
@@ -81,17 +83,18 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
         $list = ForumPPEntry::getList('newest', $course_id);
 
+        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/newest'));
+
         if ($list['count'] == 1) {
             $text = _("Ein neuer Beitrag vorhanden");
+            $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
         } else if ($list['count'] > 1) {
             $text = sprintf(_("%s neue Beiträge vorhanden."), $list['count']);
+            $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
         } else {
             $text = _("Keine neuen Beiträge.");
+            $navigation->setImage('icons/16/grey/forum.png', array('title' => $text));
         }
-
-        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/newest'));
-        $navigation->setTitle($text);
-        $navigation->setImage('icons/16/red/new/forum.png');
 
         return $navigation;
     }

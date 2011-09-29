@@ -59,7 +59,9 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? endforeach ?>
 
 <? if ($no_entries) : ?>
-<?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
+    <?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
+<? elseif ($no_search_results) : ?>
+    <?= MessageBox::info(_('Es wurden keine Beiträge gefunden die zu Ihren Suchkriterien passen!')) ?>
 <? elseif (empty($list) && empty($postings) && !$flash['new_entry']) : ?>
     <? if ($constraint['depth'] == 0) : ?>
     <?= MessageBox::info(sprintf(_('Es existieren bisher keine Bereiche. '
