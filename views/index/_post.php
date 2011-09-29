@@ -1,38 +1,48 @@
-<? /*
-            if (is_array($highlight)) {
-                $inhalt = $this->highlight($inhalt, $highlight);
-                $titel = $this->highlight($titel, $highlight);
-            }
+<?
 
-            //if ($titel) $tmpl_inhalt .= "<b>$titel</b><br/><br/>";
-            $tmpl_inhalt .= quotes_decode($inhalt);
- *
- */ ?>
-<? $GLOBALS['_SWITCHER'] = 1 - $GLOBALS['_SWITCHER'] ?>
+if (!is_array($highlight)) $highlight = array();
+/*
+if (is_array($highlight)) {
+    var_dump($post['name']);
+    $post['name'] = ForumPPHelpers::highlight($post['name'], $highlight);
+    var_dump($post['name']);
+    //$inhalt = $this->highlight($inhalt, $highlight);
+    //$titel = $this->highlight($titel, $highlight);
+}
+ * 
+ */
+?>
 <!-- Posting -->
 <tr>
     <td>
         <!-- Anker, um zu diesem Posting springen zu können -->
         <a name="<?= $post['topic_id'] ?>"></a>
-        <div class="posting <?=($GLOBALS['_SWITCHER'] == 0) ? 'bg1' : 'bg2'?>">
+
+        <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+        <form action="<?= PluginEngine::getLink('forumpp/index/update_entry/'. $post['topic_id']) ?>" method="post">
+            <?= CSRFProtection::tokenTag() ?>
+        <? endif ?>
+
+        <div class="posting <?=($zebra) ? 'bg1' : 'bg2'?>">
             <span class="corners-top"><span></span></span>
 
             <div class="postbody">
             <span class="title">
-                <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
-                    <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-                        <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
+                
+                <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+                    <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
+                <? else : ?>
+                    <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
+                    <? if ($show_full_path) : ?>
+                        <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
+                            <? if ($pos > 1) : ?> &bullet; <? endif ?>
+                            <?= htmlReady($path_part['name']) ?>
+                        <? endforeach ?>
                     <? else : ?>
-                        <? if ($show_full_path) : ?>
-                            <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
-                                <? if ($pos > 1) : ?> &bullet; <? endif ?>
-                                <?= $path_part['name'] ?>
-                            <? endforeach ?>
-                        <? else : ?>
-                        <?= ($post['name']) ? $post['name'] : ''?>
-                        <? endif ?>
+                    <?= ($post['name']) ? $post['name'] : ''?>
                     <? endif ?>
-                </a>
+                    </a>
+                <? endif ?>
                 
                 <p class="author">
                     von <strong><a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
@@ -47,7 +57,7 @@
                 <?
 
                 // edit
-                if (($GLOBALS['user']->id == $post['owner_id'] && $last_posting) || $this->has_perms) {
+                if (ForumPPEntry::hasEditPerms($post['topic_id'], $post['owner_id']) && $last_posting || $this->has_perms) {
                     $icon = array();
 
                     $icon['link'] = PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id']);
@@ -94,7 +104,7 @@
             <!-- Postinginhalt -->
             <p class="content">
                 <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-                <textarea name="content"><?= $post['content_raw'] ?></textarea>
+                <textarea name="content" class="add_toolbar"><?= $post['content_raw'] ?></textarea>
                 <? else : ?>
                     <?= $post['content'] ?>
                 <? endif ?>
@@ -131,6 +141,10 @@
 
           <span class="corners-bottom"><span></span></span>
         </div>
+
+        <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+        </form>
+        <? endif ?>
     </td>
 </tr>
 

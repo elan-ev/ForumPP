@@ -26,6 +26,8 @@ class ForumPPHelpers {
      * @return string the highlighted text
      */
     function highlight($text, $highlight) {
+        if (empty($highlight)) return $text;
+
         $unsafe_symbols = array('/\./', '/\*/', '/\?/', '/\+/');
         $unsafe_replace = array('\\.', '\\*', '\\?', '\\+');
 

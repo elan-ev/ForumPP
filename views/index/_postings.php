@@ -7,10 +7,12 @@
     <?
     $posting_num = 1;
     $last = sizeof($postings);
+    $zebra = 0;
 
     foreach ($postings as $post) :
         $last_posting = ($posting_num == $last);
-        echo $this->render_partial('index/_post', compact('post', 'last_posting'));
+        $zebra = 1 - $zebra;
+        echo $this->render_partial('index/_post', compact('post', 'last_posting', 'zebra'));
 
         $posting_num++;
     endforeach

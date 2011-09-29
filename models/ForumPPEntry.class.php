@@ -74,6 +74,23 @@ class ForumPPEntry {
         return $data;
     }
 
+    static function hasEditPerms($topic_id) {
+        static $perms;
+
+        if (!$perms[$topic_id]) {
+            $stmt = DBManager::get()->prepare("SELECT user_id, seminar_id
+                FROM forumpp_entries WHERE topic_id = ?");
+            $stmt->execute(array($topic_id));
+
+            $data = $stmt->fetchColumn();
+
+            $perms[$topic_id] = ($GLOBALS['user']->id == $data['user_id'] ||
+                $GLOBALS['perm']->have_studip_perm('tutor', $data['seminar_id']));
+        }
+
+        return $perms[$topic_id];
+    }
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * D   A   T   A   -   R   E   T   R   I   E   V   A   L *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -351,6 +368,50 @@ class ForumPPEntry {
                 $add = "AND ou.flag = 'fav'";
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
+
+            case 'search':
+               // parse searchstring
+                $_searchfor = stripslashes(Request::get('searchfor'));
+
+                // if there are quoted parts, they should not be separated
+                $suchmuster = '/".*"/U';
+                preg_match_all($suchmuster, $_searchfor, $treffer);
+
+                // remove the quoted parts from $_searchfor
+                $_searchfor = preg_replace($suchmuster, '', $_searchfor);
+
+                // split the searchstring $_searchfor at every space
+                $_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
+
+                // make an SQL-statement out of the searchstring
+                $search_string = array();
+                foreach ($_searchfor as $key => $val) {
+                    if (!$val) {
+                        unset($_searchfor[$key]);
+                    } else {
+                        $_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
+                        $val = trim(str_replace('"', '', str_replace("'", '', $val)));
+
+                        if (Request::option('search_title')) {
+                            $search_string[] .= "name LIKE '%$val%'";
+                        }
+
+                        if (Request::option('search_content')) {
+                            $search_string[] .= "content LIKE '%$val%'";
+                        }
+
+                        if (Request::option('search_author')) {
+                            $search_string[] .= "author LIKE '%$val%'";
+                        }
+                    }
+                }
+
+                $add = "AND (" . implode(' OR ', $search_string) . ")";
+                return array_merge(
+                    array('highlight' => $_searchfor),
+                    ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start)
+                );
+                break;
         }
     }
 
@@ -396,9 +457,18 @@ class ForumPPEntry {
             (topic_id, seminar_id, user_id, name, content, mkdate, chdate, author,
                 author_host, lft, rgt, depth, anonymous)
             VALUES (? ,?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ?, ?, ?, ?, ?, ?)");
-        $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
+        return $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
+    }
+
+    static function update($topic_id, $name, $content) {
+        $content = self::appendEdit($content);
+
+        $stmt = DBManager::get()->prepare("UPDATE forumpp_entries
+            SET name = ?, content = ?
+            WHERE topic_id = ?");
+        $stmt->execute(array($name, $content, $topic_id));
     }
 
     function delete($topic_id) {
@@ -406,7 +476,7 @@ class ForumPPEntry {
 
         $stmt = DBManager::get()->prepare("DELETE FROM forumpp_entries
             WHERE seminar_id = ? AND lft >= ? AND rgt <= ?");
-        $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
+        return $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
     }
 
     function checkRootEntry($seminar_id) {
