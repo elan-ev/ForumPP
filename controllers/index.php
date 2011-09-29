@@ -242,6 +242,27 @@ class IndexController extends StudipController {
         $this->render_action('index');
     }
 
+    function search_action()
+    {
+        Navigation::activateItem('course/forum/index');
+
+        $this->section = 'search';
+
+        $this->topic_id = $this->getId();
+        $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
+        $list = ForumPPEntry::getList('search', $this->getId());
+        $this->postings          = $list['list'];
+        $this->number_of_entries = $list['count'];
+        $this->highlight         = $list['highlight'];
+        $this->show_full_path    = true;
+
+        // set default layout
+        $layout = $GLOBALS['template_factory']->open('layouts/base');
+        $this->set_layout($layout);
+
+        $this->render_action('index');
+    }
+
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * *   P O S T I N G - A C T I O N S     * * * */
@@ -259,8 +280,10 @@ class IndexController extends StudipController {
             throw new Exception('missing seminar_id/topic_id while adding a new entry!');
         }
 
+        $new_id = md5(uniqid(rand()));
+
         ForumPPEntry::insert(array(
-            'topic_id'    => md5(uniqid(rand())),
+            'topic_id'    => $new_id,
             'seminar_id'  => $this->getId(),
             'user_id'     => $GLOBALS['user']->id,
             'name'        => Request::get('name', _('Kein Titel')),
@@ -269,7 +292,7 @@ class IndexController extends StudipController {
             'author_host' => getenv('REMOTE_ADDR')
         ), Request::option('parent'));
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $new_id));
     }
 
     function delete_entry_action($topic_id) {
@@ -285,7 +308,18 @@ class IndexController extends StudipController {
 
     function edit_entry_action($topic_id) {
         $this->flash['edit_entry'] = $topic_id;
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+    }
+
+    function update_entry_action($topic_id) {
+        if (ForumPPEntry::hasEditPerms($topic_id)) {
+            ForumPPEntry::update($topic_id,
+                Request::get('name', _('Kein Titel')),
+                Request::get('content', _('Keine Beschreibung'))
+            );
+        }
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
     function cite_action($topic_id)
@@ -305,11 +339,11 @@ class IndexController extends StudipController {
     function switch_favorite_action($topic_id)
     {
         object_switch_fav($topic_id);
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
     function goto_page_action($topic_id, $page) {
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. $page));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. $page .'#'. $topic_id));
     }
 
 
