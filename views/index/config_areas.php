@@ -78,7 +78,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
     <span class="corners-top"><span></span></span>
 
     <div class="postbody" style="width: 95%;">
-        <span class="title" style="margin-bottom: 5px"><?= _('Vorhandene Kategorien') ?></span><br>
+        <span class="title" style="margin-bottom: 5px;"><?= _('Vorhandene Kategorien') ?></span><br>
 
         <? if (sizeof($categories) == 0) : ?>
         <b><?= _("Sie haben noch keine Kategorien definiert. Legen Sie eine Neue an!") ?></b><br>
@@ -92,13 +92,13 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
                 <a href="<?= PluginEngine::getLink('forumpp/index/remove_category/' . $cat_id) ?>">
                     <?= Assets::img('icons/16/blue/trash.png') ?>
                 </a>
-                <span class="category_title"><?= $name ?></span>
+                <span class="category_title" style="cursor: move;"><?= $name ?></span>
                 
                 <br><br>
                 
                 <ul class="cat_list sortable">
                 <? if (!empty($entries['areas'])) foreach($entries['areas'] as $area) : ?>
-                    <li data-id="<?= $area['topic_id'] ?>" class="areas">
+                    <li data-id="<?= $area['topic_id'] ?>" class="areas" style="cursor: move">
                         <a href="<?= PluginEngine::getLink('forumpp/index/remove_area/' . $area['topic_id']) ?>">
                             <?= Assets::img('icons/16/blue/trash.png') ?>
                         </a>
