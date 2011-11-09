@@ -3,21 +3,19 @@
 </div>
 <br style="clear: both"><br>
 
-<table cellspacing="0" cellpadding="1" border="0" width="100%">
-    <?
-    $posting_num = 1;
-    $last = sizeof($postings);
-    $zebra = 0;
+<?
+$posting_num = 1;
+$last = sizeof($postings);
+$zebra = 0;
 
-    foreach ($postings as $post) :
-        $last_posting = ($posting_num == $last);
-        $zebra = 1 - $zebra;
-        echo $this->render_partial('index/_post', compact('post', 'last_posting', 'zebra'));
+foreach ($postings as $post) :
+    $last_posting = ($posting_num == $last);
+    $zebra = 1 - $zebra;
+    echo $this->render_partial('index/_post', compact('post', 'last_posting', 'zebra'));
 
-        $posting_num++;
-    endforeach
-    ?>
-</table>
+    $posting_num++;
+endforeach
+?>
 <br>
 
 <div style="width: 54%;text-align: right; float: left">

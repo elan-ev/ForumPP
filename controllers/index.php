@@ -25,6 +25,7 @@ require_once 'lib/classes/Config.class.php';
 require_once $this->trails_root .'/models/ForumPPEntry.class.php';
 require_once $this->trails_root .'/models/ForumPPHelpers.class.php';
 require_once $this->trails_root .'/models/ForumPPCat.class.php';
+require_once $this->trails_root .'/models/ForumPPLike.class.php';
 
 /*
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -363,6 +364,11 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. $page .'#'. $topic_id));
     }
 
+    function like_action($topic_id) {
+        ForumPPLike::like($topic_id);
+        
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+    }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * *     C O N F I G - A C T I O N S     * * * */
