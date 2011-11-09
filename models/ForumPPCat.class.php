@@ -21,18 +21,38 @@ class ForumPPCat {
         $stmt->execute(array(md5(uniqid(rand())), $seminar_id, $name));
     }
 
-    static function setPosition($area_id, $pos) {
+    static function remove($category_id) {
+           $stmt = DBManager::get()->prepare("DELETE FROM
+            forumpp_categories
+            WHERE category_id = ?");
+        $stmt->execute(array($category_id));
+    }
 
+    static function setPosition($category_id, $pos) {
+        $stmt = DBManager::get()->prepare("UPDATE
+            forumpp_categories
+            SET pos = ? WHERE category_id = ?");
+        $stmt->execute(array($pos, $category_id));        
     }
 
     static function addArea($category_id, $area_id) {
-        // #TODO: check if passed category/area exists
-        $stmt = DBManager::get()->prepare("INSERT INTO
+        $stmt = DBManager::get()->prepare("REPLACE INTO
             forumpp_categories_entries
             (category_id, topic_id) VALUES (?, ?)");
-        $stmt->execute(array($category_id, $ara_id));
+        $stmt->execute(array($category_id, $area_id));
+    }
+    
+    static function removeArea($area_id) {
+        $stmt = DBManager::get()->prepare("DELETE FROM
+            forumpp_categories_entries
+            WHERE topic_id = ?");
+        $stmt->execute(array($area_id));
     }
 
     static function setAreaPosition($area_id, $pos) {
+        $stmt = DBManager::get()->prepare("UPDATE
+            forumpp_categories_entries
+            SET pos = ? WHERE topic_id = ?");
+        $stmt->execute(array($pos, $area_id));        
     }
 }

@@ -392,6 +392,36 @@ class IndexController extends StudipController {
 
         $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
     }
+    
+    function add_areas_action() {
+        if (!$this->rechte) {
+            return;
+        }
+
+        foreach (Request::getArray('areas') as $area_id) {
+            ForumPPCat::addArea(Request::option('cat_id'), $area_id);
+        }
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
+    }
+
+    function remove_area_action($area_id) {
+        if (!$this->rechte) {
+            return;
+        }
+        
+        ForumPPCat::removeArea($area_id);
+        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
+    }
+    
+    function remove_category_action($category_id) {
+          if (!$this->rechte) {
+            return;
+        }
+        
+        ForumPPCat::remove($category_id);
+        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));      
+    }
 
     function edit_area_action() { // #TODO
         return;
@@ -399,25 +429,38 @@ class IndexController extends StudipController {
             return;
 
         $stmt = DBManager::get()->prepare("UPDATE forumpp SET entry_name = ?
-			WHERE entry_id = ?");
+            WHERE entry_id = ?");
         $stmt->execute(array($_REQUEST['new_name'], $_REQUEST['cat_id']));
     }
 
-    function savecats_action() { // #TODO
-        return;
-        if (!$this->rechte)
+    function savecats_action() {
+        if (!$this->rechte) {
             return;
+        }
 
-        $entry_id = substr($_REQUEST['topic_id'], 9, strlen($_REQUEST['topic_id']));
         $pos = 0;
-        foreach ($_REQUEST['l'] as $item) {
-            $topic_id = substr($item, 5, strlen($item));
-            $stmt = DBManager::get()->prepare("REPLACE INTO forumpp (entry_id, seminar_id, entry_type, topic_id, entry_name, pos) VALUES (?, ?, 'area', ?, '', ?)");
-            $stmt->execute($t = array($entry_id, $this->getId(), $topic_id, $pos));
+        foreach (Request::getArray('categories') as $category_id) {
+            ForumPPCat::setPosition($category_id, $pos);
             $pos++;
         }
+        
+        $this->render_nothing();
     }
 
+    function saveareas_action() {
+        if (!$this->rechte) {
+            return;
+        }
+
+        $pos = 0;
+        foreach (Request::getArray('areas') as $area_id) {
+            ForumPPCat::setAreaPosition($area_id, $pos);
+            $pos++;
+        }
+        
+        $this->render_nothing();
+    }
+    
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * * * I M A G E   A C T I O N * * * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -641,9 +684,9 @@ class IndexController extends StudipController {
 
         // get the left pott
         $stmt = DBManager::get()->prepare("SELECT pxb.topic_id, pxb.lft
-			FROM forumpp_entries as pxa
-			LEFT JOIN forumpp_entries pxb ON (pxa.parent_id = pxb.topic_id)
-			WHERE pxa.topic_id = ?");
+            FROM forumpp_entries as pxa
+            LEFT JOIN forumpp_entries pxb ON (pxa.parent_id = pxb.topic_id)
+            WHERE pxa.topic_id = ?");
         $stmt->execute(array($topic_id));
         if (!$data = $stmt->fetch(PDO::FETCH_ASSOC))
             die;
@@ -807,12 +850,12 @@ class IndexController extends StudipController {
 
                 if (sizeof($ids) > 0) {
                     $query = "SELECT px.*, ou.flag as fav FROM forumpp_entries as px
-						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-						WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")
-						ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
+                        LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                        WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")
+                        ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
 
                     $query2 = "SELECT COUNT(*) as c FROM forumpp_entries as px
-						WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")";
+                        WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")";
 
                     $db = new DB_Seminar($query);
                     $db2 = new DB_Seminar($query2);
@@ -878,17 +921,17 @@ class IndexController extends StudipController {
                 // get the postings that match
                 if ($this->output_format != 'html') {
                     $query = "SELECT * FROM forumpp_entries
-						WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
-						ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
+                        WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
+                        ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
                 } else {
                     $query = "SELECT px.*, ou.flag as fav FROM forumpp_entries as px
-						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-						WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
-						ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
+                        LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                        WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
+                        ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
                 }
 
                 $query2 = "SELECT COUNT(*) as c FROM forumpp_entries as px
-					WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")";
+                    WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")";
 
                 $db = new DB_Seminar($query);
                 $db2 = new DB_Seminar($query2);
@@ -964,15 +1007,15 @@ class IndexController extends StudipController {
                 case 'administrate':
                     if (isset($_REQUEST['create_category'])) {
                         $stmt = DBManager::get()->prepare("INSERT INTO forumpp
-							(entry_id, seminar_id, entry_type, topic_id, entry_name)
-							VALUES (?, ?, 'category', '', ?)");
+                            (entry_id, seminar_id, entry_type, topic_id, entry_name)
+                            VALUES (?, ?, 'category', '', ?)");
                         $stmt->execute(array(md5(uniqid(rand())), $this->getId(), $_REQUEST['category']));
                     }
 
                     if (isset($_REQUEST['add_area'])) {
                         new DB_Seminar("INSERT INTO forumpp
-							(entry_id, seminar_id, entry_type, topic_id, entry_name)
-							VALUES ('{$_REQUEST['add_area']}', '" . $this->getId() . "', 'area', '" . $_REQUEST['cat_' . $_REQUEST['add_area']] . "', '')");
+                            (entry_id, seminar_id, entry_type, topic_id, entry_name)
+                            VALUES ('{$_REQUEST['add_area']}', '" . $this->getId() . "', 'area', '" . $_REQUEST['cat_' . $_REQUEST['add_area']] . "', '')");
                     }
                     break;
 

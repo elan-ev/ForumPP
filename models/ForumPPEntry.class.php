@@ -140,8 +140,8 @@ class ForumPPEntry {
     static function getLatestPosting($parent_id) {
         $data = ForumPPEntry::getConstraints($parent_id);
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
-			WHERE lft > ? AND rgt < ? AND seminar_id = ?
-			ORDER BY mkdate DESC LIMIT 1");
+            WHERE lft > ? AND rgt < ? AND seminar_id = ?
+            ORDER BY mkdate DESC LIMIT 1");
         $stmt->execute(array($data['lft'], $data['rgt'], $data['seminar_id']));
 
         if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) {
