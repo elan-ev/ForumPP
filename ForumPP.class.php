@@ -39,7 +39,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         $navigation->addSubNavigation('index', $sub_nav);
 
         if ($GLOBALS['perm']->have_studip_perm('tutor', Request::get('cid', $GLOBALS['SessSemName'][1]))) {
-            $sub_nav = new Navigation(_("Bereiche administrieren"),
+            $sub_nav = new Navigation(_("Kategorien administrieren"),
                     PluginEngine::getLink('forumpp/index/config_areas'));
             $navigation->addSubNavigation('config_areas', $sub_nav);
 

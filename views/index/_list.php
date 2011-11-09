@@ -53,9 +53,15 @@
                 <input type="hidden" name="subcmd" value="do_edit_posting">
                 <input type="hidden" name="posting_id" value="<?= $area['topic_id'] ?>">
             </form>
-            <? else : ?>
+        <? else : ?>
 
-            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $area['topic_id']) ?>">
+            <? $topic_id = $area['topic_id']; ?>
+
+            <? if ($constraint['depth'] >= 1) :
+                $topic_id = ($area['last_posting']['topic_id'] ? $area['last_posting']['topic_id'] : $area['topic_id']);
+            endif ?>
+            
+            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id .'#'. $topic_id) ?>">
                 <span class="areaname"><?= $area['name'] ?></span>
             </a>
             <br/>
