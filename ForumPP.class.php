@@ -43,9 +43,12 @@ class ForumPP extends StudipPlugin implements StandardPlugin
                     PluginEngine::getLink('forumpp/index/config_areas'));
             $navigation->addSubNavigation('config_areas', $sub_nav);
 
+            /*
             $sub_nav = new Navigation(_("Postings administrieren"),
                     PluginEngine::getLink('forumpp/index/config_threads'));
             $navigation->addSubNavigation('config_threads', $sub_nav);
+             * 
+             */
         }
 
         // hijack the default forum-navigation

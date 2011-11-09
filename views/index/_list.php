@@ -114,15 +114,15 @@
 
 
 
-	<!-- bottom border -->
-	<tr>
+    <!-- bottom border -->
+    <tr>
         <td class="areaborder" colspan="7">
             <span class="corners-bottom"><span></span></span>
         </td>
-	</tr>
-	<tr>
+    </tr>
+    <tr>
         <td colspan="6">&nbsp;</td>
-	</tr>
+    </tr>
 </table>
     <? endif ?>
 <? endforeach; ?>

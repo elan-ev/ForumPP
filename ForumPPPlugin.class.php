@@ -351,7 +351,7 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
             return;
 
         $stmt = DBManager::get()->prepare("UPDATE forumpp SET entry_name = ?
-			WHERE entry_id = ?");
+            WHERE entry_id = ?");
         $stmt->execute(array($_REQUEST['new_name'], $_REQUEST['cat_id']));
     }
 
@@ -384,9 +384,9 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
 
         // get the left pott
         $stmt = DBManager::get()->prepare("SELECT pxb.topic_id, pxb.lft
-			FROM forumpp_entries as pxa
-			LEFT JOIN forumpp_entries pxb ON (pxa.parent_id = pxb.topic_id)
-			WHERE pxa.topic_id = ?");
+            FROM forumpp_entries as pxa
+            LEFT JOIN forumpp_entries pxb ON (pxa.parent_id = pxb.topic_id)
+            WHERE pxa.topic_id = ?");
         $stmt->execute(array($topic_id));
         if (!$data = $stmt->fetch(PDO::FETCH_ASSOC))
             die;
@@ -798,7 +798,7 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
      * @param int $datum timestamp of posting-creation
      * @param string $titel the formatted thread/posting-title
      * @param string $inhalt the formatted text of the posting
-     * @param string $entryid	the topic_id of the posting
+     * @param string $entryid   the topic_id of the posting
      * @param string $jumpid is the area-id, if this is the first posting of the thread, the thread-id otherwise
      * @param string $owner_id the id of user who posted this
      * @param string $raw_title unformatted thread/posting-title
@@ -1070,8 +1070,8 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
 
             case 'get_child_postings':
                 $db = new DB_Seminar($query = "SELECT px.* FROM forumpp_entries as px
-					WHERE px.Seminar_id =  '" . $this->getId() . "' AND px.parent_id = '{$data['parent_id']}'
-					ORDER BY mkdate DESC");
+                    WHERE px.Seminar_id =  '" . $this->getId() . "' AND px.parent_id = '{$data['parent_id']}'
+                    ORDER BY mkdate DESC");
 
                 $data = $this->_dbdataFillArray($db);
                 return $data;
@@ -1085,9 +1085,9 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
                 }
 
                 $db = new DB_Seminar($query = "SELECT px.*, ou.flag as fav  FROM forumpp_entries as px
-					LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					WHERE Seminar_id =  '" . $this->getId() . "' AND parent_id != '0'
-					ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE);
+                    LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                    WHERE Seminar_id =  '" . $this->getId() . "' AND parent_id != '0'
+                    ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE);
 
                 return $this->_dbdataFillArray($db);
                 break;
@@ -1100,11 +1100,11 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
                 }
 
                 $db = new DB_Seminar("SELECT pt.*, ou.flag as fav FROM object_user as ou
-					LEFT JOIN forumpp_entries as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					WHERE ou.user_id = '" . $GLOBALS['user']->id . "'
-					AND ou.flag = 'fav'
-					AND pt.Seminar_id = '" . $this->getId() . "'
-					ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE);
+                    LEFT JOIN forumpp_entries as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                    WHERE ou.user_id = '" . $GLOBALS['user']->id . "'
+                    AND ou.flag = 'fav'
+                    AND pt.Seminar_id = '" . $this->getId() . "'
+                    ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE);
 
                 return $this->_dbdataFillArray($db);
                 break;
@@ -1117,32 +1117,32 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
                 }
 
                 $db = new DB_Seminar($query = "SELECT * FROM forumpp_entries
-					WHERE Seminar_id =  '" . $this->getId() . "' AND mkdate >= {$this->last_visit}
-					ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE);
+                    WHERE Seminar_id =  '" . $this->getId() . "' AND mkdate >= {$this->last_visit}
+                    ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE);
 
                 return $this->_dbdataFillArray($db);
                 break;
 
             case 'get_new_postings_count':
                 $db = new DB_Seminar("SELECT COUNT(*) as c FROM forumpp_entries
-					WHERE Seminar_id =  '" . $this->getId() . "' AND mkdate >= {$this->last_visit}");
+                    WHERE Seminar_id =  '" . $this->getId() . "' AND mkdate >= {$this->last_visit}");
                 $db->next_record();
                 return $db->f('c');
                 break;
 
             case 'get_favorite_postings_count':
                 $db = new DB_Seminar("SELECT COUNT(*) as c FROM object_user as ou
-					LEFT JOIN forumpp_entries as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-					WHERE ou.user_id = '" . $GLOBALS['user']->id . "'
-					AND ou.flag = 'fav'
-					AND pt.Seminar_id = '" . $this->getId() . "'");
+                    LEFT JOIN forumpp_entries as pt ON (ou.object_id = pt.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                    WHERE ou.user_id = '" . $GLOBALS['user']->id . "'
+                    AND ou.flag = 'fav'
+                    AND pt.Seminar_id = '" . $this->getId() . "'");
                 $db->next_record();
                 return $db->f('c');
                 break;
 
             case 'get_last_postings_count':
                 $db = new DB_Seminar("SELECT COUNT(*) as c FROM forumpp_entries as px
-					WHERE Seminar_id =  '" . $this->getId() . "' AND parent_id != '0'");
+                    WHERE Seminar_id =  '" . $this->getId() . "' AND parent_id != '0'");
                 $db->next_record();
                 return $db->f('c');
                 break;
@@ -1201,12 +1201,12 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
 
                 if (sizeof($ids) > 0) {
                     $query = "SELECT px.*, ou.flag as fav FROM forumpp_entries as px
-						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-						WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")
-						ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
+                        LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                        WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")
+                        ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
 
                     $query2 = "SELECT COUNT(*) as c FROM forumpp_entries as px
-						WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")";
+                        WHERE seminar_id = '" . $this->getId() . "' AND num IN(" . implode(', ', $ids) . ")";
 
                     $db = new DB_Seminar($query);
                     $db2 = new DB_Seminar($query2);
@@ -1272,17 +1272,17 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
                 // get the postings that match
                 if ($this->output_format != 'html') {
                     $query = "SELECT * FROM forumpp_entries
-						WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
-						ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
+                        WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
+                        ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
                 } else {
                     $query = "SELECT px.*, ou.flag as fav FROM forumpp_entries as px
-						LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
-						WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
-						ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
+                        LEFT JOIN object_user as ou ON (ou.object_id = px.topic_id AND ou.user_id = '{$GLOBALS['user']->id}')
+                        WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")
+                        ORDER BY mkdate DESC LIMIT $limit_start, " . $this->POSTINGS_PER_PAGE;
                 }
 
                 $query2 = "SELECT COUNT(*) as c FROM forumpp_entries as px
-					WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")";
+                    WHERE seminar_id = '" . $this->getId() . "' AND (" . implode(' OR ', $search_string) . ")";
 
                 $db = new DB_Seminar($query);
                 $db2 = new DB_Seminar($query2);
@@ -1309,9 +1309,9 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
                     $zw['areas'] = array();
 
                     $db2 = new DB_Seminar("SELECT * FROM forumpp
-						WHERE entry_type = 'area' AND forumpp.seminar_id = '" . $this->getId() . "'
-							AND entry_id = '" . $db->f('entry_id') . "'
-						ORDER BY pos ASC");
+                        WHERE entry_type = 'area' AND forumpp.seminar_id = '" . $this->getId() . "'
+                            AND entry_id = '" . $db->f('entry_id') . "'
+                        ORDER BY pos ASC");
                     while ($db2->next_record()) {
                         $zw['areas'][] = $db2->f('topic_id');
                     }
@@ -1607,58 +1607,58 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
         $ret = '<script>' . "\n";
         $ret .= 'var tags = new Array(\'' . implode("' , '", $tags) . '\');' . "\n";
         $ret .= "
-			var browser = navigator.userAgent.toLowerCase();
-			var is_ie = ((browser.indexOf('msie') != -1) && (browser.indexOf('opera') == -1));
+            var browser = navigator.userAgent.toLowerCase();
+            var is_ie = ((browser.indexOf('msie') != -1) && (browser.indexOf('opera') == -1));
 
-			function addTag(num) {
-				doAddTag(tags[num], tags[num+1]);
-				return false;
-			}
+            function addTag(num) {
+                doAddTag(tags[num], tags[num+1]);
+                return false;
+            }
 
-			function doAddTag(open, close) {
-				textarea = document.getElementById('inhalt');
-				textarea.focus();
+            function doAddTag(open, close) {
+                textarea = document.getElementById('inhalt');
+                textarea.focus();
 
-				if (is_ie) {
-					var selection = document.selection.createRange().text;
+                if (is_ie) {
+                    var selection = document.selection.createRange().text;
 
-					if (selection) {
-						document.selection.createRange().text = open + selection + close;
-						textarea.focus();
-						return;
-					}
-				}
+                    if (selection) {
+                        document.selection.createRange().text = open + selection + close;
+                        textarea.focus();
+                        return;
+                    }
+                }
 
-				addAroundSelected(textarea, open, close);
-				textarea.focus();
+                addAroundSelected(textarea, open, close);
+                textarea.focus();
 
-				return;
-			}
+                return;
+            }
 
-			function addAroundSelected(txtarea, open, close) {
-				var selLength = txtarea.textLength;
-				var selStart = txtarea.selectionStart;
-				var selEnd = txtarea.selectionEnd;
-				var scrollTop = txtarea.scrollTop;
+            function addAroundSelected(txtarea, open, close) {
+                var selLength = txtarea.textLength;
+                var selStart = txtarea.selectionStart;
+                var selEnd = txtarea.selectionEnd;
+                var scrollTop = txtarea.scrollTop;
 
-				if (selEnd == 1 || selEnd == 2)
-				{
-					selEnd = selLength;
-				}
+                if (selEnd == 1 || selEnd == 2)
+                {
+                    selEnd = selLength;
+                }
 
-				var s1 = (txtarea.value).substring(0,selStart);
-				var s2 = (txtarea.value).substring(selStart, selEnd)
-					var s3 = (txtarea.value).substring(selEnd, selLength);
+                var s1 = (txtarea.value).substring(0,selStart);
+                var s2 = (txtarea.value).substring(selStart, selEnd)
+                    var s3 = (txtarea.value).substring(selEnd, selLength);
 
-				txtarea.value = s1 + open + s2 + close + s3;
-				txtarea.selectionStart = selEnd + open.length + close.length;
-				txtarea.selectionEnd = txtarea.selectionStart;
-				txtarea.focus();
-				txtarea.scrollTop = scrollTop;
+                txtarea.value = s1 + open + s2 + close + s3;
+                txtarea.selectionStart = selEnd + open.length + close.length;
+                txtarea.selectionEnd = txtarea.selectionStart;
+                txtarea.focus();
+                txtarea.scrollTop = scrollTop;
 
-				return;
-			}
-		";
+                return;
+            }
+        ";
 
         $ret .= '</script>' . "\n";
 
@@ -1881,15 +1881,15 @@ class ForumPPPlugin extends StudIPPlugin implements StandardPlugin {
                 case 'administrate':
                     if (isset($_REQUEST['create_category'])) {
                         $stmt = DBManager::get()->prepare("INSERT INTO forumpp
-							(entry_id, seminar_id, entry_type, topic_id, entry_name)
-							VALUES (?, ?, 'category', '', ?)");
+                            (entry_id, seminar_id, entry_type, topic_id, entry_name)
+                            VALUES (?, ?, 'category', '', ?)");
                         $stmt->execute(array(md5(uniqid(rand())), $this->getId(), $_REQUEST['category']));
                     }
 
                     if (isset($_REQUEST['add_area'])) {
                         new DB_Seminar("INSERT INTO forumpp
-							(entry_id, seminar_id, entry_type, topic_id, entry_name)
-							VALUES ('{$_REQUEST['add_area']}', '" . $this->getId() . "', 'area', '" . $_REQUEST['cat_' . $_REQUEST['add_area']] . "', '')");
+                            (entry_id, seminar_id, entry_type, topic_id, entry_name)
+                            VALUES ('{$_REQUEST['add_area']}', '" . $this->getId() . "', 'area', '" . $_REQUEST['cat_' . $_REQUEST['add_area']] . "', '')");
                     }
                     break;
 

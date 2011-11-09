@@ -8,18 +8,18 @@
     if ($_areaname != $area['area_name']) : ?>
 
         <? if ($_areaname != -1) : ?>
-	<!-- bottom border -->
-	<tr>
+    <!-- bottom border -->
+    <tr>
             <td class="areaborder" colspan="7">
                 <span class="corners-bottom"><span></span></span>
             </td>
-	</tr>
-	<tr>
+    </tr>
+    <tr>
             <td colspan="6">&nbsp;</td>
-	</tr>
-	<? endif; ?>
+    </tr>
+    <? endif; ?>
 
-	<? $_areaname = $area['area_name']; ?>
+    <? $_areaname = $area['area_name']; ?>
     <tr>
         <td class="forum_header" colspan="3" align="left">
             <span class="corners-top"></span>
@@ -110,15 +110,15 @@
 
   <? endforeach; ?>
 
-	<!-- bottom border -->
-	<tr>
-		<td class="areaborder" colspan="7">
-			<span class="corners-bottom"><span></span></span>
-		</td>
-	</tr>
+    <!-- bottom border -->
+    <tr>
+        <td class="areaborder" colspan="7">
+            <span class="corners-bottom"><span></span></span>
+        </td>
+    </tr>
 </table>
 <div style="text-align: right">
-	<?= $plugin->get_page_chooser() ?>
+    <?= $plugin->get_page_chooser() ?>
 </div>
 <br>
 <br>
