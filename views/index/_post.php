@@ -169,8 +169,11 @@ shuffle($likes);
         und einem weiteren
         <? endif ?>
     <? else : ?>
+        <? if (sizeof($links) > 1) : ?>
         <?= implode(', ', array_slice($links, 0, sizeof($links) - 1)) ?>
         und
+        <? endif ?>
+
         <?= end($links) ?>
     <? endif ?>
         
