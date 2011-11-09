@@ -518,7 +518,7 @@ class IndexController extends StudipController {
         if ($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] && $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] != '/') {
             $this->picturepath = $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] .'/'. $this->dispatcher->trails_root . '/img';
         } else {
-            $this->picturepath = $this->dispatcher->trails_root . '/img';
+            $this->picturepath = '/'. $this->dispatcher->trails_root . '/img';
         }
 
         // we want to display the dates in german
