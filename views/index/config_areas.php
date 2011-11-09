@@ -29,7 +29,7 @@ $infobox_content[] = array(
 $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
 ?>
 <script>
-    $(document).ready(function() {
+    jQuery(document).ready(function() {
         jQuery('a.toggle_list').bind('click', function() {
             jQuery(this).parent().find('div').toggle();
             jQuery(this).remove();
@@ -46,7 +46,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
                     areas['areas'][name] = name;
                 });
                 
-                $.ajax({
+                jQuery.ajax({
                     type: 'POST',
                     url: '<?= PluginEngine::getLink('forumpp/index/saveareas') ?>',
                     data: areas
@@ -65,7 +65,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
                     categories['categories'][name] = name;
                 });
                 
-                $.ajax({
+                jQuery.ajax({
                     type: 'POST',
                     url: '<?= PluginEngine::getLink('forumpp/index/savecats') ?>',
                     data: categories
