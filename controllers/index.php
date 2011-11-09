@@ -78,13 +78,13 @@ class IndexController extends StudipController {
         $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
         $this->section = 'forum';
 
-        if ($this->flash['new_entry']) {
+        // if ($this->flash['new_entry']) {
             if (!$topic_id) {
                 $this->has_rights = $this->rechte;
             } else {
                 $this->has_rights = $this->writable;
             }
-        }
+        // }
 
         $this->topic_id     = $topic_id ? $topic_id : $this->getId();
         $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
@@ -152,21 +152,21 @@ class IndexController extends StudipController {
             if ($this->writable && $this->rechte) {
                 $this->aktionen[] = array(
                     'title' => _('Neuen Bereich erstellen'),
-                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id)
+                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id .'#create')
                 );
             }
         } else if ($this->constraint['depth'] == 1) {
             if ($this->writable) {
                 $this->aktionen[] = array(
                     'title' => _('Neues Thema erstellen'),
-                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id)
+                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id .'#create')
                 );
             }
         } else if ($this->constraint['depth'] > 1) {
             if ($this->writable) {
                 $this->aktionen[] = array(
                     'title' => _('Neuen Beitrag erstellen'),
-                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id)
+                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id .'#create')
                 );
             }
         }
@@ -283,12 +283,6 @@ class IndexController extends StudipController {
     /* * * *   P O S T I N G - A C T I O N S     * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    function new_entry_action($topic_id)
-    {
-        $this->flash['new_entry'] = true;
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/'. $topic_id));
-    }
-
     function add_entry_action($topic_id)
     {
         if (!Request::option('parent')) {
@@ -307,7 +301,7 @@ class IndexController extends StudipController {
             'author_host' => getenv('REMOTE_ADDR')
         ), Request::option('parent'));
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $new_id));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
     }
 
     function delete_entry_action($topic_id) {

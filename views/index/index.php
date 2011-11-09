@@ -63,7 +63,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? elseif ($no_search_results) : ?>
     <?= MessageBox::info(_('Es wurden keine Beiträge gefunden die zu Ihren Suchkriterien passen!')) ?>
 <? elseif (empty($list) && empty($postings) && !$flash['new_entry']) : ?>
-    <? if ($constraint['depth'] == 0) : ?>
+    <? /* if ($constraint['depth'] == 0) : ?>
     <?= MessageBox::info(sprintf(_('Es existieren bisher keine Bereiche. '
             . 'Möchten Sie einen neuen Bereich %serstellen%s?'),
             '<a href="'. PluginEngine::getLink('forumpp/index/new_entry/'. $topic_id) .'">', '</a>')); ?>
@@ -71,11 +71,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
     <?= MessageBox::info(sprintf(_('Es existieren bisher keine Themen in diesem Bereich. '
             . 'Möchten Sie ein neues Thema %serstellen%s?'),
             '<a href="'. PluginEngine::getLink('forumpp/index/new_entry/'. $topic_id) .'">', '</a>')); ?>
-    <? endif ?>
-<? endif ?>
-
-<? if ($flash['new_entry']) : ?>
-    <?= $this->render_partial('index/_new_entry') ?>
+    <? endif */ ?>
 <? endif ?>
 
 <? if (!empty($list)) : ?>
@@ -85,3 +81,5 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? if (!empty($postings)) : ?>
     <?= $this->render_partial('index/_postings') ?>
 <? endif ?>
+
+<?= $this->render_partial('index/_new_entry') ?>

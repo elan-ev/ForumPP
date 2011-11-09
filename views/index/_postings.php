@@ -1,26 +1,18 @@
-<div style="width: 54%;text-align: right; float: left">
-    <a href="<?= PluginEngine::getLink('forumpp/index/new_entry/'. ($child_topic ? $child_topic : $topic_id)) ?>"><?= makebutton('antworten') ?></a>
-</div>
 <br style="clear: both"><br>
 
 <?
 $posting_num = 1;
-$last = sizeof($postings);
 $zebra = 0;
 
 foreach ($postings as $post) :
-    $last_posting = ($posting_num == $last);
     $zebra = 1 - $zebra;
-    echo $this->render_partial('index/_post', compact('post', 'last_posting', 'zebra'));
+    echo $this->render_partial('index/_post', compact('post', 'zebra'));
 
     $posting_num++;
 endforeach
 ?>
 <br>
 
-<div style="width: 54%;text-align: right; float: left">
-    <a href="<?= PluginEngine::getLink('forumpp/index/new_entry/'. ($child_topic ? $child_topic : $topic_id)) ?>"><?= makebutton('antworten') ?></a>
-</div>
 <div style="float: right; padding-right: 10px;">
     <?= $GLOBALS['template_factory']->render('shared/pagechooser', array(
         'page'         => ForumPPHelpers::getPage() + 1,
