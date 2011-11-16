@@ -4,7 +4,7 @@
     <div class="posting bg2">
         <span class="corners-top"><span></span></span>
 
-        <div class="postbody">
+        <div class="postbody" <?= $constraint['depth'] == 0 ? 'style="width: 97%"' : '' ?>>
             <span class="title"><? switch ($constraint['depth']):
                 case 0:
                     echo _('Neuen Bereich erstellen');
@@ -18,14 +18,16 @@
                 default:
                     echo _('Neuen Beitrag erstellen');
                     break;
-            endswitch; ?></span><br/>
+            endswitch; ?></span>
 
             <p class="content" style="margin-bottom: 0pt">
                 <strong><?= _('Titel:') ?></strong><br/>
-                <input type="text" name="name" style="width: 100%" value="<?= $this->flash['new_entry_title'] ?>"><br/>
+                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>"><br/>
                 <br/>
             </p>
         </div>
+        
+        <? if ($constraint['depth'] > 0): ?>
 
         <div class="postbody">
             <textarea class="add_toolbar" id="inhalt" name="content"><?= $this->flash['new_entry_content'] ?></textarea><br/>
@@ -36,6 +38,8 @@
                 <?= $this->render_partial('index/_smiley_favorites') ?>
             </dt>
         </dl>
+
+        <? endif ?>
 
         <div class="buttons">
             <input type="image" <?= makebutton('erstellen', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
