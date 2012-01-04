@@ -21,22 +21,6 @@ $infobox_content[] = array(
     )
 );
 
-if (!empty($aktionen)) :
-    $eintrage = array();
-    foreach ($aktionen as $aktion) :
-        $eintraege[] = array(
-            'icon' => 'icons/16/black/link-intern.png',
-            'text' => '<a href="'. $aktion['link'] .'">'. $aktion['title'] .'</a>'
-        );
-    endforeach;
-
-    $infobox_content[] = array(
-        'kategorie' => _('Aktionen'),
-        'eintrag'   => $eintraege
-    );
-
-endif;
-
 $infobox_content[] = array(
     'kategorie' => _('Suche'),
     'eintrag'   => array(
@@ -54,9 +38,9 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <?= $this->render_partial('index/_breadcrumb') ?>
 
 <!-- Message area -->
-<? foreach (PageLayout::getMessages() as $message) : ?>
-    <?= $message ?>
-<? endforeach ?>
+<div id="message_area">
+    <? $this->render_partial('messages') ?>
+</div>
 
 <? if ($no_entries) : ?>
     <?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
@@ -82,4 +66,8 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
     <?= $this->render_partial('index/_postings') ?>
 <? endif ?>
 
-<?= $this->render_partial('index/_new_entry') ?>
+<? if ($constraint['depth'] == 0) : ?>
+    <?= $this->render_partial('index/_new_category') ?>
+<? else : ?>
+    <?= $this->render_partial('index/_new_entry') ?>
+<? endif ?>

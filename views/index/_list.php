@@ -1,24 +1,26 @@
-<? foreach ($list as $area_name => $entries) : ?>
-    <? if (!empty($entries)) : /* show category only if areas are assigned to it */ ?>
-<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum">
+<? if ($constraint['depth'] == 0) : /* main areas */?>
+<script>
+    jQuery(document).ready(function() {
+        STUDIP.ForumPP.initAreas();
+    });
+</script>
+<? endif ?>
+
+<div id="sortable_areas">
+<? foreach ($list as $category_id => $entries) : ?>
+<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
+    <thead>
     <tr>
         <td class="forum_header" colspan="3" align="left">
             <span class="corners-top"></span>
             <span class="heading">
-                <? if (!$area_name) : ?>
+                <? if (!$category_id) : ?>
                 <?= strtoupper(_('Themen')) ?>
                 <? else: ?>
-                <?= strtoupper($area_name) ?>&nbsp;
+                <?= strtoupper(($category_id == 'Allgemein') ? _('Allgemein') : $categories[$category_id]) ?>&nbsp;
                 <? endif ?>
             </span>
         </td>
-
-        <? if ($show_area_edit) : ?>
-        <td class="forum_header" width="1%">
-            <span class="no-corner"></span>
-            <span class="heading">&nbsp;</span>
-        </td>
-        <? endif; ?>
 
         <td class="forum_header" width="1%">
             <span class="no-corner"></span>
@@ -27,72 +29,65 @@
 
         <td class="forum_header" width="30%" colspan="2">
             <span class="corners-top-right"></span>
-            <span class="heading"><?= _("LETZTE ANTWORT") ?></span>
+            <span class="heading" style="float: left"><?= _("LETZTE ANTWORT") ?></span>
+            <? if ($has_perms) : ?>
+            <span style="float: right; padding-right: 10px;">
+                <a href="javascript:STUDIP.ForumPP.deleteCategory('<?= $category_id ?>', '<?= $categories[$category_id] ?>')">
+                    <?= Assets::img('icons/16/blue/trash.png') ?>
+                </a>
+            </span>
+            <? endif ?>
         </td>
     </tr>
+    </thead>
 
+    
+    <tbody class="sortable">
+    <? foreach ($entries as $area) :
+        $topic_id = $area['topic_id'];
 
-    <? foreach ($entries as $area) : ?>
-    <tr>
+        if ($constraint['depth'] >= 1) :
+            $topic_id = ($area['last_posting']['topic_id'] ? $area['last_posting']['topic_id'] : $area['topic_id']);
+        endif ?>
+    
+    <tr data-area-id="<?= $topic_id ?>" <?= $has_perms ? 'class="movable"' : '' ?>>
         <td class="areaborder">&nbsp;</td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
             <?= Assets::img('icons/16/black/forum.png') ?>
         </td>
         <td class="areaentry" valign="top">
+            <div style="position: relative;">
+                <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id .'#'. $topic_id) ?>">
+                    <span class="areaname"><?= $area['name'] ?></span>
+                </a>
 
-        <? if ($edit_area && $edit_area == $area['topic_id']) : ?>
-            <form action="<?= PluginEngine::getLink('forumpp/index/index') ?>" method="post">
-                <input type="text" name="posting_title" style="width: 99%" value="<?= $area['name_raw'] ?>"><br/>
-                <textarea name="posting_data" class="add_toolbar" style="width: 99%" rows="7"><?= $area['content_raw'] ?></textarea><br/>
-                <div class="buttons">
-                    <input type="image" <?= makebutton('speichern', 'src') ?>>&nbsp;&nbsp;&nbsp;
-                    <a href="<?= PluginEngine::getLink('forumpp/index/index') ?>">
-                        <?= makebutton('abbrechen') ?>
-                    </a>
-                </div>
-                <input type="hidden" name="subcmd" value="do_edit_posting">
-                <input type="hidden" name="posting_id" value="<?= $area['topic_id'] ?>">
-            </form>
-        <? else : ?>
-
-            <? $topic_id = $area['topic_id']; ?>
-
-            <? if ($constraint['depth'] >= 1) :
-                $topic_id = ($area['last_posting']['topic_id'] ? $area['last_posting']['topic_id'] : $area['topic_id']);
-            endif ?>
-            
-            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id .'#'. $topic_id) ?>">
-                <span class="areaname"><?= $area['name'] ?></span>
-            </a>
-            <br/>
-
-            <?= _("von") ?>
-            <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
-                <?= htmlReady($area['author']) ?>
-            </a>
-            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['mkdate']) ?>
-            <br>
-
-            <? if ($this->constraint['depth'] == 1) : ?>
-                <? if ($area['content_short'] && strlen($area['content'] > strlen($area['content_short']))) : ?>
-                    <?= $area['content_short'] ?>...
-                <? else : ?>
-                    <?= $area['content_short'] ?>
+                <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
+                <span class="action-icons" style="position: absolute; right: 10px; top: 0px; display: none;">
+                    <?= Assets::img('icons/16/blue/edit.png', array('class' => 'edit-area', 'data-area-id' => $topic_id)) ?>
+                    <?= Assets::img('icons/16/blue/trash.png', array('class' => 'delete-area', 'data-area-id' => $topic_id)) ?>
+                </span>
                 <? endif ?>
-            <? else: ?>
-            <?= $area['content'] ?>
-            <? endif ?>
-        <? endif; ?>
 
-        </td>
+                <br/>
 
-        <? if ($show_area_edit) : ?>
-        <td width="20" align="center" valign="top" class="areaentry2" style="padding-top : 8px">
-            <a href="<?= PluginEngine::getLink($plugin, array('subcmd' => 'edit_area', 'area_id' => $area['topic_id']))?>#create_area">
-                <?= Assets::img('icons/16/blue/edit.png') ?>
-            </a>
+                <?= _("von") ?>
+                <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
+                    <?= htmlReady($area['author']) ?>
+                </a>
+                <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['mkdate']) ?>
+                <br>
+
+                <? if ($this->constraint['depth'] == 1) : ?>
+                    <? if ($area['content_short'] && strlen($area['content'] > strlen($area['content_short']))) : ?>
+                        <?= $area['content_short'] ?>...
+                    <? else : ?>
+                        <?= $area['content_short'] ?>
+                    <? endif ?>
+                <? else: ?>
+                <?= $area['content'] ?>
+                <? endif ?>
+            </div>
         </td>
-        <? endif; ?>
 
         <td width="40" align="center" valign="top" class="areaentry2">
             <br>
@@ -116,8 +111,23 @@
         </td>
         <td class="areaborder">&nbsp;</td>
     </tr>
-        <? endforeach; ?>
+    <? endforeach; ?>
+    </tbody>
 
+    <tfoot>
+    <? if ($category_id && $has_perms) : ?>
+    <tr>
+        <td class="areaborder" colspan="7">
+            <div class="add_area">+</div>
+            <form class="add_area_form" style="display: none" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
+                <?= CSRFProtection::tokenTag() ?>
+                <input type="text" name="name" size="50" placeholder="Name des neuen Bereiches" required>
+                <input type="image" <?= makebutton('hinzufuegen', 'src') ?>>
+                <a href="javascript:STUDIP.ForumPP.cancelAddArea()"><?= makebutton('abbrechen') ?></a>
+            </form>
+        </td>
+    </tr>    
+    <? endif ?>
 
 
     <!-- bottom border -->
@@ -129,6 +139,20 @@
     <tr>
         <td colspan="6">&nbsp;</td>
     </tr>
+    </tfoot>
 </table>
-    <? endif ?>
 <? endforeach; ?>
+</div>
+
+<div id="question" style="display: none">
+    <span id="question_delete_area" style="display: none"><?= _('Sind sie sicher, dass Sie den Bereich <%- area %> löschen möchten? '
+         . 'Es werden auch alle Beiträge in diesem Bereich gelöscht!') ?></span>
+    <span id="question_delete_category" style="display: none"><?= _('Sind sie sicher, dass Sie die Kategorie <%- category %> entfernen möchten? '
+         . 'Alle Bereiche werden dann nach "Allgemein" verschoben!') ?></span>
+    <?= $GLOBALS['template_factory']->open('shared/question')->render(array(
+        'question'        => '',
+        'approvalLink'    => "javascript:STUDIP.ForumPP.approveDelete()",
+        'disapprovalLink' => "javascript:STUDIP.ForumPP.disapproveDelete()"
+    )) ?>
+    <? /* createQuestion() */ ?>
+</div>

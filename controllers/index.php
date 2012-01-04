@@ -75,7 +75,7 @@ class IndexController extends StudipController {
          * V A R I A B L E N   F U E L L E N *
          * * * * * * * * * * * * * * * * * * */
 
-        $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId()) ? true : false;
+        $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
         $this->section = 'forum';
 
         // if ($this->flash['new_entry']) {
@@ -126,9 +126,14 @@ class IndexController extends StudipController {
             if (!empty($list['list'])) {
                 if ($this->constraint['depth'] == 0) {  // BEREICHE
                     $new_list = array();
-                    foreach (ForumPPCat::getList($this->getId()) as $category) {
-                        $new_list[$category['entry_name']][$category['topic_id']] = $list['list'][$category['topic_id']];
-                        unset($list['list'][$category['topic_id']]);
+                    foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
+                        if ($category['topic_id']) {
+                            $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
+                            unset($list['list'][$category['topic_id']]);
+                        } else if ($this->has_perms) {
+                            $new_list[$category['category_id']] = array();
+                        }
+                        $this->categories[$category['category_id']] = $category['entry_name'];
                     }
 
                     if (!empty($list['list'])) {
@@ -140,34 +145,6 @@ class IndexController extends StudipController {
                     $this->list = array($list['list']);
                 }
                 $this->number_of_entries = $list['count'];
-            }
-        }
-
-
-        /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-         * A K T I O N S L I N K S   I N   D E R   I N F O B O X *
-         * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-        if ($this->constraint['depth'] == 0) {
-            if ($this->writable && $this->rechte) {
-                $this->aktionen[] = array(
-                    'title' => _('Neuen Bereich erstellen'),
-                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id .'#create')
-                );
-            }
-        } else if ($this->constraint['depth'] == 1) {
-            if ($this->writable) {
-                $this->aktionen[] = array(
-                    'title' => _('Neues Thema erstellen'),
-                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id .'#create')
-                );
-            }
-        } else if ($this->constraint['depth'] > 1) {
-            if ($this->writable) {
-                $this->aktionen[] = array(
-                    'title' => _('Neuen Beitrag erstellen'),
-                    'link'  => PluginEngine::getLink('forumpp/index/new_entry/'. $this->topic_id .'#create')
-                );
             }
         }
     }
@@ -303,16 +280,38 @@ class IndexController extends StudipController {
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
     }
+    
+    function add_area_action($category_id) {
+        $new_id = md5(uniqid(rand()));
+
+        ForumPPEntry::insert(array(
+            'topic_id'    => $new_id,
+            'seminar_id'  => $this->getId(),
+            'user_id'     => $GLOBALS['user']->id,
+            'name'        => Request::get('name', _('Kein Titel')),
+            'content'     => '',
+            'author'      => get_fullname($GLOBALS['user']->id),
+            'author_host' => getenv('REMOTE_ADDR')
+        ), $this->getId());
+        
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
+    }
 
     function delete_entry_action($topic_id) {
-        $path = ForumPPEntry::getPathToPosting($topic_id);
-        array_pop($path);
-        $parent = array_pop($path);
-        ForumPPEntry::delete($topic_id);
+        if (ForumPPEntry::hasEditPerms($topic_id)) {
+            $path = ForumPPEntry::getPathToPosting($topic_id);
+            $topic  = array_pop($path);
+            $parent = array_pop($path);
+            ForumPPEntry::delete($topic_id);
 
-        $this->flash['message'] = 'Der Eintrag wurde gelöscht!';
+            $this->flash['messages'] = array('success' => sprintf(_('Der Eintrag %s wurde gelöscht!'), $topic['name']));
+        }
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $parent['id']));
+        if (Request::isAjax()) {
+            $this->render_template('messages');
+        } else {
+            $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $parent['id']));
+        }
     }
 
     function edit_entry_action($topic_id) {
@@ -360,7 +359,7 @@ class IndexController extends StudipController {
 
     function like_action($topic_id) {
         ForumPPLike::like($topic_id);
-        
+
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
@@ -390,9 +389,9 @@ class IndexController extends StudipController {
     function add_category_action() {
         ForumPPCat::add($this->getId(), Request::get('category'));
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
+        $this->redirect(PluginEngine::getLink('forumpp/index'));
     }
-    
+
     function add_areas_action() {
         if (!$this->rechte) {
             return;
@@ -409,28 +408,36 @@ class IndexController extends StudipController {
         if (!$this->rechte) {
             return;
         }
-        
+
         ForumPPCat::removeArea($area_id);
         $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
     }
-    
+
     function remove_category_action($category_id) {
-          if (!$this->rechte) {
-            return;
+        if (!$this->rechte) {
+            $this->flash['messages'] = array('error' => _('Sie besitzen nicht genügend Rechte um Kategorien zu löschen!'));
+        } else {
+            $this->flash['messages'] = array('success' => _('Die Kategorie wurde gelöscht!'));
+            ForumPPCat::remove($category_id);
         }
-        
-        ForumPPCat::remove($category_id);
-        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));      
+
+        if (Request::isAjax()) {
+            $this->render_template('messages');
+        } else {
+            $this->redirect(PluginEngine::getLink('forumpp/index/index'));
+        }
+
     }
 
-    function edit_area_action() { // #TODO
+    function edit_area_action($area_id, $name) { // #TODO
         return;
-        if (!$this->rechte)
+        if (!$this->rechte) {
             return;
+        }
 
         $stmt = DBManager::get()->prepare("UPDATE forumpp SET entry_name = ?
             WHERE entry_id = ?");
-        $stmt->execute(array($_REQUEST['new_name'], $_REQUEST['cat_id']));
+        $stmt->execute(array($name, $area_id));
     }
 
     function savecats_action() {
@@ -443,7 +450,7 @@ class IndexController extends StudipController {
             ForumPPCat::setPosition($category_id, $pos);
             $pos++;
         }
-        
+
         $this->render_nothing();
     }
 
@@ -454,13 +461,15 @@ class IndexController extends StudipController {
 
         $pos = 0;
         foreach (Request::getArray('areas') as $area_id) {
-            ForumPPCat::setAreaPosition($area_id, $pos);
-            $pos++;
+            if ($area_id != 'Allgemein') {
+                ForumPPCat::setAreaPosition($area_id, $pos);
+                $pos++;
+            }
         }
-        
+
         $this->render_nothing();
     }
-    
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * * * I M A G E   A C T I O N * * * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -503,10 +512,6 @@ class IndexController extends StudipController {
         $this->set_layout($layout);
 
         PageLayout::setTitle(getHeaderLine($this->getId()) .' - '. _('Forum'));
-        if ($this->flash['message']) {
-            PageLayout::postMessage(MessageBox::success($this->flash['message']));
-        }
-
 
         $this->AVAILABLE_DESIGNS = array('web20', 'studip');
         if ($GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] && $GLOBALS['CANONICAL_RELATIVE_PATH_STUDIP'] != '/') {

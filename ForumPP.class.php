@@ -61,6 +61,8 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         );
 
         PageLayout::addHeadElement('link',  array_merge($style_attributes, array()));
+
+        PageLayout::addScript($this->getPluginURL() . '/javascript/application.js');
     }
 
     /**
