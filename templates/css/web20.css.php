@@ -43,7 +43,7 @@ span.highlight {
 /* posting lists*/
 .forum_header {
     font-size: 9pt;
-    background-image: url('<?=$picturepath?>/area_header.png');
+    background-color: #899AB9;
     color: #FFFFFF;
     margin: 0pt;
     padding: 0pt;
@@ -66,7 +66,7 @@ span.highlight {
 .areaentry {
     border-top: 1px solid #FFFFFF;
     border-bottom: 1px solid #000000;
-    background-color: #E1EBF2;
+    background-color: #DEE2E8;
 }
 
 .areaentry2 {
@@ -75,14 +75,36 @@ span.highlight {
     border-left: 1px solid #FFFFFF;
     margin: 0pt;
     padding: 0pt 5px;
-    background-color: #E1EBF2;
+    background-color: #DEE2E8;
 }
 
 .areaborder {
-    background-image: url('<?=$picturepath?>/area_background.png');
+    /* background-image: url('<?=$picturepath?>/area_background.png'); */
+    background-color: #899AB9;
     width: 6px;
     padding: 0pt;
     margin: 0pt;
+}
+
+.area_title {
+    padding: 0 5px;
+    font-weight: bold;
+}
+
+.area_input, .add_area_form {
+    padding: 0 5px;
+}
+
+.add_area {
+    font-weight: bold;
+    font-size: 16pt;
+    text-align: right;
+    padding-right: 12px;
+}
+
+.add_area:hover {
+    color: white;
+    cursor: pointer;
 }
 
 .icon {
@@ -142,7 +164,7 @@ span.selected {
 }
 
 .bg2 {
-    background-color: #E1EBF2;
+    background-color: #DEE2E8;
 }
 
 .posting {
@@ -166,6 +188,10 @@ span.selected {
     width: 100%;
     text-align: center;
     padding-top: 5px;
+}
+
+img.button, input[type=image] {
+    vertical-align: middle;
 }
 
 div.title {
@@ -257,10 +283,6 @@ span.no-corner {
     height: 5px;
 }
 
-blockquote.quote {
-    background-color: #D1DBF2;
-}
-
 /* Administration-Area */
 .cat {
     background-color: #CFCFEF;
@@ -344,3 +366,19 @@ li.cat {
 li.ui-sortable-helper {
     opacity: 0.5;
 }
+
+#question {
+    position: fixed;
+    top: 40%;
+    width: 100%;
+}
+
+.movable {
+    cursor: move;
+}
+
+/*
+.movable:hover {
+   opacity: 0.9;
+}
+*/

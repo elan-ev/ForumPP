@@ -6,10 +6,6 @@
 
         <div class="postbody" <?= $constraint['depth'] == 0 ? 'style="width: 97%"' : '' ?>>
             <span class="title"><? switch ($constraint['depth']):
-                case 0:
-                    echo _('Neuen Bereich erstellen');
-                    break;
-                
                 case 1:
                     echo _('Neues Thema erstellen');
                     break;
@@ -43,9 +39,6 @@
 
         <div class="buttons">
             <input type="image" <?= makebutton('erstellen', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
-            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id) ?>">
-                <?= makebutton('abbrechen') ?>
-            </a>
         </div>
 
         <span class="corners-bottom"><span></span></span>
