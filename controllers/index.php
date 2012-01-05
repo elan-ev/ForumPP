@@ -480,7 +480,7 @@ class IndexController extends StudipController
     function saveareas_action()
     {
         if (!$this->rechte) {
-            echo 'keine Rechte!';
+            echo 'keine Rechte!';die;
             return;
         }
 
