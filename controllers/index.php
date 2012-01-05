@@ -148,7 +148,9 @@ class IndexController extends StudipController
 
                 $this->list = $new_list;
             } else if ($this->constraint['depth'] == 1) {   // THREADS
-                $this->list = array($list['list']);
+                if (!empty($list['list'])) {
+                    $this->list = array($list['list']);
+                }
             }
             $this->number_of_entries = $list['count'];
         }
@@ -478,6 +480,7 @@ class IndexController extends StudipController
     function saveareas_action()
     {
         if (!$this->rechte) {
+            echo 'keine Rechte!';
             return;
         }
 
