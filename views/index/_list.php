@@ -8,32 +8,47 @@
 
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
-<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
+<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $contrains['depth'] == 0 && $category_id != 'Allgemein' ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
-        <td class="forum_header" colspan="3" align="left">
+        <td class="forum_header" colspan="3" align="left" width="65%">
             <span class="corners-top"></span>
             <span class="heading">
                 <? if (!$category_id) : ?>
-                <?= strtoupper(_('Themen')) ?>
+                <?= _('Themen') ?>
                 <? else: ?>
-                <?= strtoupper(($category_id == 'Allgemein') ? _('Allgemein') : $categories[$category_id]) ?>&nbsp;
+                <span class="category_name">
+                    <?= $categories[$category_id] ?>&nbsp;
+                </span>
                 <? endif ?>
+            </span>
+            <span class="heading_edit" style="display: none; margin-left: 5px;">
+                <input type="text" size="40" value="<?= $categories[$category_id] ?>">
+
+                <a href="javascript:STUDIP.ForumPP.saveCategoryName('<?= $category_id ?>')">
+                    <?= makebutton('speichern') ?>
+                </a>
+                <a href="javascript:STUDIP.ForumPP.cancelEditCategoryName('<?= $category_id ?>')">
+                    <?= makebutton('abbrechen') ?>
+                </a>                
             </span>
         </td>
 
-        <td class="forum_header" width="1%">
+        <td class="forum_header" width="5%">
             <span class="no-corner"></span>
-            <span class="heading"><?= _("BEITR&Auml;GE") ?></span>
+            <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
         <td class="forum_header" width="30%" colspan="2">
             <span class="corners-top-right"></span>
-            <span class="heading" style="float: left"><?= _("LETZTE ANTWORT") ?></span>
-            <? if ($has_perms) : ?>
+            <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
+            <? if ($has_perms && $category_id != 'Allgemein') : ?>
             <span style="float: right; padding-right: 10px;">
+                <a href="javascript:STUDIP.ForumPP.editCategoryName('<?= $category_id ?>')">
+                    <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Name der Kategorie ändern')) ?>
+                </a>                
                 <a href="javascript:STUDIP.ForumPP.deleteCategory('<?= $category_id ?>', '<?= $categories[$category_id] ?>')">
-                    <?= Assets::img('icons/16/blue/trash.png') ?>
+                    <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Kategorie entfernen')) ?>
                 </a>
             </span>
             <? endif ?>
@@ -43,15 +58,20 @@
 
     
     <tbody class="sortable">
-    <? foreach ($entries as $area) :
+    <!-- this row allows dropping on otherwise empty categories -->
+    <tr class="sort-disabled">
+        <td class="areaborder" style="height: 10px"colspan="7"> </td>
+    </tr>
+        
+    <? if (!empty($entries)) foreach ($entries as $area) :
         $topic_id = $area['topic_id'];
 
         if ($constraint['depth'] >= 1) :
             $topic_id = ($area['last_posting']['topic_id'] ? $area['last_posting']['topic_id'] : $area['topic_id']);
         endif ?>
     
-    <tr data-area-id="<?= $topic_id ?>" <?= $has_perms ? 'class="movable"' : '' ?>>
-        <td class="areaborder">&nbsp;</td>
+    <tr data-area-id="<?= $topic_id ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
+        <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
             <?= Assets::img('icons/16/black/forum.png') ?>
         </td>
@@ -61,10 +81,26 @@
                     <span class="areaname"><?= $area['name'] ?></span>
                 </a>
 
+                <span class="areaname_edit" style="display: none;">
+                    <input type="text" size="20" value="<?= $area['name'] ?>">
+
+                    <a href="javascript:STUDIP.ForumPP.saveAreaName('<?= $topic_id ?>')">
+                        <?= makebutton('speichern') ?>
+                    </a>
+
+                    <a href="javascript:STUDIP.ForumPP.cancelEditAreaName('<?= $topic_id ?>')">
+                        <?= makebutton('abbrechen') ?>
+                    </a>
+                </span>
+
                 <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
                 <span class="action-icons" style="position: absolute; right: 10px; top: 0px; display: none;">
-                    <?= Assets::img('icons/16/blue/edit.png', array('class' => 'edit-area', 'data-area-id' => $topic_id)) ?>
-                    <?= Assets::img('icons/16/blue/trash.png', array('class' => 'delete-area', 'data-area-id' => $topic_id)) ?>
+                    <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $topic_id ?>');">
+                        <?= Assets::img('icons/16/blue/edit.png', 
+                            array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
+                    </a>
+                    <?= Assets::img('icons/16/blue/trash.png', 
+                        array('class' => 'delete-area', 'data-area-id' => $topic_id, 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
                 </span>
                 <? endif ?>
 
@@ -89,12 +125,12 @@
             </div>
         </td>
 
-        <td width="40" align="center" valign="top" class="areaentry2">
+        <td align="center" valign="top" class="areaentry2">
             <br>
             <?= ($area['num_postings'] > 0) ? ($area['num_postings'] - 1) : 0 ?>
         </td>
 
-        <td width="30%" align="left" valign="top" class="areaentry2">
+        <td align="left" valign="top" class="areaentry2">
             <? if (is_array($area['last_posting'])) : ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $area['last_posting']['username']) ?>">
@@ -109,7 +145,7 @@
             <?= _('keine Beiträge') ?>
             <? endif; ?>
         </td>
-        <td class="areaborder">&nbsp;</td>
+        <td class="areaborder"> </td>
     </tr>
     <? endforeach; ?>
     </tbody>
@@ -141,7 +177,7 @@
     </tr>
     </tfoot>
 </table>
-<? endforeach; ?>
+<? endforeach ?>
 </div>
 
 <div id="question" style="display: none">

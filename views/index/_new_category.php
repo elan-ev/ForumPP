@@ -5,7 +5,7 @@
     <div class="forum_header">
         <span class="corners-top"><span></span></span>
         
-        <span class="area_title"><?= strtoupper(_('Neue Kategorie erstellen')) ?></span>        
+        <span class="area_title"><?= _('Neue Kategorie erstellen') ?></span>
     </div>
     <div class="areaborder" style="width: 100%;">
         <span class="area_input">

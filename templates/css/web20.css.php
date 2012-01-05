@@ -61,6 +61,7 @@ span.highlight {
 .heading {
     display: block;
     margin: 1px 4px 4px 6px;
+    text-transform: uppercase;
 }
 
 .areaentry {
@@ -79,9 +80,8 @@ span.highlight {
 }
 
 .areaborder {
-    /* background-image: url('<?=$picturepath?>/area_background.png'); */
     background-color: #899AB9;
-    width: 6px;
+    width: 0.5%;
     padding: 0pt;
     margin: 0pt;
 }
@@ -89,6 +89,7 @@ span.highlight {
 .area_title {
     padding: 0 5px;
     font-weight: bold;
+    text-transform: uppercase;
 }
 
 .area_input, .add_area_form {
@@ -108,9 +109,9 @@ span.highlight {
 }
 
 .icon {
-    padding: 8px 0pt 0pt 0pt;
+    padding: 8px 0 0 0;
     margin: 0pt;
-    width: 40px;
+    width: 20px;
     height: 50px;
 }
 
@@ -382,3 +383,12 @@ li.ui-sortable-helper {
    opacity: 0.9;
 }
 */
+
+td.placeholder {
+    background-color: red;
+    height: 50px;
+}
+
+.action-icons > img {
+    cursor: pointer;
+}
