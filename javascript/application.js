@@ -3,6 +3,7 @@ STUDIP.ForumPP = {
     deleteCategoryTemplate: null,
     current_area_id: null,
     current_category_id: null,
+    seminar_id: null,
 
     initAreas: function() {
         // show icons if mouse is over td
@@ -37,7 +38,7 @@ STUDIP.ForumPP = {
 
                 jQuery.ajax({
                     type: 'POST',
-                    url: STUDIP.URLHelper.getURL('plugins.php/forumpp/index/savecats'),
+                    url: STUDIP.URLHelper.getURL('plugins.php/forumpp/index/savecats?cid=' + STUDIP.ForumPP.seminar_id),
                     data: categories
                 });
             }            
@@ -71,7 +72,7 @@ STUDIP.ForumPP = {
 
                 jQuery.ajax({
                     type: 'POST',
-                    url: STUDIP.URLHelper.getURL('plugins.php/forumpp/index/saveareas'),
+                    url: STUDIP.URLHelper.getURL('plugins.php/forumpp/index/saveareas?cid=' + STUDIP.ForumPP.seminar_id),
                     data: areas
                 });
             }            
@@ -90,7 +91,7 @@ STUDIP.ForumPP = {
 
             // ajax call to make the deletion permanent
             jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/delete_entry/'
-                + STUDIP.ForumPP.current_area_id), {
+                + STUDIP.ForumPP.current_area_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
                 success: function(html) {
                     jQuery('#message_area').html(html);
                 }
@@ -111,7 +112,7 @@ STUDIP.ForumPP = {
 
             // ajax call to make the deletion permanent
             jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/remove_category/'
-                + STUDIP.ForumPP.current_category_id), {
+                + STUDIP.ForumPP.current_category_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
                 success: function(html) {
                     jQuery('#message_area').html(html);
                 }
@@ -178,7 +179,7 @@ STUDIP.ForumPP = {
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit').hide();
         jQuery('table[data-category-id=' + category_id + '] span.heading').show();
 
-        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/edit_category/' + category_id), {
+        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/edit_category/' + category_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
             type: 'POST',
             data: name
         });
@@ -210,7 +211,7 @@ STUDIP.ForumPP = {
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
         jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().show();
 
-        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/edit_area/' + area_id), {
+        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/edit_area/' + area_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
             type: 'POST',
             data: name
         });

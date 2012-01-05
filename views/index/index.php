@@ -1,3 +1,6 @@
+<script>
+    STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
+</script>
 <?
 $infobox_content[] = array(
     'kategorie' => _('Ansicht'),
