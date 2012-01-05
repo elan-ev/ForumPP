@@ -38,19 +38,6 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         PluginEngine::getLink('forumpp/index'));
         $navigation->addSubNavigation('index', $sub_nav);
 
-        if ($GLOBALS['perm']->have_studip_perm('tutor', Request::get('cid', $GLOBALS['SessSemName'][1]))) {
-            $sub_nav = new Navigation(_("Kategorien administrieren"),
-                    PluginEngine::getLink('forumpp/index/config_areas'));
-            $navigation->addSubNavigation('config_areas', $sub_nav);
-
-            /*
-            $sub_nav = new Navigation(_("Postings administrieren"),
-                    PluginEngine::getLink('forumpp/index/config_threads'));
-            $navigation->addSubNavigation('config_threads', $sub_nav);
-             * 
-             */
-        }
-
         // hijack the default forum-navigation
         Navigation::insertItem('/course/forum', $navigation, 'members');
 

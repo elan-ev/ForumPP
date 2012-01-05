@@ -490,20 +490,43 @@ class ForumPPEntry {
     function delete($topic_id) {
         $constraints = self::getConstraints($topic_id);
 
+        // get all entry-ids to delete them from the category-reference-table
+        $stmt = DBManager::get()->prepare("SELECT topic_id FROM forumpp_entries
+            WHERE seminar_id = ? AND lft >= ? AND rgt <= ? AND depth = 1");
+        $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
+        $ids = $stmt->fetch(PDO::FETCH_COLUMN);
+
+        if (!is_array($ids)) $ids = array($ids);
+
+        if (!empty($ids)) {
+            $stmt = DBManager::get()->prepare("DELETE FROM forumpp_categories_entries
+                WHERE topic_id IN (:ids)");
+            $stmt->bindParam(':ids', $ids, StudipPDO::PARAM_ARRAY);
+            $stmt->execute();
+        }
+        
+        // delete all entries
         $stmt = DBManager::get()->prepare("DELETE FROM forumpp_entries
             WHERE seminar_id = ? AND lft >= ? AND rgt <= ?");
+        
         return $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
     }
 
     function checkRootEntry($seminar_id) {
+        // check, if the root entry in the topic tree exists
         $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
             WHERE topic_id = ? AND seminar_id = ?");
         $stmt->execute(array($seminar_id, $seminar_id));
-        if ($stmt->fetchColumn() > 0) return;
-
-        $stmt = DBManager::get()->prepare("INSERT INTO forumpp_entries
-            (topic_id, seminar_id, name, mkdate, chdate, lft, rgt, depth)
-            VALUES (?, ?, 'Startseite', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 1, 0)");
-        $stmt->execute(array($seminar_id, $seminar_id));
+        if ($stmt->fetchColumn() == 0) {
+            $stmt = DBManager::get()->prepare("INSERT INTO forumpp_entries
+                (topic_id, seminar_id, name, mkdate, chdate, lft, rgt, depth)
+                VALUES (?, ?, 'Startseite', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 1, 0)");
+            $stmt->execute(array($seminar_id, $seminar_id));
+        }
+        
+        // make sure, that the category "Allgemein" exists
+        $stmt = DBManager::get()->prepare("REPLACE INTO forumpp_categories
+            (category_id, seminar_id, entry_name) VALUES ('Allgemein', ?, 'Allgemein')");
+        $stmt->execute(array($seminar_id));
     }
 }

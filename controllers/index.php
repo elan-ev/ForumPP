@@ -34,7 +34,8 @@ if (!defined('FEEDCREATOR_VERSION')) {
  *
  */
 
-class IndexController extends StudipController {
+class IndexController extends StudipController
+{
 
     var $THREAD_PREVIEW_LENGTH = 100;
     var $POSTINGS_PER_PAGE = 10;
@@ -109,7 +110,6 @@ class IndexController extends StudipController {
          * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-        // TODO: Kategorien berücksichtigen
         if ($this->constraint['depth'] > 1) {   // POSTINGS
             $list = ForumPPEntry::getList('postings', $this->topic_id);
             if (!empty($list['list'])) {
@@ -122,31 +122,37 @@ class IndexController extends StudipController {
             } else {
                 $list = ForumPPEntry::getList('list', $this->topic_id);
             }
-
-            if (!empty($list['list'])) {
-                if ($this->constraint['depth'] == 0) {  // BEREICHE
-                    $new_list = array();
-                    foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
-                        if ($category['topic_id']) {
-                            $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
-                            unset($list['list'][$category['topic_id']]);
-                        } else if ($this->has_perms) {
-                            $new_list[$category['category_id']] = array();
-                        }
-                        $this->categories[$category['category_id']] = $category['entry_name'];
+            
+            if ($this->constraint['depth'] == 0) {  // BEREICHE
+                $new_list = array();
+                foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
+                    if ($category['topic_id']) {
+                        $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
+                        unset($list['list'][$category['topic_id']]);
+                    } else if ($this->has_perms) {
+                        $new_list[$category['category_id']] = array();
                     }
-
-                    if (!empty($list['list'])) {
-                        $new_list['Allgemein'] = $list['list'];
-                    }
-
-                    $this->list = $new_list;
-                } else if ($this->constraint['depth'] == 1) {   // THREADS
-                    $this->list = array($list['list']);
+                    $this->categories[$category['category_id']] = $category['entry_name'];
                 }
-                $this->number_of_entries = $list['count'];
+
+                if (!empty($list['list'])) {
+                    $new_list['Allgemein'] = $list['list'];
+                }
+
+                // put 'Allgemein' always to the end of the list
+                if (isset($new_list['Allgemein'])) {
+                    $allgemein = $new_list['Allgemein'];
+                    unset($new_list['Allgemein']);
+                    $new_list['Allgemein'] = $allgemein;
+                }
+
+                $this->list = $new_list;
+            } else if ($this->constraint['depth'] == 1) {   // THREADS
+                $this->list = array($list['list']);
             }
+            $this->number_of_entries = $list['count'];
         }
+        
     }
 
     function latest_action()
@@ -281,7 +287,8 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
     }
     
-    function add_area_action($category_id) {
+    function add_area_action($category_id)
+    {
         $new_id = md5(uniqid(rand()));
 
         ForumPPEntry::insert(array(
@@ -294,10 +301,13 @@ class IndexController extends StudipController {
             'author_host' => getenv('REMOTE_ADDR')
         ), $this->getId());
         
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
+        ForumPPCat::addArea($category_id, $new_id);
+        
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/'));
     }
 
-    function delete_entry_action($topic_id) {
+    function delete_entry_action($topic_id)
+    {
         if (ForumPPEntry::hasEditPerms($topic_id)) {
             $path = ForumPPEntry::getPathToPosting($topic_id);
             $topic  = array_pop($path);
@@ -314,7 +324,8 @@ class IndexController extends StudipController {
         }
     }
 
-    function edit_entry_action($topic_id) {
+    function edit_entry_action($topic_id)
+    {
         if (ForumPPEntry::hasEditPerms($topic_id)) {
             $this->flash['edit_entry'] = $topic_id;
         }
@@ -322,7 +333,8 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
-    function update_entry_action($topic_id) {
+    function update_entry_action($topic_id)
+    {
         if (ForumPPEntry::hasEditPerms($topic_id)) {
             ForumPPEntry::update($topic_id,
                 Request::get('name', _('Kein Titel')),
@@ -353,11 +365,13 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
-    function goto_page_action($topic_id, $page) {
+    function goto_page_action($topic_id, $page)
+    {
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. $page .'#'. $topic_id));
     }
 
-    function like_action($topic_id) {
+    function like_action($topic_id)
+    {
         ForumPPLike::like($topic_id);
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
@@ -367,32 +381,15 @@ class IndexController extends StudipController {
     /* * * *     C O N F I G - A C T I O N S     * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    function config_areas_action() {
-        $nav = Navigation::getItem('course/forum');
-        $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum/config_areas');
-
-        $areas = ForumPPEntry::getList('area', $this->getId());
-
-        foreach (ForumPPCat::getList($this->getId(), false) as $category) {
-            $new_list[$category['entry_name']]['cat'] = $category;
-            if ($areas['list'][$category['topic_id']]) {
-                $new_list[$category['entry_name']]['areas'][] = $areas['list'][$category['topic_id']];
-                unset($areas['list'][$category['topic_id']]);
-            }
-        }
-
-        $this->categories = $new_list;
-        $this->areas      = $areas['list'];
-    }
-
-    function add_category_action() {
+    function add_category_action()
+    {
         ForumPPCat::add($this->getId(), Request::get('category'));
 
         $this->redirect(PluginEngine::getLink('forumpp/index'));
     }
 
-    function add_areas_action() {
+    function add_areas_action()
+    {
         if (!$this->rechte) {
             return;
         }
@@ -404,7 +401,8 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
     }
 
-    function remove_area_action($area_id) {
+    function remove_area_action($area_id)
+    {
         if (!$this->rechte) {
             return;
         }
@@ -413,7 +411,8 @@ class IndexController extends StudipController {
         $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
     }
 
-    function remove_category_action($category_id) {
+    function remove_category_action($category_id)
+    {
         if (!$this->rechte) {
             $this->flash['messages'] = array('error' => _('Sie besitzen nicht genügend Rechte um Kategorien zu löschen!'));
         } else {
@@ -429,18 +428,40 @@ class IndexController extends StudipController {
 
     }
 
-    function edit_area_action($area_id, $name) { // #TODO
-        return;
+    function edit_area_action($area_id)
+    {
         if (!$this->rechte) {
             return;
         }
 
-        $stmt = DBManager::get()->prepare("UPDATE forumpp SET entry_name = ?
-            WHERE entry_id = ?");
-        $stmt->execute(array($name, $area_id));
+        if (Request::isAjax()) {
+            $name = utf8_decode(Request::get('name'));
+        } else {
+            $name = Request::get('name');
+        }
+
+        ForumPPEntry::update($area_id, $name, '');
+        
+        $this->render_nothing();
+    }
+    
+    function edit_category_action($category_id) {
+        if (!$this->rechte) {
+            return;
+        }
+        
+        if (Request::isAjax()) {
+            $name = utf8_decode(Request::get('name'));
+        } else {
+            $name = Request::get('name');
+        }
+
+        ForumPPCat::setName($category_id, $name);
+        $this->render_nothing();
     }
 
-    function savecats_action() {
+    function savecats_action()
+    {
         if (!$this->rechte) {
             return;
         }
@@ -454,14 +475,16 @@ class IndexController extends StudipController {
         $this->render_nothing();
     }
 
-    function saveareas_action() {
+    function saveareas_action()
+    {
         if (!$this->rechte) {
             return;
         }
 
-        $pos = 0;
-        foreach (Request::getArray('areas') as $area_id) {
-            if ($area_id != 'Allgemein') {
+        foreach (Request::getArray('areas') as $category_id => $areas) {
+            $pos = 0;
+            foreach ($areas as $area_id) {
+                ForumPPCat::addArea($category_id, $area_id);
                 ForumPPCat::setAreaPosition($area_id, $pos);
                 $pos++;
             }
@@ -474,7 +497,8 @@ class IndexController extends StudipController {
     /* * * * * * * I M A G E   A C T I O N * * * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    function image_action($image) {
+    function image_action($image)
+    {
         switch ($image) {
             case 'quote':
                 $data = file_get_contents(realpath(dirname(__FILE__) . '/../img/icons/quote.png'));
@@ -498,6 +522,9 @@ class IndexController extends StudipController {
 
     /**
      * Common code for all actions: set default layout and page title.
+     * 
+     * @param type $action
+     * @param type $args 
      */
     function before_filter(&$action, &$args)
     {
@@ -538,7 +565,8 @@ class IndexController extends StudipController {
         object_set_visit($this->getId(), 'forum');
     }
 
-    function check_write_and_edit() {
+    function check_write_and_edit()
+    {
         global $SemSecLevelRead, $SemSecLevelWrite, $SemUserStatus;
         /*
          * Schreibrechte
@@ -558,7 +586,8 @@ class IndexController extends StudipController {
         }
     }
 
-    function initialize() {
+    function initialize()
+    {
         /*
         $include_links = true;
 

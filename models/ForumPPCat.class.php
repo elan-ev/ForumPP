@@ -22,8 +22,16 @@ class ForumPPCat {
     }
 
     static function remove($category_id) {
-           $stmt = DBManager::get()->prepare("DELETE FROM
+        // delete the category itself
+        $stmt = DBManager::get()->prepare("DELETE FROM
             forumpp_categories
+            WHERE category_id = ?");
+        $stmt->execute(array($category_id));
+        
+        // set all entries to default category
+        $stmt = DBManager::get()->prepare("UPDATE
+            forumpp_categories_entries
+            SET category_id = 'Allgemein', pos = 999
             WHERE category_id = ?");
         $stmt->execute(array($category_id));
     }
@@ -36,10 +44,23 @@ class ForumPPCat {
     }
 
     static function addArea($category_id, $area_id) {
+        // remove area from all other categories
+        $stmt = DBManager::get()->prepare("DELETE FROM
+            forumpp_categories_entries
+            WHERE topic_id = ?");
+        $stmt->execute(array($area_id));
+
+        // add area to this category, make sure it is at the and
+        $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM
+            forumpp_categories_entries
+            WHERE category_id = ?");
+        $stmt->execute(array($category_id));
+        $new_pos = $stmt->fetchColumn() + 1;
+
         $stmt = DBManager::get()->prepare("REPLACE INTO
             forumpp_categories_entries
-            (category_id, topic_id) VALUES (?, ?)");
-        $stmt->execute(array($category_id, $area_id));
+            (category_id, topic_id, pos) VALUES (?, ?, ?)");
+        $stmt->execute(array($category_id, $area_id, $new_pos));
     }
     
     static function removeArea($area_id) {
@@ -54,5 +75,12 @@ class ForumPPCat {
             forumpp_categories_entries
             SET pos = ? WHERE topic_id = ?");
         $stmt->execute(array($pos, $area_id));        
+    }
+    
+    static function setName($category_id, $name) {
+        $stmt = DBManager::get()->prepare("UPDATE
+            forumpp_categories
+            SET entry_name = ? WHERE category_id = ?");
+        $stmt->execute(array($name, $category_id));
     }
 }
