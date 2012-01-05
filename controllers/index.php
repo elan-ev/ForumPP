@@ -155,6 +155,7 @@ class IndexController extends StudipController
             $this->number_of_entries = $list['count'];
         }
         
+        $this->seminar_id = $this->getId();
     }
 
     function latest_action()
@@ -393,7 +394,7 @@ class IndexController extends StudipController
     function add_areas_action()
     {
         if (!$this->rechte) {
-            return;
+            die;
         }
 
         foreach (Request::getArray('areas') as $area_id) {
@@ -406,7 +407,7 @@ class IndexController extends StudipController
     function remove_area_action($area_id)
     {
         if (!$this->rechte) {
-            return;
+            die;
         }
 
         ForumPPCat::removeArea($area_id);
@@ -433,7 +434,7 @@ class IndexController extends StudipController
     function edit_area_action($area_id)
     {
         if (!$this->rechte) {
-            return;
+            die;
         }
 
         if (Request::isAjax()) {
@@ -449,7 +450,7 @@ class IndexController extends StudipController
     
     function edit_category_action($category_id) {
         if (!$this->rechte) {
-            return;
+            die;
         }
         
         if (Request::isAjax()) {
@@ -465,7 +466,7 @@ class IndexController extends StudipController
     function savecats_action()
     {
         if (!$this->rechte) {
-            return;
+            die;
         }
 
         $pos = 0;
@@ -480,8 +481,7 @@ class IndexController extends StudipController
     function saveareas_action()
     {
         if (!$this->rechte) {
-            echo 'keine Rechte!';die;
-            return;
+            die;
         }
 
         foreach (Request::getArray('areas') as $category_id => $areas) {
