@@ -1,6 +1,18 @@
 <script>
-    STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
+    jQuery(document).ready(function() {
+        // set seminar-id
+        STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
+        
+        // basic initializations for the whole forum
+        STUDIP.ForumPP.init();
+        
+        <? if ($constraint['depth'] == 0) : /* main areas */?>
+        // additional initializations for the area-view
+        STUDIP.ForumPP.initAreas();
+        <? endif ?>
+    });
 </script>
+<div id="forumpp">
 <?
 $infobox_content[] = array(
     'kategorie' => _('Ansicht'),
@@ -49,21 +61,11 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
     <?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
 <? elseif ($no_search_results) : ?>
     <?= MessageBox::info(_('Es wurden keine Beiträge gefunden die zu Ihren Suchkriterien passen!')) ?>
-<? elseif (empty($list) && empty($postings) && !$flash['new_entry']) : ?>
-    <? /* if ($constraint['depth'] == 0) : ?>
-    <?= MessageBox::info(sprintf(_('Es existieren bisher keine Bereiche. '
-            . 'Möchten Sie einen neuen Bereich %serstellen%s?'),
-            '<a href="'. PluginEngine::getLink('forumpp/index/new_entry/'. $topic_id) .'">', '</a>')); ?>
-    <? elseif ($constraint['depth'] == 1) : ?>
-    <?= MessageBox::info(sprintf(_('Es existieren bisher keine Themen in diesem Bereich. '
-            . 'Möchten Sie ein neues Thema %serstellen%s?'),
-            '<a href="'. PluginEngine::getLink('forumpp/index/new_entry/'. $topic_id) .'">', '</a>')); ?>
-    <? endif */ ?>
 <? endif ?>
 
 <? if (!empty($list)) : ?>
     <?= $this->render_partial('index/_list') ?>
-<? elseif ($constraint['depth'] == 0) : ?>
+<? elseif ($constraint['depth'] == 0 && $section == 'forum') : ?>
     <?= MessageBox::info(_('Dieses Forum wurde noch nicht eingerichtet. '.
             'Es gibt bisher keine Bereiche, in denen man ein Thema erstellen könnte.')); ?>
 <? endif ?>
@@ -77,3 +79,4 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? else : ?>
     <?= $this->render_partial('index/_new_entry') ?>
 <? endif ?>
+</div>

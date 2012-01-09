@@ -41,62 +41,63 @@ shuffle($likes);
         </div>
 
         <!-- Aktionsicons -->
-        <span class="icons">
-            <?
+        <?
+        // like
+        if (!in_array($GLOBALS['user']->id, $likes)) {
+            $icons[] = array(
+                'link' => PluginEngine::getLink('forumpp/index/like/'. $post['topic_id']),
+                'title' => _('Gefällt mir!'),
+                'content' => '+1'
+            );
+        }
 
-            // like
-            if (!in_array($GLOBALS['user']->id, $likes)) {
-                $icons[] = array(
-                    'link' => PluginEngine::getLink('forumpp/index/like/'. $post['topic_id']),
-                    'title' => _('Gefällt mir!'),
-                    'content' => '+1'
-                );
-            }
-            
-            // edit
-            if (ForumPPEntry::hasEditPerms($post['topic_id'])) {
-                $icon = array();
-
-                $icon['link'] = PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id']);
-                $icon['content'] = Assets::img('/images/icons/16/blue/edit.png');
-                $icon['title'] = _("Eintrag bearbeiten");
-                $icons[] = $icon;
-            }
-
-            // cite
+        // edit
+        if (ForumPPEntry::hasEditPerms($post['topic_id'])) {
             $icon = array();
-            $icon['link'] = PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id']);
-            $icon['content'] = '<img src="'. PluginEngine::getLink('forumpp/index/image/quote', array('cid' => null)) .'">';
-            $icon['title'] = _("Aus diesem Eintrag zitieren");
-            $icons[] = $icon;
 
-            // favorite
+            $icon['link'] = PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id']);
+            $icon['content'] = Assets::img('/images/icons/16/blue/edit.png');
+            $icon['title'] = _("Eintrag bearbeiten");
+            $icons[] = $icon;
+        }
+
+        // cite
+        $icon = array();
+        $icon['link'] = PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id']);
+        $icon['content'] = Assets::img('/images/icons/16/blue/chat.png');
+        $icon['title'] = _("Aus diesem Eintrag zitieren");
+        $icons[] = $icon;
+
+        // favorite
+        $icon = array();
+        $icon['link'] = PluginEngine::getLink('forumpp/index/switch_favorite/' . $post['topic_id']);
+        if (!$post['fav']) {
+            $icon['content'] = Assets::img('/images/icons/16/grey/star.png');
+            $icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
+        } else {
+            $icon['content'] = Assets::img('/images/icons/16/red/star.png');
+            $icon['title'] = _("aus den Favoriten entfernen");
+        }
+        $icons[] = $icon;
+
+        // delete
+        if ($this->has_perms) {
             $icon = array();
-            $icon['link'] = PluginEngine::getLink('forumpp/index/switch_favorite/' . $post['topic_id']);
-            if (!$post['fav']) {
-                $icon['content'] = Assets::img('/images/icons/16/grey/star.png');
-                $icon['title'] = _("zu den Favoriten hinzuf&uuml;gen");
-            } else {
-                $icon['content'] = Assets::img('/images/icons/16/red/star.png');
-                $icon['title'] = _("aus den Favoriten entfernen");
-            }
+            $icon['link'] = PluginEngine::getLink('forumpp/index/delete_entry/' . $post['topic_id']);
+            $icon['content'] = Assets::img('/images/icons/16/blue/trash.png');
+            $icon['title'] = _("Eintrag l&ouml;schen!");
             $icons[] = $icon;
-
-            // delete
-            if ($this->has_perms) {
-                $icon = array();
-                $icon['link'] = PluginEngine::getLink('forumpp/index/delete_entry/' . $post['topic_id']);
-                $icon['content'] = Assets::img('/images/icons/16/blue/trash.png');
-                $icon['title'] = _("Eintrag l&ouml;schen!");
-                $icons[] = $icon;
-            }
-            ?>
-            <? if (!empty($icons)) foreach ($icons as $an_icon) : ?>
+        }
+        ?>
+        <? if (!empty($icons)) : ?>
+        <span class="action-icons">
+            <?foreach ($icons as $an_icon) : ?>
             <a href="<?= $an_icon['link'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
                 <?= $an_icon['content'] ?>
             </a>&nbsp;
             <? endforeach; ?>
         </span>
+        <? endif ?>
 
         <!-- Postinginhalt -->
         <p class="content">

@@ -1,11 +1,3 @@
-<? if ($constraint['depth'] == 0) : /* main areas */?>
-<script>
-    jQuery(document).ready(function() {
-        STUDIP.ForumPP.initAreas();
-    });
-</script>
-<? endif ?>
-
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $contrains['depth'] == 0 && $category_id != 'Allgemein' ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
@@ -94,13 +86,20 @@
                 </span>
 
                 <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
-                <span class="action-icons" style="position: absolute; right: 10px; top: 0px; display: none;">
+                <span class="action-icons">
                     <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $topic_id ?>');">
                         <?= Assets::img('icons/16/blue/edit.png', 
                             array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
                     </a>
                     <?= Assets::img('icons/16/blue/trash.png', 
                         array('class' => 'delete-area', 'data-area-id' => $topic_id, 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
+                </span>
+                <? elseif ($constraint['depth'] == 1 && $has_rights) : /* threads */?>
+                <span class="action-icons">
+                    <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $topic_id ?>');">
+                        <?= Assets::img('icons/16/blue/move_right/folder-full.png', 
+                            array('class' => 'move-thread', 'title' => 'Diesen Thread verschieben')) ?>
+                    </a>
                 </span>
                 <? endif ?>
 
