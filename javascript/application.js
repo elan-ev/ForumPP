@@ -5,15 +5,19 @@ STUDIP.ForumPP = {
     current_category_id: null,
     seminar_id: null,
 
-    initAreas: function() {
+    init: function() {
         // show icons if mouse is over td
-        jQuery('td.areaentry').bind('mouseover', function() {
+        jQuery('td.areaentry, div.posting').bind('mouseover', function() {
             jQuery(this).find('span.action-icons').show();
         });
 
-        jQuery('td.areaentry').bind('mouseout', function() {
+        jQuery('td.areaentry, div.posting').bind('mouseout', function() {
             jQuery(this).find('span.action-icons').hide();
         });
+    },
+        
+    initAreas: function() {
+
 
         jQuery('img.delete-area').bind('click', function() {
             STUDIP.ForumPP.showDialog(this);
