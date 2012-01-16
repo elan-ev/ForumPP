@@ -23,7 +23,6 @@
 
 /* posting lists*/
 #forumpp .forum_header {
-    font-size: 9pt;
     background-color: #899AB9;
     color: #FFFFFF;
     margin: 0pt;
@@ -105,12 +104,10 @@
 
 #forumpp span.areaname {
     font-weight: bold;
-    font-size: 12pt;
 }
 
 /* thread specififc stuff */
 #forumpp span.threadauthor {
-    font-size: 12pt;
     float: left;
     width: 70%;
 }
@@ -162,7 +159,6 @@
     width: 78%;
     float: left;
     text-align: left;
-    font-size: 12pt;
 }
 
 #forumpp .buttons {
@@ -179,7 +175,6 @@
 #forumpp div.title {
     text-align: left;
     font-weight: bold;
-    font-size: 12pt;
     width: 80%;
     float: left;
 }
@@ -191,12 +186,10 @@
 }
 
 #forumpp p.author {
-    font-size: 12pt;
     margin: 2px 0px 8px 0px;
 }
 
 #forumpp div.postbody p.content {
-    font-size: 12pt;
     overflow: hidden;
     clear: both;
 }
@@ -206,7 +199,6 @@
 }
 
 #forumpp .postprofile {
-    font-size: 12pt;
     border-left: 1px solid #FFFFFF;
     display: inline;
     float: right;
@@ -272,4 +264,9 @@
     position: absolute;
     right: 10px;
     top: 0px; 
+}
+
+#forumpp textarea {
+    width: 100%;
+    height: 20em;
 }

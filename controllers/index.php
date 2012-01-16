@@ -109,6 +109,8 @@ class IndexController extends StudipController
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
          * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+        $areas = ForumPPEntry::getList('area', $this->getId());
+        $this->areas = $areas['list'];
 
         if ($this->constraint['depth'] > 1) {   // POSTINGS
             $list = ForumPPEntry::getList('postings', $this->topic_id);
@@ -347,6 +349,12 @@ class IndexController extends StudipController
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
+    
+    function move_thread_action($thread_id, $destination) {
+        ForumPPEntry::move($thread_id, $destination);
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $thread_id .'#'. $thread_id));
+    }
 
     function cite_action($topic_id)
     {
@@ -370,7 +378,7 @@ class IndexController extends StudipController
 
     function goto_page_action($topic_id, $page)
     {
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. $page .'#'. $topic_id));
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. (int)$page .'#'. $topic_id));
     }
 
     function like_action($topic_id)
@@ -495,7 +503,7 @@ class IndexController extends StudipController
 
         $this->render_nothing();
     }
-
+    
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * * * I M A G E   A C T I O N * * * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -531,7 +539,7 @@ class IndexController extends StudipController
      */
     function before_filter(&$action, &$args)
     {
-        $this->validate_args($args, array('option', 'int'));
+        $this->validate_args($args, array('option', 'option'));
 
         parent::before_filter($action, $args);
 
@@ -587,30 +595,6 @@ class IndexController extends StudipController
         } else if ($seminar->write_level == 0) {
             $this->writable = true;
         }
-    }
-
-    function initialize()
-    {
-        /*
-        $include_links = true;
-
-        if ($include_links) {
-            // set autodiscovery links
-            $link_params = $_REQUEST;
-            unset($link_params['source']);
-            unset($link_params['Seminar_Session']);
-
-            $params = array(
-                'formats' => $this->FEED_FORMATS,
-                'plugin' => $this,
-                'link_params' => $link_params,
-                'token' => $this->token
-            );
-
-            $GLOBALS['_include_additional_header'] .= $this->template_factory->render('feed/links', $params);
-        }
-         *
-         */
     }
 
     function getDesigns()
@@ -678,6 +662,9 @@ class IndexController extends StudipController
 
     function feed_action()
     {
+        // #TODO: make it work
+        return;
+
         // this hack is necessary to disable the standard Stud.IP layout
         ob_end_clean();
 
@@ -691,104 +678,4 @@ class IndexController extends StudipController
 
         $this->loadView();
     }
-
-    /*
-     * AJAX Backend-Actions
-     */
-
-    /*
-     * this function changes the parent node of a child node, correcting the root_id
-     */
-
-    /*
-    function changeParent_action() {
-        ob_end_clean();
-        if (!$this->rechte)
-            return;
-
-        $new_parent = $_REQUEST['new_parent'];
-        $topic_id = $_REQUEST['topic_id'];
-
-        // find out the root_id for the new node
-        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries WHERE topic_id = ?");
-        $stmt->execute(array($new_parent));
-        if (!$data = $stmt->fetch(PDO::FETCH_ASSOC))
-            die;
-        $new_root_id = $data['root_id'];
-        $new_left = $data['lft'];
-
-        // remove the entry from the categories if becomes a root node
-        if ($new_parent == '0') {
-            $stmt = DBManager::get()->prepare("DELETE FROM forumpp WHERE topic_id = ? AND seminar_id = ?");
-            $stmt->execute(array($topic_id, $this->getId()));
-        }
-
-        // get the left pott
-        $stmt = DBManager::get()->prepare("SELECT pxb.topic_id, pxb.lft
-            FROM forumpp_entries as pxa
-            LEFT JOIN forumpp_entries pxb ON (pxa.parent_id = pxb.topic_id)
-            WHERE pxa.topic_id = ?");
-        $stmt->execute(array($topic_id));
-        if (!$data = $stmt->fetch(PDO::FETCH_ASSOC))
-            die;
-        $old_left = $data['lft'];
-        $old_parent = $data['topic_id'];
-
-        // set the new parent and root for the submitted node
-        $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET parent_id = ?, root_id = ?, chdate = ? WHERE topic_id = ?");
-        $stmt->execute(array($new_parent, $new_root_id, time(), $topic_id));
-
-        // rebuild the two sub-trees
-        ForumPPTraversal::recreate($new_parent, $this->getId(), $new_left);
-        if (!isset($old_parent)) {
-            $old_parent = 0;
-            $old_left = 0;
-        }
-        ForumPPTraversal::recreate($old_parent, $this->getId(), $old_left);
-        ForumPPTraversal::repair_root_ids($this->getId());
-    }
-     *
-     */
-
-    /*
-    function loadChilds_action() {
-        ob_end_clean();
-        if (!$this->rechte)
-            return;
-
-        if ($this->rechte) {
-            //$childs = $this->getDBData('get_child_postings', array('parent_id' => $_REQUEST['area_id']));
-
-            $childs = ForumPPEntry::getEntries(Request::get('area_id'), $this->getId(), false, false);
-            echo '<ul>';
-            foreach ($childs as $entry) {
-                echo '<li id="area_' . $entry['topic_id'] . '">';
-
-                if (ForumPPEntry::getEntries($entry['topic_id'], $this->getId())) {
-                    // if ($entry['has_childs']) {
-                    echo '<a href="javascript:loadChilds(\'' . $entry['topic_id'] . '\')" ';
-                    echo 'onMouseOver="showTooltip(\'area_' . $entry['topic_id'] . '\', \'' . preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $entry['description']) . '\')" ';
-                    echo 'onMouseOut="hideTooltip()">';
-                    echo $entry['name'] . '</a>';
-                } else {
-                    echo '<span ';
-                    echo 'onMouseOver="showTooltip(\'area_' . $entry['topic_id'] . '\', \'' . preg_replace(array("/'/", '/"/', '/&#039;/'), array("\\'", '&quot;', "\\'"), $entry['description']) . '\')" ';
-                    echo 'onMouseOut="hideTooltip()">';
-                    echo $entry['name'];
-                    echo '</span>';
-                }
-
-                echo '&nbsp;&nbsp;';
-                echo '<a href="javascript:choose(\'' . $entry['topic_id'] . '\')" title="Diskussionsstrang ausschneiden"><img id="' . $entry['topic_id'] . '" src="' . $this->picturepath . '/icons/cut.png"></a>';
-                echo '&nbsp; &nbsp;';
-                echo '<a href="javascript:paste(\'' . $entry['topic_id'] . '\')" title="Diskussionsstrang hier einfügen"><img src="' . $this->picturepath . '/icons/paste_plain.png"></a>';
-                echo '</li>';
-            }
-            echo '</ul>';
-        }
-        die;
-    }
-     *
-     */
-
 }

@@ -54,7 +54,7 @@ STUDIP.ForumPP = {
             connectWith: 'tbody.sortable',
             helper: function(e, ui) {
                 ui.children().each(function() {
-                    $(this).width($(this).width());
+                    jQuery(this).width(jQuery(this).width());
                 });
                 return ui;
             },
@@ -219,5 +219,9 @@ STUDIP.ForumPP = {
             type: 'POST',
             data: name
         });
+    },
+    
+    moveThreadDialog: function(topic_id) {
+        jQuery('#dialog_' + topic_id).dialog();
     }
 }

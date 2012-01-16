@@ -52,7 +52,7 @@
     <tbody class="sortable">
     <!-- this row allows dropping on otherwise empty categories -->
     <tr class="sort-disabled">
-        <td class="areaborder" style="height: 10px"colspan="7"> </td>
+        <td class="areaborder" style="height: 5px"colspan="7"> </td>
     </tr>
         
     <? if (!empty($entries)) foreach ($entries as $area) :
@@ -62,7 +62,7 @@
             $topic_id = ($area['last_posting']['topic_id'] ? $area['last_posting']['topic_id'] : $area['topic_id']);
         endif ?>
     
-    <tr data-area-id="<?= $topic_id ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
+    <tr data-area-id="<?= $area['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
             <?= Assets::img('icons/16/black/forum.png') ?>
@@ -76,30 +76,46 @@
                 <span class="areaname_edit" style="display: none;">
                     <input type="text" size="20" value="<?= $area['name'] ?>">
 
-                    <a href="javascript:STUDIP.ForumPP.saveAreaName('<?= $topic_id ?>')">
+                    <a href="javascript:STUDIP.ForumPP.saveAreaName('<?= $area['topic_id'] ?>')">
                         <?= makebutton('speichern') ?>
                     </a>
 
-                    <a href="javascript:STUDIP.ForumPP.cancelEditAreaName('<?= $topic_id ?>')">
+                    <a href="javascript:STUDIP.ForumPP.cancelEditAreaName('<?= $area['topic_id'] ?>')">
                         <?= makebutton('abbrechen') ?>
                     </a>
                 </span>
 
                 <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
                 <span class="action-icons">
-                    <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $topic_id ?>');">
+                    <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $area['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png', 
                             array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
                     </a>
                     <?= Assets::img('icons/16/blue/trash.png', 
-                        array('class' => 'delete-area', 'data-area-id' => $topic_id, 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
+                        array('class' => 'delete-area', 'data-area-id' => $area['topic_id'], 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
                 </span>
                 <? elseif ($constraint['depth'] == 1 && $has_rights) : /* threads */?>
                 <span class="action-icons">
-                    <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $topic_id ?>');">
+                    <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $area['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/move_right/folder-full.png', 
                             array('class' => 'move-thread', 'title' => 'Diesen Thread verschieben')) ?>
                     </a>
+
+                    <div id="dialog_<?= $area['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
+                        <? $path = ForumPPEntry::getPathToPosting($area['topic_id']);
+                        $parent = array_pop(array_slice($path, sizeof($path) - 2, 1)); ?>
+
+                        <? foreach ($areas as $area_id => $area): ?>
+                        <? if ($area_id != $parent['id']) : ?>
+                        <div style="font-size: 16px; margin-bottom: 5px;">
+                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $area['topic_id'].'/'. $area_id) ?>"> 
+                            <?= Assets::img('icons/16/yellow/arr_2right.png') ?>
+                            <?= $area['name'] ?>
+                            </a>
+                        </div>
+                        <? endif ?>
+                        <? endforeach ?>
+                    </div>
                 </span>
                 <? endif ?>
 
