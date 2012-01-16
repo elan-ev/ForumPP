@@ -271,6 +271,10 @@
     height: 20em;
 }
 
-tr.movable {
+#forumpp tr.movable {
     cursor: move;
+}
+
+#forumpp .editor_toolbar {
+    width: 100%;
 }
