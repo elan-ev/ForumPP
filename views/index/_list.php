@@ -15,7 +15,7 @@
                 <? endif ?>
             </span>
             <span class="heading_edit" style="display: none; margin-left: 5px;">
-                <input type="text" size="40" value="<?= $categories[$category_id] ?>">
+                <input type="text" name="name" size="40" value="<?= $categories[$category_id] ?>">
 
                 <a href="javascript:STUDIP.ForumPP.saveCategoryName('<?= $category_id ?>')">
                     <?= makebutton('speichern') ?>
@@ -55,14 +55,14 @@
         <td class="areaborder" style="height: 5px"colspan="7"> </td>
     </tr>
         
-    <? if (!empty($entries)) foreach ($entries as $area) :
-        $topic_id = $area['topic_id'];
+    <? if (!empty($entries)) foreach ($entries as $entry) :
+        $topic_id = $entry['topic_id'];
 
         if ($constraint['depth'] >= 1) :
-            $topic_id = ($area['last_posting']['topic_id'] ? $area['last_posting']['topic_id'] : $area['topic_id']);
+            $topic_id = ($entry['last_posting']['topic_id'] ? $entry['last_posting']['topic_id'] : $entry['topic_id']);
         endif ?>
     
-    <tr data-area-id="<?= $area['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
+    <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
             <?= Assets::img('icons/16/black/forum.png') ?>
@@ -70,45 +70,48 @@
         <td class="areaentry" valign="top">
             <div style="position: relative;">
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id .'#'. $topic_id) ?>">
-                    <span class="areaname"><?= $area['name'] ?></span>
+                    <span class="areaname"><?= $entry['name'] ?></span>
                 </a>
 
                 <span class="areaname_edit" style="display: none;">
-                    <input type="text" size="20" value="<?= $area['name'] ?>">
+                    <input type="text" name="name" size="20" value="<?= $entry['name'] ?>" onClick="jQuery(this).focus()">
 
-                    <a href="javascript:STUDIP.ForumPP.saveAreaName('<?= $area['topic_id'] ?>')">
+                    <a href="javascript:STUDIP.ForumPP.saveAreaName('<?= $entry['topic_id'] ?>')">
                         <?= makebutton('speichern') ?>
                     </a>
 
-                    <a href="javascript:STUDIP.ForumPP.cancelEditAreaName('<?= $area['topic_id'] ?>')">
+                    <a href="javascript:STUDIP.ForumPP.cancelEditAreaName('<?= $entry['topic_id'] ?>')">
                         <?= makebutton('abbrechen') ?>
                     </a>
                 </span>
 
                 <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
                 <span class="action-icons">
-                    <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $area['topic_id'] ?>');">
+                    <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png', 
                             array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
                     </a>
-                    <?= Assets::img('icons/16/blue/trash.png', 
-                        array('class' => 'delete-area', 'data-area-id' => $area['topic_id'], 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
+                    
+                    <a href="javascript:STUDIP.ForumPP.showDialog(this)">
+                        <?= Assets::img('icons/16/blue/trash.png', 
+                            array('class' => 'delete-area', 'data-area-id' => $entry['topic_id'], 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
+                    </a>
                 </span>
                 <? elseif ($constraint['depth'] == 1 && $has_rights) : /* threads */?>
                 <span class="action-icons">
-                    <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $area['topic_id'] ?>');">
+                    <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/move_right/folder-full.png', 
                             array('class' => 'move-thread', 'title' => 'Diesen Thread verschieben')) ?>
                     </a>
 
-                    <div id="dialog_<?= $area['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
-                        <? $path = ForumPPEntry::getPathToPosting($area['topic_id']);
+                    <div id="dialog_<?= $entry['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
+                        <? $path = ForumPPEntry::getPathToPosting($entry['topic_id']);
                         $parent = array_pop(array_slice($path, sizeof($path) - 2, 1)); ?>
 
                         <? foreach ($areas as $area_id => $area): ?>
                         <? if ($area_id != $parent['id']) : ?>
                         <div style="font-size: 16px; margin-bottom: 5px;">
-                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $area['topic_id'].'/'. $area_id) ?>"> 
+                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>"> 
                             <?= Assets::img('icons/16/yellow/arr_2right.png') ?>
                             <?= $area['name'] ?>
                             </a>
@@ -122,37 +125,37 @@
                 <br/>
 
                 <?= _("von") ?>
-                <a href="<?= UrlHelper::getLink('about.php?username='. get_username($area['owner_id'])) ?>">
-                    <?= htmlReady($area['author']) ?>
+                <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
+                    <?= htmlReady($entry['author']) ?>
                 </a>
-                <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['mkdate']) ?>
+                <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
                 <br>
 
                 <? if ($this->constraint['depth'] == 1) : ?>
-                    <? if ($area['content_short'] && strlen($area['content'] > strlen($area['content_short']))) : ?>
-                        <?= $area['content_short'] ?>...
+                    <? if ($entry['content_short'] && strlen($entry['content'] > strlen($entry['content_short']))) : ?>
+                        <?= $entry['content_short'] ?>...
                     <? else : ?>
-                        <?= $area['content_short'] ?>
+                        <?= $entry['content_short'] ?>
                     <? endif ?>
                 <? else: ?>
-                <?= $area['content'] ?>
+                <?= $entry['content'] ?>
                 <? endif ?>
             </div>
         </td>
 
         <td align="center" valign="top" class="areaentry2">
             <br>
-            <?= ($area['num_postings'] > 0) ? ($area['num_postings'] - 1) : 0 ?>
+            <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
         </td>
 
         <td align="left" valign="top" class="areaentry2">
-            <? if (is_array($area['last_posting'])) : ?>
+            <? if (is_array($entry['last_posting'])) : ?>
             <?= _("von") ?>
-            <a href="<?= UrlHelper::getLink('about.php?username='. $area['last_posting']['username']) ?>">
-                    <?= htmlReady($area['last_posting']['user_fullname']) ?>
+            <a href="<?= UrlHelper::getLink('about.php?username='. $entry['last_posting']['username']) ?>">
+                    <?= htmlReady($entry['last_posting']['user_fullname']) ?>
             </a><br>
-            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$area['last_posting']['date']) ?>
-            <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $area['last_posting']['topic_id']) ?>#<?= $area['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+            <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
+            <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
                 <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
             </a>
             <? else: ?>

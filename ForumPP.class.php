@@ -14,8 +14,8 @@
  */
 
 require_once 'vendor/trails/trails.php';
-require_once 'models/ForumPPEntry.class.php';
-require_once 'models/ForumPPHelpers.class.php';
+require_once 'models/ForumPPEntry.php';
+require_once 'models/ForumPPHelpers.php';
 
 class ForumPP extends StudipPlugin implements StandardPlugin
 {
