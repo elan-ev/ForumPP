@@ -17,12 +17,6 @@ STUDIP.ForumPP = {
     },
         
     initAreas: function() {
-
-
-        jQuery('img.delete-area').bind('click', function() {
-            STUDIP.ForumPP.showDialog(this);
-        });
-
         // bind click events on add-area at bottom row of each category
         jQuery('div.add_area').bind('click', function() {
             STUDIP.ForumPP.addArea(this);
@@ -58,7 +52,7 @@ STUDIP.ForumPP = {
                 });
                 return ui;
             },
-
+            
             stop: function() {
                 // iterate over each category and get the areas there
                 var areas = {};
@@ -80,7 +74,7 @@ STUDIP.ForumPP = {
                     data: areas
                 });
             }            
-        }).disableSelection();      
+        });
         
         // compile template
         STUDIP.ForumPP.deleteAreaTemplate     = _.template(jQuery('#question_delete_area').text());

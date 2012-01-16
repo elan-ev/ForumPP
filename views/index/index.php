@@ -46,6 +46,21 @@ $infobox_content[] = array(
     )
 );
 
+$infobox_content[] = array(
+    'kategorie' => _('Version'),
+    'eintrag'   => array(
+        array(
+            'icon' => 'icons/16/grey/info.png',
+            'text' => 'Installierte Version: ' . ForumPPVersion::getCurrent()
+        ),
+
+        array(
+            'icon' => 'icons/16/grey/info.png',
+            'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
+        )        
+    )
+);
+
 $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
 ?>
 

@@ -22,10 +22,11 @@
 require_once 'app/controllers/studip_controller.php';
 require_once 'lib/classes/AdminModules.class.php';
 require_once 'lib/classes/Config.class.php';
-require_once $this->trails_root .'/models/ForumPPEntry.class.php';
-require_once $this->trails_root .'/models/ForumPPHelpers.class.php';
-require_once $this->trails_root .'/models/ForumPPCat.class.php';
-require_once $this->trails_root .'/models/ForumPPLike.class.php';
+require_once $this->trails_root .'/models/ForumPPEntry.php';
+require_once $this->trails_root .'/models/ForumPPHelpers.php';
+require_once $this->trails_root .'/models/ForumPPCat.php';
+require_once $this->trails_root .'/models/ForumPPLike.php';
+require_once $this->trails_root .'/models/ForumPPVersion.php';
 
 /*
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -387,6 +388,13 @@ class IndexController extends StudipController
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
+    
+    function dislike_action($topic_id)
+    {
+        ForumPPLike::dislike($topic_id);
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+    }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * *     C O N F I G - A C T I O N S     * * * */
@@ -525,10 +533,16 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     function getId()
     {
-        if ($SessSemName[1])     return $SessSemName[1];
-        if (Request::get('cid')) return Request::get('cid');
-
-        return false;
+        if (!Request::option('cid')) {
+            if ($GLOBALS['SessionSeminar']) {
+                URLHelper::bindLinkParam('cid', $GLOBALS['SessionSeminar']);
+                return $GLOBALS['SessionSeminar'];
+            }
+            
+            return false;
+        }
+        
+        return Request::option('cid');
     }
 
     /**

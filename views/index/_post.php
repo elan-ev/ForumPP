@@ -49,6 +49,12 @@ shuffle($likes);
                 'title' => _('Gefällt mir!'),
                 'content' => '+1'
             );
+        } else {
+            $icons[] = array(
+                'link' => PluginEngine::getLink('forumpp/index/dislike/'. $post['topic_id']),
+                'title' => _('Gefällt mir nicht mehr.'),
+                'content' => '-1'
+            );
         }
 
         // edit
@@ -113,7 +119,8 @@ shuffle($likes);
   <dl class="postprofile">
     <dt>
       <a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
-          <?= Avatar::getAvatar($owner_id)->getImageTag(Avatar::MEDIUM, array('title' => get_username($post['owner_id']))) ?>
+          <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::MEDIUM,
+              array('title' => get_username($post['owner_id']))) ?>
           <br>
           <strong><?= htmlReady(get_fullname($post['owner_id'])) ?></strong>
       </a>

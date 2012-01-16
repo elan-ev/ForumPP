@@ -587,7 +587,7 @@ class ForumPPEntry {
     
         // make some space by updating the lft and rgt values of the target node
         $constraints_destination = self::getConstraints($destination);
-        $size = $constraints['rgt'] - $constraints['lft'];
+        $size = $constraints['rgt'] - $constraints['lft'] + 1;
 
         DBManager::get()->exec("UPDATE forumpp_entries SET lft = lft + $size 
             WHERE lft > ". $constraints_destination['rgt'] ." AND seminar_id = '". $constraints_destination['seminar_id'] ."'");
@@ -596,9 +596,9 @@ class ForumPPEntry {
         
         //move the entries from "outside" the tree to the target node
         $constraints_destination = self::getConstraints($destination);
-        
+       
         $diff = ($constraints_destination['rgt'] - ($constraints['rgt'] - $constraints['lft'])) - 1 - $constraints['lft'];
-
+        
         DBManager::get()->exec("UPDATe forumpp_entries
             SET lft = (lft * -1) + $diff, rgt = (rgt * -1) + $diff
             WHERE seminar_id = '". $constraints_destination['seminar_id'] ."'
