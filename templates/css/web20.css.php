@@ -298,3 +298,7 @@
     border-left: solid 40px #DEE2E8;
     border-top: solid 40px transparent;
 }
+
+#forumpp div.action-icons {
+    display: none;
+}
