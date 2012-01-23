@@ -124,12 +124,13 @@ STUDIP.ForumPP = {
         jQuery('#question').hide();
     },
 
-    showDialog: function(element) {
+    deleteArea: function(element, area_id) {
         jQuery('#modalquestion').text(STUDIP.ForumPP.deleteAreaTemplate({
             area: jQuery(element).parent().parent().find('span.areaname').text()
         }));
 
-        STUDIP.ForumPP.current_area_id = jQuery(element).attr('data-area-id');
+        STUDIP.ForumPP.current_area_id = area_id;
+        
         jQuery('#question').show();
     },
 

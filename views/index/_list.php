@@ -83,9 +83,9 @@
                             array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
                     </a>
                     
-                    <a href="javascript:STUDIP.ForumPP.showDialog(this)">
+                    <a href="javascript:STUDIP.ForumPP.deleteArea(this, '<?= $entry['topic_id'] ?>')">
                         <?= Assets::img('icons/16/blue/trash.png', 
-                            array('class' => 'delete-area', 'data-area-id' => $entry['topic_id'], 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
+                            array('class' => 'delete-area', 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
                     </a>
                 </span>
                 <? elseif ($constraint['depth'] == 1 && $has_rights) : /* threads */?>
