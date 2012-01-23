@@ -10,7 +10,7 @@
     <div class="areaborder" style="width: 100%;">
         <span class="area_input">
             <input type="text" size="50" placeholder="<?= _('Titel für neue Kategorie') ?>" name="category" required>
-            <input type="image" <?= makebutton('hinzufuegen', 'src') ?> title="Kategorie erstellen">
+            <?= Studip\Button::create('Kategorie erstellen') ?>
         </span>
     </div>
 

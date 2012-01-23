@@ -30,7 +30,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // do nothing if plugin is deactivated in this seminar/institute
         if (!PluginManager::isPluginActivated($this->getPluginId(), Request::get('cid', $GLOBALS['SessSemName'][1]))) return;
 
-        $navigation = new Navigation(_('Forum'), PluginEngine::getLink('forumpp/index'));
+        $navigation = new Navigation(_('Forum 2'), PluginEngine::getLink('forumpp/index'));
         $navigation->setImage('icons/16/white/forum.png');
 
         // add main third-level navigation-item
@@ -39,7 +39,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         $navigation->addSubNavigation('index', $sub_nav);
 
         // hijack the default forum-navigation
-        Navigation::insertItem('/course/forum', $navigation, 'members');
+        Navigation::insertItem('/course/forum2', $navigation, 'members');
 
 
         $style_attributes = array(

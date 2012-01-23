@@ -174,10 +174,13 @@
 
 #forumpp div.title {
     text-align: left;
-    font-weight: bold;
     width: 80%;
     float: left;
 }
+
+ #forumpp .title {
+    font-weight: bold;
+ }
 
 /* space for the icons */
 #forumpp div.postbody span.icons {

@@ -17,12 +17,8 @@
             <span class="heading_edit" style="display: none; margin-left: 5px;">
                 <input type="text" name="name" size="40" value="<?= $categories[$category_id] ?>">
 
-                <a href="javascript:STUDIP.ForumPP.saveCategoryName('<?= $category_id ?>')">
-                    <?= makebutton('speichern') ?>
-                </a>
-                <a href="javascript:STUDIP.ForumPP.cancelEditCategoryName('<?= $category_id ?>')">
-                    <?= makebutton('abbrechen') ?>
-                </a>                
+                <?= Studip\LinkButton::createAccept('Kategorie speichern', "javascript:STUDIP.ForumPP.saveCategoryName('". $category_id ."')") ?>
+                <?= Studip\LinkButton::createCancel('abbrechen', "javascript:STUDIP.ForumPP.cancelEditCategoryName('". $category_id ."')") ?>
             </span>
         </td>
 
@@ -76,13 +72,8 @@
                 <span class="areaname_edit" style="display: none;">
                     <input type="text" name="name" size="20" value="<?= $entry['name'] ?>" onClick="jQuery(this).focus()">
 
-                    <a href="javascript:STUDIP.ForumPP.saveAreaName('<?= $entry['topic_id'] ?>')">
-                        <?= makebutton('speichern') ?>
-                    </a>
-
-                    <a href="javascript:STUDIP.ForumPP.cancelEditAreaName('<?= $entry['topic_id'] ?>')">
-                        <?= makebutton('abbrechen') ?>
-                    </a>
+                    <?= Studip\LinkButton::createAccept('Titel speichern', "javascript:STUDIP.ForumPP.saveAreaName('". $entry['topic_id'] ."')") ?>
+                    <?= Studip\LinkButton::createCancel('abbrechen', "javascript:STUDIP.ForumPP.cancelEditAreaName('". $entry['topic_id'] ."')") ?>
                 </span>
 
                 <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
@@ -176,8 +167,9 @@
             <form class="add_area_form" style="display: none" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
                 <?= CSRFProtection::tokenTag() ?>
                 <input type="text" name="name" size="50" placeholder="Name des neuen Bereiches" required>
-                <input type="image" <?= makebutton('hinzufuegen', 'src') ?>>
-                <a href="javascript:STUDIP.ForumPP.cancelAddArea()"><?= makebutton('abbrechen') ?></a>
+                
+                <?= Studip\Button::create('Bereich hinzufügen') ?>
+                <?= Studip\LinkButton::createCancel('abbrechen', "javascript:STUDIP.ForumPP.cancelAddArea()") ?>
             </form>
         </td>
     </tr>    
