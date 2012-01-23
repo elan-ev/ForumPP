@@ -263,10 +263,13 @@
 }
 
 #forumpp .action-icons {
-    display: none;
     position: absolute;
     right: 10px;
     top: 0px; 
+}
+
+#forumpp .action-buttons {
+    display: none;
 }
 
 #forumpp textarea {
@@ -280,4 +283,18 @@
 
 #forumpp .editor_toolbar {
     width: 100%;
+}
+
+#forumpp div.marked {
+    background-color: white;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    height: 0px;
+    width: 0px;
+    -moz-box-shadow: -5px 5px 5px #888;
+    -webkit-box-shadow: -5px 5px 5px #888;
+    box-shadow: -5px 5px 5px #888;
+    border-left: solid 40px #DEE2E8;
+    border-top: solid 40px transparent;
 }
