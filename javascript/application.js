@@ -7,6 +7,7 @@ STUDIP.ForumPP = {
 
     init: function() {
         // show icons if mouse is over td
+        /*
         jQuery('td.areaentry, div.posting').bind('mouseover', function() {
             jQuery(this).find('span.action-icons').show();
         });
@@ -14,6 +15,7 @@ STUDIP.ForumPP = {
         jQuery('td.areaentry, div.posting').bind('mouseout', function() {
             jQuery(this).find('span.action-icons').hide();
         });
+        */
     },
         
     initAreas: function() {

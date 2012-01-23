@@ -23,7 +23,7 @@ $infobox_content[] = array(
         ),
         array(
             'icon' => $section == 'favorites' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => '<a href="'. PluginEngine::getLink('forumpp/index/favorites') .'">'. _('Favoriten') .'</a>'
+            'text' => '<a href="'. PluginEngine::getLink('forumpp/index/favorites') .'">'. _('Gemerkte Beiträge') .'</a>'
         ),
         array(
             'icon' => $section == 'newest' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
