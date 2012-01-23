@@ -150,17 +150,7 @@ shuffle($likes);
 
         <?= Studip\LinkButton::createCancel('abbrechen', PluginEngine::getLink('forumpp/index/index/'. $topic_id)) ?>
         
-        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
-
-        <? /*
-        <input type="image" <?= makebutton('speichern', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
-        <a href="<?= " style="margin-right: 20px">
-            <?= makebutton('abbrechen') ?>
-        </a>
-        
-        <a href="javascript:STUDIP.ForumPP.preview('inhalt', 'preview')">
-            <?= makebutton('vorschau') ?>
-        </a>  */ ?>       
+        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>      
     </div>
     <? endif ?>
         
