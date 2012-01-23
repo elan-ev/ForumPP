@@ -17,8 +17,7 @@
             endswitch; ?></span>
 
             <p class="content" style="margin-bottom: 0pt">
-                <strong><?= _('Titel:') ?></strong><br/>
-                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>"><br/>
+                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>" <?= $constraint['depth'] == 1 ? 'required' : '' ?> placeholder="<?= _('Titel') ?>"><br/>
                 <br/>
             </p>
         </div>
@@ -26,7 +25,8 @@
         <? if ($constraint['depth'] > 0): ?>
 
         <div class="postbody">
-            <textarea class="add_toolbar" id="inhalt" name="content"><?= $this->flash['new_entry_content'] ?></textarea><br/>
+            <textarea class="add_toolbar" id="inhalt" name="content" required 
+                placeholder="<?= _("Schreiben Sie hier ihren Beitrag. Hilfe zu Formatierungen finden Sie rechts neben diesem Textfeld.") ?>"><?= $this->flash['new_entry_content'] ?></textarea>
         </div>
 
         <dl class="postprofile">
@@ -38,11 +38,17 @@
         <? endif ?>
 
         <div class="buttons">
-            <input type="image" <?= makebutton('erstellen', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
+            <?= Studip\Button::createAccept('Beitrag erstellen') ?>
+            
+            <?= Studip\Button::createCancel('abbrechen', array('onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;")) ?>
+            
+            <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
         </div>
 
         <span class="corners-bottom"><span></span></span>
     </div>
+
+    <?= $this->render_partial('index/_preview', array('preview_id' => 'preview')) ?>
 
     <input type="hidden" name="parent" value="<?= $topic_id ?>">
 </form>

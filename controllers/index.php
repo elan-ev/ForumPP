@@ -66,9 +66,9 @@ class IndexController extends StudipController
 
     function index_action($topic_id = null, $page = null)
     {
-        $nav = Navigation::getItem('course/forum');
+        $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum/index');
+        Navigation::activateItem('course/forum2/index');
 
         // check, if the root entry is present
         ForumPPEntry::checkRootEntry($this->getId());
@@ -163,9 +163,9 @@ class IndexController extends StudipController
 
     function latest_action()
     {
-        $nav = Navigation::getItem('course/forum');
+        $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum/index');
+        Navigation::activateItem('course/forum2/index');
 
         $this->section = 'latest';
 
@@ -190,9 +190,9 @@ class IndexController extends StudipController
 
     function newest_action()
     {
-        $nav = Navigation::getItem('course/forum');
+        $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum/index');
+        Navigation::activateItem('course/forum2/index');
 
         $this->section = 'newest';
 
@@ -216,9 +216,9 @@ class IndexController extends StudipController
 
     function favorites_action()
     {
-        $nav = Navigation::getItem('course/forum');
+        $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum/index');
+        Navigation::activateItem('course/forum2/index');
 
         $this->section = 'favorites';
 
@@ -242,9 +242,9 @@ class IndexController extends StudipController
 
     function search_action()
     {
-        $nav = Navigation::getItem('course/forum');
+        $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum/index');
+        Navigation::activateItem('course/forum2/index');
 
         $this->section = 'search';
 
@@ -272,6 +272,18 @@ class IndexController extends StudipController
     /* * * *   P O S T I N G - A C T I O N S     * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
+    /**
+     * this action renders a preview of the submitted text
+     */
+    function preview_action() {
+        if (Request::isAjax()) {
+            $this->set_content_type('text/html; charset=UTF-8');
+            $this->render_text(studip_utf8encode(formatReady(studip_utf8decode(Request::get('posting')))));
+        } else {
+            $this->render_text(formatReady(ForumPPEntry::parseEdit(Request::get('posting'))));
+        }
+    }
+    
     function add_entry_action($topic_id)
     {
         if (!Request::option('parent')) {

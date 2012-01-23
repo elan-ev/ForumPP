@@ -108,42 +108,63 @@ shuffle($likes);
         <!-- Postinginhalt -->
         <p class="content">
             <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-            <textarea name="content" class="add_toolbar"><?= $post['content_raw'] ?></textarea>
+            <textarea id="inhalt" name="content" class="add_toolbar"><?= $post['content_raw'] ?></textarea>
             <? else : ?>
                 <?= ForumPPHelpers::highlight($post['content'], $highlight) ?>
             <? endif ?>
         </p>
     </div>
 
-  <!-- Infobox rechts neben jedem Posting -->
-  <dl class="postprofile">
-    <dt>
-      <a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
-          <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::MEDIUM,
-              array('title' => get_username($post['owner_id']))) ?>
-          <br>
-          <strong><?= htmlReady(get_fullname($post['owner_id'])) ?></strong>
-      </a>
-    </dt>
+    <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+    <dl class="postprofile">
+        <dt>
+            <?= $this->render_partial('index/_smiley_favorites') ?>
+        </dt>
+    </dl>
+    <? else : ?>
+    <!-- Infobox rechts neben jedem Posting -->
+    <dl class="postprofile">
+        <dt>
+            <a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
+                <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::MEDIUM,
+                      array('title' => get_username($post['owner_id']))) ?>
+                <br>
+                <strong><?= htmlReady(get_fullname($post['owner_id'])) ?></strong>
+            </a>
+        </dt>
+        <dd>
+            <?= ForumPPHelpers::translate_perm($GLOBALS['perm']->get_studip_perm($constraint['seminar_id'], $post['owner_id']))?>
+        </dd>
+        <dd>&nbsp;</dd>
+        <dd>
+            Beiträge:
+            <?= ForumPPEntry::countUserEntries($post['owner_id']) ?>
+        </dd>
+    </dl>
+    <? endif ?>
 
-    <dd>
-        <?= ForumPPHelpers::translate_perm($GLOBALS['perm']->get_studip_perm($constraint['seminar_id'], $post['owner_id']))?>
-    </dd>
-    <dd>&nbsp;</dd>
-    <dd>
-      Beiträge:
-      <?= ForumPPEntry::countUserEntries($post['owner_id']) ?>
-  </dl>
 
     <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
     <div class="buttons">
+        <?= Studip\Button::createAccept('Änderungen speichern') ?>
+
+        <?= Studip\LinkButton::createCancel('abbrechen', PluginEngine::getLink('forumpp/index/index/'. $topic_id)) ?>
+        
+        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
+
+        <? /*
         <input type="image" <?= makebutton('speichern', 'src') ?> title="Beitrag erstellen" style="margin-right: 20px">
-        <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id) ?>">
+        <a href="<?= " style="margin-right: 20px">
             <?= makebutton('abbrechen') ?>
         </a>
+        
+        <a href="javascript:STUDIP.ForumPP.preview('inhalt', 'preview')">
+            <?= makebutton('vorschau') ?>
+        </a>  */ ?>       
     </div>
     <? endif ?>
-  
+        
+    <!-- the likes for this post -->
     <? if (!empty($likes)) : ?>
     <br style="clear: both">
     <div style="padding-left: 5px">
@@ -194,6 +215,8 @@ shuffle($likes);
 
 <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
 </form>
+
+<?= $this->render_partial('index/_preview', array('preview_id' => 'preview')) ?>
 <? endif ?>
 
 <br>

@@ -217,5 +217,19 @@ STUDIP.ForumPP = {
     
     moveThreadDialog: function(topic_id) {
         jQuery('#dialog_' + topic_id).dialog();
+    },
+    
+    preview: function(text_element_id, preview_id) {
+        var posting = {}
+        posting['posting'] = jQuery('#' + text_element_id).val();
+        
+        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/preview?cid=' + STUDIP.ForumPP.seminar_id), {
+            type: 'POST',
+            data: posting,
+            success: function(html) {
+                jQuery('#' + preview_id).html(html);
+                jQuery('#' + preview_id).parent().show();
+            }
+        });
     }
 }

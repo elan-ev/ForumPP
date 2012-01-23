@@ -92,6 +92,17 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? if ($constraint['depth'] == 0) : ?>
     <?= $this->render_partial('index/_new_category') ?>
 <? else : ?>
-    <?= $this->render_partial('index/_new_entry') ?>
+    <? if (!$flash['edit_entry']) : ?>
+    <div style="text-align: center">
+        <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
+            <?= Studip\Button::create('Neues Thema erstellen', array('onClick' => "jQuery('#new_entry_button').hide();jQuery('#new_entry_box').show();")) ?>
+        </div>
+
+        <div id="new_entry_box" <?= $this->flash['new_entry_title'] ? '' : 'style="display: none"' ?>>
+            <?= $this->render_partial('index/_new_entry') ?>
+        </div>
+    </div>
+    <? endif ?>
+    
 <? endif ?>
 </div>
