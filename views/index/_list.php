@@ -1,6 +1,6 @@
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
-<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $contrains['depth'] == 0 && $category_id != 'Allgemein' ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
+<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $contrains['depth'] == 0 && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
         <td class="forum_header" colspan="3" align="left" width="65%">
@@ -10,7 +10,12 @@
                 <?= _('Themen') ?>
                 <? else: ?>
                 <span class="category_name">
-                    <?= $categories[$category_id] ?>&nbsp;
+                    <?= $categories[$category_id] ?>
+                    <? if ($category_id == $seminar_id) : ?>
+                    <span style="color: #666666">
+                        <?= _('Vordefinierter Bereich, kann nicht bearbeitet oder gelöscht werden') ?>
+                    </span>
+                    <? endif ?>
                 </span>
                 <? endif ?>
             </span>
@@ -30,7 +35,7 @@
         <td class="forum_header" width="30%" colspan="2">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
-            <? if ($has_perms && $category_id != 'Allgemein') : ?>
+            <? if ($has_perms && $category_id != $seminar_id) : ?>
             <span style="float: right; padding-right: 10px;">
                 <a href="javascript:STUDIP.ForumPP.editCategoryName('<?= $category_id ?>')">
                     <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Name der Kategorie ändern')) ?>

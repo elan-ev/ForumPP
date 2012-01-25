@@ -107,7 +107,7 @@ STUDIP.ForumPP = {
 
             // move all areas to the default category
             jQuery('table[data-category-id='+ STUDIP.ForumPP.current_category_id +'] tr.movable').each(function() {
-               jQuery('table[data-category-id=Allgemein]').append(jQuery(this));
+               jQuery('table[data-category-id=' + STUDIP.ForumPP.seminar_id + ']').append(jQuery(this));
             });
 
             // ajax call to make the deletion permanent

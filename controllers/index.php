@@ -139,14 +139,14 @@ class IndexController extends StudipController
                 }
 
                 if (!empty($list['list'])) {
-                    $new_list['Allgemein'] = $list['list'];
+                    $new_list[$this->getId()] = $list['list'];
                 }
 
                 // put 'Allgemein' always to the end of the list
-                if (isset($new_list['Allgemein'])) {
-                    $allgemein = $new_list['Allgemein'];
-                    unset($new_list['Allgemein']);
-                    $new_list['Allgemein'] = $allgemein;
+                if (isset($new_list[$this->getId()])) {
+                    $allgemein = $new_list[$this->getId()];
+                    unset($new_list[$this->getId()]);
+                    $new_list[$this->getId()] = $allgemein;
                 }
 
                 $this->list = $new_list;
@@ -448,7 +448,7 @@ class IndexController extends StudipController
             $this->flash['messages'] = array('error' => _('Sie besitzen nicht genügend Rechte um Kategorien zu löschen!'));
         } else {
             $this->flash['messages'] = array('success' => _('Die Kategorie wurde gelöscht!'));
-            ForumPPCat::remove($category_id);
+            ForumPPCat::remove($category_id, $this->getId());
         }
 
         if (Request::isAjax()) {
