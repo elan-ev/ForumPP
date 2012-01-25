@@ -21,7 +21,7 @@ class ForumPPCat {
         $stmt->execute(array(md5(uniqid(rand())), $seminar_id, $name));
     }
 
-    static function remove($category_id) {
+    static function remove($category_id, $seminar_id) {
         // delete the category itself
         $stmt = DBManager::get()->prepare("DELETE FROM
             forumpp_categories
@@ -31,9 +31,9 @@ class ForumPPCat {
         // set all entries to default category
         $stmt = DBManager::get()->prepare("UPDATE
             forumpp_categories_entries
-            SET category_id = 'Allgemein', pos = 999
+            SET category_id = ?, pos = 999
             WHERE category_id = ?");
-        $stmt->execute(array($category_id));
+        $stmt->execute(array($seminar_id, $category_id));
     }
 
     static function setPosition($category_id, $pos) {

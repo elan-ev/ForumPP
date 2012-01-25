@@ -627,7 +627,7 @@ class ForumPPEntry {
         
         // make sure, that the category "Allgemein" exists
         $stmt = DBManager::get()->prepare("REPLACE INTO forumpp_categories
-            (category_id, seminar_id, entry_name) VALUES ('Allgemein', ?, 'Allgemein')");
-        $stmt->execute(array($seminar_id));
+            (category_id, seminar_id, entry_name) VALUES (?, ?, 'Allgemein')");
+        $stmt->execute(array($seminar_id, $seminar_id));
     }
 }
