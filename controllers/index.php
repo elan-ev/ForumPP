@@ -78,7 +78,6 @@ class IndexController extends StudipController
          * * * * * * * * * * * * * * * * * * */
 
         $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
-        $this->section = 'forum';
 
         // if ($this->flash['new_entry']) {
             if (!$topic_id) {
@@ -159,15 +158,14 @@ class IndexController extends StudipController
         }
         
         $this->seminar_id = $this->getId();
+        $this->breadcrumb = true;
     }
 
     function latest_action()
     {
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum2/index');
-
-        $this->section = 'latest';
+        Navigation::activateItem('course/forum2/latest');
 
         $this->topic_id = $this->getId();
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
@@ -192,9 +190,7 @@ class IndexController extends StudipController
     {
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum2/index');
-
-        $this->section = 'newest';
+        Navigation::activateItem('course/forum2/newest');
 
         $this->topic_id = $this->getId();
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
@@ -218,9 +214,7 @@ class IndexController extends StudipController
     {
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum2/index');
-
-        $this->section = 'favorites';
+        Navigation::activateItem('course/forum2/favorites');
 
         $this->topic_id = $this->getId();
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);

@@ -3,9 +3,6 @@
         // set seminar-id
         STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
         
-        // basic initializations for the whole forum
-        STUDIP.ForumPP.init();
-        
         <? if ($constraint['depth'] == 0) : /* main areas */?>
         // additional initializations for the area-view
         STUDIP.ForumPP.initAreas();
@@ -14,28 +11,6 @@
 </script>
 <div id="forumpp">
 <?
-$infobox_content[] = array(
-    'kategorie' => _('Ansicht'),
-    'eintrag'   => array(
-        array(
-            'icon' => $section == 'forum' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => '<a href="'. PluginEngine::getLink('forumpp/index') .'">'. _('Forum') .'</a>'
-        ),
-        array(
-            'icon' => $section == 'favorites' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => '<a href="'. PluginEngine::getLink('forumpp/index/favorites') .'">'. _('Gemerkte Beiträge') .'</a>'
-        ),
-        array(
-            'icon' => $section == 'newest' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => '<a href="'. PluginEngine::getLink('forumpp/index/newest') .'">'. _('neue Beiträge') .'</a>'
-        ),
-        array(
-            'icon' => $section == 'latest' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => '<a href="'. PluginEngine::getLink('forumpp/index/latest') .'">'. _('letzte Beiträge') .'</a>'
-        )
-    )
-);
-
 $infobox_content[] = array(
     'kategorie' => _('Suche'),
     'eintrag'   => array(
@@ -65,7 +40,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 ?>
 
 <!-- Breadcrumb navigation -->
-<?= $this->render_partial('index/_breadcrumb') ?>
+<?= $breadcrumb ? $this->render_partial('index/_breadcrumb') : '' ?>
 
 <!-- Message area -->
 <div id="message_area">
@@ -92,10 +67,11 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? if ($constraint['depth'] == 0) : ?>
     <?= $this->render_partial('index/_new_category') ?>
 <? else : ?>
-    <? if (!$flash['edit_entry']) : ?>
+    <? if (!$flash['edit_entry']) : ?>  
+    <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Neuen Beitrag erstellen') ?>
     <div style="text-align: center">
         <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
-            <?= Studip\Button::create('Neues Thema erstellen', array('onClick' => "jQuery('#new_entry_button').hide();jQuery('#new_entry_box').show();")) ?>
+            <?= Studip\Button::create($button_face, array('onClick' => "jQuery('#new_entry_button').hide();jQuery('#new_entry_box').show();")) ?>
         </div>
 
         <div id="new_entry_box" <?= $this->flash['new_entry_title'] ? '' : 'style="display: none"' ?>>
