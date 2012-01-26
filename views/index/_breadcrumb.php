@@ -5,18 +5,9 @@
         <? if ($pos > 0) : ?> &bullet; <? endif ?>
         <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $path_part['id']) ?>"><?= htmlReady($path_part['name']) ?></a>
     <? endforeach ?>
-    <? if ($section) :
-        switch ($section) :
-            case 'favorites': $section_name = _('Favoriten');break;
-            case 'newest':    $section_name = _('neuste Beiträge');break;
-            case 'latest':    $section_name = _('letzte Beiträge');break;
-            case 'search':    $section_name = _('Suche');break;
-        endswitch;
-
-        if ($section_name) : ?>
+    <? if ($section == 'search') : ?>
         &bullet;
-        <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $section) ?>"><?= htmlReady($section_name) ?></a>
-        <? endif ?>
+        <a href="<?= PluginEngine::getLink('forumpp/index/index/search') ?>"><?= _('Suche') ?></a>
     <? endif ?>
     </span>
 </div>

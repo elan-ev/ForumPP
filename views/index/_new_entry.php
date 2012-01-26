@@ -17,7 +17,7 @@
             endswitch; ?></span>
 
             <p class="content" style="margin-bottom: 0pt">
-                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>" <?= $constraint['depth'] == 1 ? 'required' : '' ?> placeholder="<?= _('Titel') ?>"><br/>
+                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>" <?= $constraint['depth'] == 1 ? 'required' : '' ?> placeholder="<?= _('Titel') ?>" tabindex="1"><br/>
                 <br/>
             </p>
         </div>
@@ -25,7 +25,7 @@
         <? if ($constraint['depth'] > 0): ?>
 
         <div class="postbody">
-            <textarea class="add_toolbar" id="inhalt" name="content" required 
+            <textarea class="add_toolbar" id="inhalt" name="content" required tabindex="2"
                 placeholder="<?= _("Schreiben Sie hier ihren Beitrag. Hilfe zu Formatierungen finden Sie rechts neben diesem Textfeld.") ?>"><?= $this->flash['new_entry_content'] ?></textarea>
         </div>
 
@@ -38,11 +38,13 @@
         <? endif ?>
 
         <div class="buttons">
-            <?= Studip\Button::createAccept('Beitrag erstellen') ?>
+            <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
             
-            <?= Studip\Button::createCancel('abbrechen', array('onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;")) ?>
+            <?= Studip\Button::createCancel('abbrechen', array(
+                'onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;",
+                'tabindex' => '4')) ?>
             
-            <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
+            <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');", array('tabindex' => '5')) ?>
         </div>
 
         <span class="corners-bottom"><span></span></span>

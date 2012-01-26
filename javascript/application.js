@@ -4,20 +4,7 @@ STUDIP.ForumPP = {
     current_area_id: null,
     current_category_id: null,
     seminar_id: null,
-
-    init: function() {
-        // show icons if mouse is over td
-        /*
-        jQuery('td.areaentry, div.posting').bind('mouseover', function() {
-            jQuery(this).find('span.action-icons').show();
-        });
-
-        jQuery('td.areaentry, div.posting').bind('mouseout', function() {
-            jQuery(this).find('span.action-icons').hide();
-        });
-        */
-    },
-        
+     
     initAreas: function() {
         // bind click events on add-area at bottom row of each category
         jQuery('div.add_area').bind('click', function() {

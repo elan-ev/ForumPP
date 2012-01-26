@@ -1,4 +1,4 @@
-<br style="clear: both"><br>
+<br style="clear: both">
 
 <?
 $posting_num = 1;
@@ -11,7 +11,6 @@ foreach ($postings as $post) :
     $posting_num++;
 endforeach
 ?>
-<br>
 
 <div style="float: right; padding-right: 10px;">
     <?= $GLOBALS['template_factory']->render('shared/pagechooser', array(
