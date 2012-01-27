@@ -524,22 +524,6 @@ class IndexController extends StudipController
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
-    /* * * * * * * I M A G E   A C T I O N * * * * * * */
-    /* * * * * * * * * * * * * * * * * * * * * * * * * */
-
-    function image_action($image)
-    {
-        switch ($image) {
-            case 'quote':
-                $data = file_get_contents(realpath(dirname(__FILE__) . '/../img/icons/quote.png'));
-                break;
-        }
-
-        header('Content-Type: image/png');
-        $this->render_text($data);
-    }
-
-    /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * H E L P E R   F U N C T I O N S * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     function getId()
