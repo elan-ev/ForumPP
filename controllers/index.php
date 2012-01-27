@@ -90,6 +90,11 @@ class IndexController extends StudipController
         $this->topic_id     = $topic_id ? $topic_id : $this->getId();
         $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
 
+        // set the visitdate
+        if ($this->constraint['depth'] > 1) { // are we watching a thread
+            $this->visitdate = ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
+        }
+
         // set page to which we shall jump
         if ($page) {
             ForumPPHelpers::setPage($page);
@@ -124,7 +129,7 @@ class IndexController extends StudipController
             } else {
                 $list = ForumPPEntry::getList('list', $this->topic_id);
             }
-            
+
             if ($this->constraint['depth'] == 0) {  // BEREICHE
                 $new_list = array();
                 foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
@@ -156,7 +161,7 @@ class IndexController extends StudipController
             }
             $this->number_of_entries = $list['count'];
         }
-        
+
         $this->seminar_id = $this->getId();
         $this->breadcrumb = true;
     }
@@ -277,7 +282,7 @@ class IndexController extends StudipController
             $this->render_text(formatReady(ForumPPEntry::parseEdit(Request::get('posting'))));
         }
     }
-    
+
     function add_entry_action($topic_id)
     {
         if (!Request::option('parent')) {
@@ -298,7 +303,7 @@ class IndexController extends StudipController
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
     }
-    
+
     function add_area_action($category_id)
     {
         $new_id = md5(uniqid(rand()));
@@ -312,9 +317,9 @@ class IndexController extends StudipController
             'author'      => get_fullname($GLOBALS['user']->id),
             'author_host' => getenv('REMOTE_ADDR')
         ), $this->getId());
-        
+
         ForumPPCat::addArea($category_id, $new_id);
-        
+
         $this->redirect(PluginEngine::getLink('forumpp/index/index/'));
     }
 
@@ -356,7 +361,7 @@ class IndexController extends StudipController
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
-    
+
     function move_thread_action($thread_id, $destination) {
         ForumPPEntry::move($thread_id, $destination);
 
@@ -394,7 +399,7 @@ class IndexController extends StudipController
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
-    
+
     function dislike_action($topic_id)
     {
         ForumPPLike::dislike($topic_id);
@@ -466,15 +471,15 @@ class IndexController extends StudipController
         }
 
         ForumPPEntry::update($area_id, $name, '');
-        
+
         $this->render_nothing();
     }
-    
+
     function edit_category_action($category_id) {
         if (!$this->rechte) {
             die;
         }
-        
+
         if (Request::isAjax()) {
             $name = utf8_decode(Request::get('name'));
         } else {
@@ -517,7 +522,7 @@ class IndexController extends StudipController
 
         $this->render_nothing();
     }
-    
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * * * I M A G E   A C T I O N * * * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -544,18 +549,18 @@ class IndexController extends StudipController
                 URLHelper::bindLinkParam('cid', $GLOBALS['SessionSeminar']);
                 return $GLOBALS['SessionSeminar'];
             }
-            
+
             return false;
         }
-        
+
         return Request::option('cid');
     }
 
     /**
      * Common code for all actions: set default layout and page title.
-     * 
+     *
      * @param type $action
-     * @param type $args 
+     * @param type $args
      */
     function before_filter(&$action, &$args)
     {

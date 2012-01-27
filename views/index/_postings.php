@@ -3,11 +3,16 @@
 <?
 $posting_num = 1;
 $zebra = 0;
+$cutoff = false;
 
 foreach ($postings as $post) :
     $zebra = 1 - $zebra;
     echo $this->render_partial('index/_post', compact('post', 'zebra'));
 
+    if ($post['mkdate'] >= $visitdate && !$cutoff) : ?>
+        <hr>
+        <? $cutoff = true; ?>
+    <? endif;
     $posting_num++;
 endforeach
 ?>

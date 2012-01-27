@@ -20,7 +20,7 @@ class CreateForumppTable extends DBMigration {
                 PRIMARY KEY ( `category_id` , `topic_id` )
             );
         ");
-                
+
 
         DBManager::get()->exec("
             CREATE TABLE IF NOT EXISTS `forumpp_entries` (
@@ -40,12 +40,24 @@ class CreateForumppTable extends DBMigration {
                 PRIMARY KEY (`topic_id`)
             );
         ");
-        
+
         DBManager::get()->exec("
             CREATE TABLE IF NOT EXISTS `forumpp_likes` (
               `topic_id` varchar(32) NOT NULL,
               `user_id` varchar(32) NOT NULL,
               PRIMARY KEY (`topic_id`,`user_id`)
+            );
+        ");
+
+        DBManager::get()->exec("
+            CREATE TABLE IF NOT EXISTS `forumpp_visits` (
+                user_id varchar(32) NOT NULL,
+                seminar_id varchar(32) NPT NULL,
+                topic_id varchar(32) NOT NULL,
+                visitdate int(11) NOT NULL,
+                last_visitdate int(11) NOT NULL,
+                new_entries int(11) NOT NULL,
+                PRIMARY KEY ( `user_id` , `seminar_id`, `topic_id` )
             );
         ");
     }
@@ -55,5 +67,6 @@ class CreateForumppTable extends DBMigration {
         $this->db->query("DROP TABLE IF EXISTS forumpp_categories_entries;");
         $this->db->query("DROP TABLE IF EXISTS forumpp_entries;");
         $this->db->query("DROP TABLE IF EXISTS forumpp_likes;");
+        $this->db->query("DROP TABLE IF EXISTS forumpp_visits;");
     }
 }
