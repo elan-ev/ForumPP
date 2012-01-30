@@ -169,11 +169,18 @@ class IndexController extends StudipController
         $this->breadcrumb = true;
     }
 
-    function latest_action()
+    function latest_action($page = null)
     {
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum2/latest');
+        
+        // set page to which we shall jump
+        if ($page) {
+            ForumPPHelpers::setPage($page);
+        }
+
+        $this->section = 'latest';
 
         $this->topic_id = $this->getId();
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
@@ -194,11 +201,18 @@ class IndexController extends StudipController
         $this->render_action('index');
     }
 
-    function favorites_action()
+    function favorites_action($page = null)
     {
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum2/favorites');
+
+        // set page to which we shall jump
+        if ($page) {
+            ForumPPHelpers::setPage($page);
+        }
+
+        $this->section = 'favorites';
 
         $this->topic_id = $this->getId();
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
@@ -218,11 +232,16 @@ class IndexController extends StudipController
         $this->render_action('index');
     }
 
-    function search_action()
+    function search_action($page = null)
     {
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum2/index');
+
+        // set page to which we shall jump
+        if ($page) {
+            ForumPPHelpers::setPage($page);
+        }
 
         $this->section = 'search';
 
@@ -373,9 +392,18 @@ class IndexController extends StudipController
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 
-    function goto_page_action($topic_id, $page)
+    function goto_page_action($topic_id, $section, $page)
     {
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. (int)$page .'#'. $topic_id));
+        switch ($section) {
+            case 'index':
+                $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. (int)$page .'#'. $topic_id));
+                break;
+            default:
+                $this->redirect(PluginEngine::getLink('forumpp/index/'. $section .'/'. (int)$page));
+                break;
+        }
+
+        
     }
 
     function like_action($topic_id)

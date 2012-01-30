@@ -1,3 +1,4 @@
+<br>
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $contrains['depth'] == 0 && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
