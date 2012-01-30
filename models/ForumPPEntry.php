@@ -228,13 +228,14 @@ class ForumPPEntry {
             $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
             $count_stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries
+                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.seminar_id = ?
                     AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . $add
                 . " ORDER BY forumpp_entries.mkdate $sort_order");
-            $count_stmt->execute(array($seminar_id, $constraint['lft'], $constraint['rgt']));
+            $count_stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
 
             // vprintf(str_replace('?', "'%s'", $query), $data);die;
@@ -252,13 +253,14 @@ class ForumPPEntry {
             $stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
             $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
+                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
                     AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . ') '. $add
                 . " ORDER BY forumpp_entries.mkdate $sort_order");
-            $count_stmt->execute(array($depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
+            $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
         }
 
@@ -364,12 +366,15 @@ class ForumPPEntry {
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, '', 'ASC', $start);
                 break;
 
+            /*
             case 'newest':
                 $last_visit = object_get_visit($seminar_id, 'forum');
                 $add = 'AND forumpp_entries.mkdate >= '. DBManager::get()->quote($last_visit);
 
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
+             * 
+             */
 
             case 'latest':
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
@@ -491,6 +496,8 @@ class ForumPPEntry {
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
+        
+        ForumPPVisit::entryAdded($data['topic_id']);
     }
 
     
@@ -553,6 +560,8 @@ class ForumPPEntry {
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET rgt = rgt - $diff
             WHERE rgt > ? AND seminar_id = ?");
         $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
+        
+        ForumPPVisit::entryDeleted($topic_id);
     }
     
     /**

@@ -66,7 +66,23 @@
     <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
-            <?= Assets::img('icons/16/black/forum.png') ?>
+            <? if ($entry['mkdate'] >= $visitdate) : ?>
+                <? $new_postings = ForumPPEntry::countEntries($entry['topic_id']) ?>
+                <?= Assets::img('icons/16/red/new/forum.png', array(
+                    'title' => sprintf(_('Es gibt %s neue Beiträge seit Ihrem letzten Besuch.'), $new_postings)
+                )) ?>
+            <? else : ?>
+                <? $new_postings = ForumPPVisit::getCountForTopic($GLOBALS['user']->id, $entry['topic_id']) ?>
+                <? if ($new_postings > 0) : ?>
+                    <?= Assets::img('icons/16/red/forum.png', array(
+                        'title' => sprintf(_('Es gibt %s neue Beiträge seit Ihrem letzten Besuch.'), $new_postings)
+                    )) ?>
+                <? else : ?>
+                    <?= Assets::img('icons/16/black/forum.png', array(
+                        'title' => _('Es gab seit Ihrem letzten Besuch keine neuen Beiträge.')
+                    )) ?>
+                <? endif ?>
+            <? endif ?>
         </td>
         <td class="areaentry" valign="top">
             <div style="position: relative;">
@@ -141,7 +157,11 @@
 
         <td align="center" valign="top" class="areaentry2">
             <br>
-            <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
+            <? if ($constraint['depth'] == 1) : ?>
+                <?= $entry['num_postings'] ?>
+            <? else : ?>
+                <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
+            <? endif ?>
         </td>
 
         <td align="left" valign="top" class="areaentry2">
