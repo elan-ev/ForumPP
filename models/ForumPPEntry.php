@@ -215,7 +215,7 @@ class ForumPPEntry {
         $depth      = $constraint['depth'] + 1;
 
         if ($with_childs) {
-            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 1, 0) as fav
+            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 'fav', NULL) as fav
                     FROM forumpp_entries
                 LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.seminar_id = ?
@@ -241,7 +241,7 @@ class ForumPPEntry {
             // vprintf(str_replace('?', "'%s'", $query), $data);die;
 
         } else {
-            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 1, 0) as fav
+            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 'fav', NULL) as fav
                     FROM forumpp_entries
                 LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
