@@ -37,7 +37,7 @@
 
         <? endif ?>
 
-        <div class="buttons">
+        <div class="buttons button-group">
             <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
             
             <?= Studip\Button::createCancel('abbrechen', array(

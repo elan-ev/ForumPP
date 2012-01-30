@@ -37,7 +37,7 @@ shuffle($likes);
             <? endif ?>
 
             <p class="author">
-                von <strong><a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
+                von <strong><a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
                     <?= ForumPPHelpers::highlight(htmlReady($post['author']), $highlight) ?>
                 </a></strong>
                 am <?= strftime($time_format_string, (int)$post['mkdate']) ?>
@@ -133,7 +133,7 @@ shuffle($likes);
     <!-- Infobox rechts neben jedem Posting -->
     <dl class="postprofile">
         <dt>
-            <a href="<?= URLHelper::getLink('about.php?username='. $post['real_username']) ?>">
+            <a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
                 <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::MEDIUM,
                       array('title' => get_username($post['owner_id']))) ?>
                 <br>

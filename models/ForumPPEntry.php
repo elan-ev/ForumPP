@@ -215,9 +215,9 @@ class ForumPPEntry {
         $depth      = $constraint['depth'] + 1;
 
         if ($with_childs) {
-            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, ou.flag as fav
+            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 1, 0) as fav
                     FROM forumpp_entries
-                LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
+                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.seminar_id = ?
                     AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
@@ -228,22 +228,21 @@ class ForumPPEntry {
             $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
             $count_stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries
-                LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.seminar_id = ?
                     AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . $add
                 . " ORDER BY forumpp_entries.mkdate $sort_order");
-            $count_stmt->execute($data = array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
+            $count_stmt->execute(array($seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
 
             // vprintf(str_replace('?', "'%s'", $query), $data);die;
 
         } else {
-            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, ou.flag as fav
+            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 1, 0) as fav
                     FROM forumpp_entries
-                LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
+                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
@@ -253,14 +252,13 @@ class ForumPPEntry {
             $stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
             $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
-                LEFT JOIN object_user as ou ON (ou.object_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
                     AND forumpp_entries.seminar_id != forumpp_entries.topic_id
                     AND lft > ? AND rgt < ?) "
                 . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
                 . ') '. $add
                 . " ORDER BY forumpp_entries.mkdate $sort_order");
-            $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
+            $count_stmt->execute(array($depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
         }
 
@@ -378,7 +376,7 @@ class ForumPPEntry {
                 break;
 
             case 'favorites':
-                $add = "AND ou.flag = 'fav'";
+                $add = "AND ou.topic_id IS NOT NULL";
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
 
