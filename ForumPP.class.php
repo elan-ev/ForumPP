@@ -16,6 +16,7 @@
 require_once 'vendor/trails/trails.php';
 require_once 'models/ForumPPEntry.php';
 require_once 'models/ForumPPHelpers.php';
+require_once 'models/ForumPPVisit.php';
 
 class ForumPP extends StudipPlugin implements StandardPlugin
 {
@@ -36,8 +37,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // add main third-level navigation-item
         $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
         $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
-        $navigation->addSubNavigation('newest',    new Navigation(_("neue Beiträge"), PluginEngine::getLink('forumpp/index/newest')));
-        $navigation->addSubNavigation('latest',    new Navigation(_("letzte Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
+        $navigation->addSubNavigation('latest',    new Navigation(_("Beitragsstream"), PluginEngine::getLink('forumpp/index/latest')));
 
         // add the navigation next to the traditional forum
         Navigation::insertItem('/course/forum2', $navigation, 'members');
@@ -67,25 +67,18 @@ class ForumPP extends StudipPlugin implements StandardPlugin
     }
 
     function getIconNavigation($course_id, $last_visit) {
-        //echo date('d.m.Y H:i', $lastlogin);
-        $this->last_visit = object_get_visit($course_id, "forum", "visitdate");
-        if (!$this->last_visit) {
-            $this->last_visit = $last_visit;
-        }
+        $num_entries = ForumPPVisit::getCountSeminar($GLOBALS['user']->id, $course_id);
 
+        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index'));
 
-        $list = ForumPPEntry::getList('newest', $course_id);
-
-        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/newest'));
-
-        if ($list['count'] == 1) {
-            $text = _("Ein neuer Beitrag vorhanden");
+        if ($num_entries == 1) {
+            $text = _("Es ist ein neuer Beitrag in diesem Forum vorhanden.");
             $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
-        } else if ($list['count'] > 1) {
-            $text = sprintf(_("%s neue Beiträge vorhanden."), $list['count']);
+        } else if ($num_entries > 1) {
+            $text = sprintf(_("Es sind %s neue Beiträge in diesem Forum vorhanden."), $num_entries);
             $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
         } else {
-            $text = _("Keine neuen Beiträge.");
+            $text = sprintf(_('Keine neuen Beiträge. Es gibt insgesamt %s Beiträge in diesem Forum.'), ForumPPEntry::countEntries($course_id));
             $navigation->setImage('icons/16/grey/forum.png', array('title' => $text));
         }
 

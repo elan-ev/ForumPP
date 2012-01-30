@@ -28,6 +28,7 @@ require_once $this->trails_root .'/models/ForumPPCat.php';
 require_once $this->trails_root .'/models/ForumPPLike.php';
 require_once $this->trails_root .'/models/ForumPPVersion.php';
 require_once $this->trails_root .'/models/ForumPPVisit.php';
+require_once $this->trails_root .'/models/ForumPPFavorite.php';
 
 /*
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -91,14 +92,11 @@ class IndexController extends StudipController
         $this->topic_id     = $topic_id ? $topic_id : $this->getId();
         $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
 
-        // set the visitdate
-        if ($this->constraint['depth'] > 1) { // are we watching a thread
-            // set the visit-date
-            ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
+        // set the visit-date
+        ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
             
-            // get the stored visit-date
-            $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
-        }
+        // get the stored visit-date
+        $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
 
         // set page to which we shall jump
         if ($page) {
@@ -181,30 +179,6 @@ class IndexController extends StudipController
         $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
 
         $list = ForumPPEntry::getList('latest', $this->topic_id);
-        $this->postings          = $list['list'];
-        $this->number_of_entries = $list['count'];
-        $this->show_full_path    = true;
-
-        // set default layout
-        $layout = $GLOBALS['template_factory']->open('layouts/base');
-        $this->set_layout($layout);
-
-        if (empty($this->postings)) {
-            $this->no_entries = true;
-        }
-
-        $this->render_action('index');
-    }
-
-    function newest_action()
-    {
-        $nav = Navigation::getItem('course/forum2');
-        $nav->setImage('icons/16/black/forum.png');
-        Navigation::activateItem('course/forum2/newest');
-
-        $this->topic_id = $this->getId();
-        $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
-        $list = ForumPPEntry::getList('newest', $this->topic_id);
         $this->postings          = $list['list'];
         $this->number_of_entries = $list['count'];
         $this->show_full_path    = true;
@@ -387,9 +361,15 @@ class IndexController extends StudipController
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
     }
 
-    function switch_favorite_action($topic_id)
+    function set_favorite_action($topic_id)
     {
-        object_switch_fav($topic_id);
+        
+        ForumPPFavorite::set($topic_id);
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+    }
+    
+    function unset_favorite_action($topic_id) {
+        ForumPPFavorite::remove($topic_id);
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
     }
 

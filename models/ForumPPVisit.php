@@ -19,6 +19,12 @@ class ForumPPVisit {
      * marked as new. 
      */
     const LAST_VISIT_MAX = 7776000; // 90 days
+    
+    /**
+     * Number of seconds before the last_visitdate will be overwritten if a 
+     * thread / area is opened 
+     */
+    const LAST_VISIT_LIFETIME = 3600;
 
     /**
      * update the visitdate or set it initially for the passed topic
@@ -45,10 +51,10 @@ class ForumPPVisit {
             $stmt->execute(array($user_id, $topic_id, $seminar_id, time()));
         }
 
-        if ($data['last_visitdate'] < (time() + 3600)) {
+        if ($data['last_visitdate'] < (time() - self::LAST_VISIT_LIFETIME)) {
             // the last_visitdate is overwritten after an hour
             $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-                SET visitdate = UNIX_TIMESTAMP(), last_visitdate = ?
+                SET visitdate = UNIX_TIMESTAMP(), last_visitdate = ?, new_entries = 0
                 WHERE user_id = ? AND topic_id = ? AND seminar_id = ?");
             $stmt->execute(array($data['visitdate'], $user_id, $topic_id, $seminar_id));
         } else {
@@ -74,7 +80,7 @@ class ForumPPVisit {
 
         $stmt->execute(array($user_id, $topic_id, $seminar_id));
 
-        return $stmt->fetchColumn();
+        return $stmt->fetchColumn() ?: time();
     }
 
     /**
@@ -84,7 +90,25 @@ class ForumPPVisit {
      * @param type $seminar_id the seminar_id for the entries
      * @return int the number of entries
      */
-    static function getCountForUser($user_id, $seminar_id) {
+    static function getCountForTopic($user_id, $topic_id) {
+        $stmt = DBManager::get()->prepare("SELECT new_entries FROM forumpp_visits
+            WHERE user_id = ? AND topic_id = ?
+            AND visitdate > (UNIX_TIMESTAMP() - ". self::LAST_VISIT_MAX .") ");
+
+        $stmt->execute(array($user_id, $topic_id));
+
+        return $stmt->fetchColumn();
+    }
+    
+    /**
+     * return number of new entries since last visit up to 3 month ago for the
+     * passed seminar, summed up for all threads
+     *
+     * @param type $user_id the user_id for the entries
+     * @param type $seminar_id the seminar_id for the entries
+     * @return int the number of entries
+     */
+    static function getCountSeminar($user_id, $seminar_id) {
         $stmt = DBManager::get()->prepare("SELECT SUM(new_entries) FROM forumpp_visits
             WHERE user_id = ? AND seminar_id = ?
             AND visitdate > (UNIX_TIMESTAMP() - ". self::LAST_VISIT_MAX .") ");
@@ -96,5 +120,9 @@ class ForumPPVisit {
 
     static function entryAdded($topic_id) {
         var_dump(ForumPPEntry::getPathToPosting($topic_id));
+    }
+    
+    static function entryDeleted($topic_id) {
+        
     }
 }

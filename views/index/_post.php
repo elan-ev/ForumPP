@@ -21,6 +21,14 @@ shuffle($likes);
     <div class="postbody">
         <div class="title">
 
+            <? if (isset($visitdate) && $post['mkdate'] >= $visitdate) : ?>
+            <span class="new_posting">
+                <?= Assets::img('icons/16/red/new/forum.png', array(
+                    'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
+                )) ?>
+            </span>
+            <? endif ?>
+
             <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
                 <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
             <? else : ?>
@@ -174,9 +182,9 @@ shuffle($likes);
         <? endif ?>
             
         <? if (!$post['fav']) : ?>
-            <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getLink('forumpp/index/switch_favorite/' . $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getLink('forumpp/index/set_favorite/' . $post['topic_id'])) ?>
         <? else : ?>
-            <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getLink('forumpp/index/switch_favorite/' . $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getLink('forumpp/index/unset_favorite/' . $post['topic_id'])) ?>
         <? endif ?>
     <? endif ?>
         </div>
