@@ -160,6 +160,7 @@ shuffle($likes);
     <? endif ?>
 
     <!-- Buttons for this Posting -->
+    <? if ($section == 'index') : ?>
     <div class="buttons">
         <div class="button-group">
     <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
@@ -167,14 +168,14 @@ shuffle($likes);
 
         <?= Studip\LinkButton::createCancel('abbrechen', PluginEngine::getLink('forumpp/index/index/'. $topic_id)) ?>
         
-        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>          
+        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
         
     <? else : ?>
         <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <?= Studip\LinkButton::create('Eintrag bearbeiten', PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
         <? endif ?>
         
-        <?= Studip\LinkButton::create('zitieren', PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id'])) ?>
+        <?= Studip\LinkButton::create('zitieren', PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
         
         
         <? if ($this->has_perms) : ?>
@@ -189,6 +190,7 @@ shuffle($likes);
     <? endif ?>
         </div>
     </div>
+    <? endif ?>
 
   <span class="corners-bottom"><span></span></span>
 </div>

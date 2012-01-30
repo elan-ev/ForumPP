@@ -40,7 +40,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 ?>
 
 <!-- Breadcrumb navigation -->
-<?= $breadcrumb ? $this->render_partial('index/_breadcrumb') : '' ?>
+<?= $this->render_partial('index/_breadcrumb') ?>
 
 <!-- Message area -->
 <div id="message_area">
@@ -75,6 +75,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
         </div>
 
         <div id="new_entry_box" <?= $this->flash['new_entry_title'] ? '' : 'style="display: none"' ?>>
+            <br style="clear: both">
             <?= $this->render_partial('index/_new_entry') ?>
         </div>
     </div>
