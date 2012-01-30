@@ -15,7 +15,7 @@
  * @category    Stud.IP
  */
 
-class CreateForumppTable extends DBMigration {
+class AddTables extends DBMigration {
     function up() {
         DBManager::get()->exec("
             CREATE TABLE IF NOT EXISTS `forumpp_visits` (
