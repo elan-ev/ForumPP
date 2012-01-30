@@ -528,6 +528,7 @@ class ForumPPEntry {
      */
     function delete($topic_id) {
         $constraints = self::getConstraints($topic_id);
+        ForumPPVisit::entryDelete($topic_id);
 
         // #TODO: Zusammenfassen in eine Transaktion!!!
         // get all entry-ids to delete them from the category-reference-table
@@ -560,8 +561,6 @@ class ForumPPEntry {
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET rgt = rgt - $diff
             WHERE rgt > ? AND seminar_id = ?");
         $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
-        
-        ForumPPVisit::entryDeleted($topic_id);
     }
     
     /**

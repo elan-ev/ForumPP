@@ -119,10 +119,42 @@ class ForumPPVisit {
     }
 
     static function entryAdded($topic_id) {
-        var_dump(ForumPPEntry::getPathToPosting($topic_id));
+        return;
+        $path = ForumPPEntry::getPathToPosting($topic_id);
+        array_pop($path);
+        
+        $topic = array_pop($path);
+        
+        // increase the number of new entries for all users
+        $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
+            SET new_entries = new_entries + 1
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic['id']));
     }
     
-    static function entryDeleted($topic_id) {
+    static function entryDelete($topic_id) {
+        return;
+        $path = ForumPPEntry::getPathToPosting($topic_id);
+        array_pop($path);
         
+        $topic = array_pop($path);
+        
+        // decrease the number of new_entries for all users
+        $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
+            SET new_entries = new_entries - 1
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic['id']));
+        
+        // set all negative numbers to zero
+        DBManager::get()->exec("UPDATE forumpp_visits
+            SET new_entries = 0
+            WHERE new_entries < 0");
+        
+        // delete all entries for this topic_id (if any)
+        $stmt = DBManager::get()->prepare("DELETE FROM forumpp_visits
+            WHERE topic_id = ?");
+        $stmt->execute(array($topic_id));
+
+        // TODO: fetch all child entries as well to delete their entries
     }
 }

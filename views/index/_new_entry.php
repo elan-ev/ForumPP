@@ -37,14 +37,16 @@
 
         <? endif ?>
 
-        <div class="buttons button-group">
-            <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
-            
-            <?= Studip\Button::createCancel('abbrechen', array(
-                'onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;",
-                'tabindex' => '4')) ?>
-            
-            <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');", array('tabindex' => '5')) ?>
+        <div class="buttons">
+            <div class="button-group">
+                <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
+
+                <?= Studip\Button::createCancel('abbrechen', array(
+                    'onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;",
+                    'tabindex' => '4')) ?>
+
+                <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');", array('tabindex' => '5')) ?>
+            </div>
         </div>
 
         <span class="corners-bottom"><span></span></span>
