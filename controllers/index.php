@@ -27,6 +27,7 @@ require_once $this->trails_root .'/models/ForumPPHelpers.php';
 require_once $this->trails_root .'/models/ForumPPCat.php';
 require_once $this->trails_root .'/models/ForumPPLike.php';
 require_once $this->trails_root .'/models/ForumPPVersion.php';
+require_once $this->trails_root .'/models/ForumPPVisit.php';
 
 /*
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -92,7 +93,11 @@ class IndexController extends StudipController
 
         // set the visitdate
         if ($this->constraint['depth'] > 1) { // are we watching a thread
-            $this->visitdate = ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
+            // set the visit-date
+            ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
+            
+            // get the stored visit-date
+            $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
         }
 
         // set page to which we shall jump
