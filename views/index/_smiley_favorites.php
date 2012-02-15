@@ -2,7 +2,7 @@
 require_once('app/models/smiley.php');
 $sm = new SmileyFavorites($GLOBALS['user']->id);
 ?>
-<div style="text-align: center">
+<div style="text-align: center; padding-right: 5px;">
     <? $smileys = Smiley::getByIds($sm->get()) ?>
     <? if (!empty($smileys)) : ?>
         <? foreach ($smileys as $smiley) : ?>

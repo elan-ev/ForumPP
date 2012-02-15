@@ -148,8 +148,8 @@
 
 #forumpp .posting {
     height: 100%;
-    margin: 0pt;
-    padding: 0pt;
+    margin: 0 0 0.5em 0;
+    padding: 0;
 }
 
 #forumpp .postbody {
@@ -265,7 +265,7 @@
 #forumpp .action-icons {
     position: absolute;
     right: 10px;
-    top: 0px; 
+    top: 0px;
 }
 
 #forumpp .action-buttons {

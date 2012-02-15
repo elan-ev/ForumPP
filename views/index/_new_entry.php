@@ -12,21 +12,24 @@
 
                 case 2:
                 default:
-                    echo _('Neuen Beitrag erstellen');
+                    echo _('Antworten');
                     break;
             endswitch; ?></span>
 
             <p class="content" style="margin-bottom: 0pt">
-                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>" <?= $constraint['depth'] == 1 ? 'required' : '' ?> placeholder="<?= _('Titel') ?>" tabindex="1"><br/>
-                <br/>
+                <input type="text" name="name" style="width: 99%" value="<?= $this->flash['new_entry_title'] ?>"
+                    <?= $constraint['depth'] == 1 ? 'required' : '' ?> placeholder="<?= _('Titel') ?>" tabindex="1">
+                <br>
+                <br>
             </p>
         </div>
-        
+
         <? if ($constraint['depth'] > 0): ?>
 
         <div class="postbody">
             <textarea class="add_toolbar" id="inhalt" name="content" required tabindex="2"
-                placeholder="<?= _("Schreiben Sie hier ihren Beitrag. Hilfe zu Formatierungen finden Sie rechts neben diesem Textfeld.") ?>"><?= $this->flash['new_entry_content'] ?></textarea>
+                placeholder="<?= _('Schreiben Sie hier Ihren Beitrag. Hilfe zu Formatierungen'
+                    . ' finden Sie rechts neben diesem Textfeld.') ?>"><?= $this->flash['new_entry_content'] ?></textarea>
         </div>
 
         <dl class="postprofile">
@@ -41,7 +44,7 @@
             <div class="button-group">
                 <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
 
-                <?= Studip\Button::createCancel('abbrechen', array(
+                <?= Studip\Button::createCancel('Abbrechen', array(
                     'onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;",
                     'tabindex' => '4')) ?>
 

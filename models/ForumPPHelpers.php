@@ -78,23 +78,23 @@ class ForumPPHelpers {
                 break;
 
             case 'admin':
-                return _('Administrator/In');
+                return _('Administrator/in');
                 break;
 
             case 'dozent':
-                return _('Dozent/In');
+                return _('Dozent/in');
                 break;
 
             case 'tutor':
-                return _('Tutor/In');
+                return _('Tutor/in');
                 break;
 
             case 'autor':
-                return _('Autor/In');
+                return _('Autor/in');
                 break;
 
             case 'user':
-                return _('Leser/In');
+                return _('Leser/in');
                 break;
 
             default:
