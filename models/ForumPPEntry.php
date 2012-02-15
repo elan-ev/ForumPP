@@ -373,7 +373,7 @@ class ForumPPEntry {
 
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
-             * 
+             *
              */
 
             case 'latest':
@@ -467,7 +467,7 @@ class ForumPPEntry {
 
     /**
      * insert a node into the table
-     * 
+     *
      * @param type $data an array containing the following fields:
      *     topic_id     the id of the new topic
      *     seminar_id   the id of the seminar to add the topic to
@@ -477,14 +477,14 @@ class ForumPPEntry {
      *     author       the author's name as a plaintext string
      *     author_host  ip-address of creator
      * @param type $parent_id the node to add the topic to
-     * 
+     *
      * @return void
      */
     static function insert($data, $parent_id) {
         $constraint = self::getConstraints($parent_id);
 
         // #TODO: Zusammenfassen in eine Transaktion!!!
-        DBManager::get()->exec('UPDATE forumpp_entries SET lft = lft + 2 
+        DBManager::get()->exec('UPDATE forumpp_entries SET lft = lft + 2
             WHERE lft > '. $constraint['rgt'] ." AND seminar_id = '". $constraint['seminar_id'] ."'");
         DBManager::get()->exec('UPDATE forumpp_entries SET rgt = rgt + 2
             WHERE rgt >= '. $constraint['rgt'] ." AND seminar_id = '". $constraint['seminar_id'] ."'");
@@ -496,18 +496,18 @@ class ForumPPEntry {
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
-        
+
         ForumPPVisit::entryAdded($data['topic_id']);
     }
 
-    
+
     /**
      * update the passed topic
-     * 
+     *
      * @param type $topic_id the id of the topic to update
      * @param type $name the new name
      * @param type $content the new content
-     * 
+     *
      * @return void
      */
     static function update($topic_id, $name, $content) {
@@ -521,9 +521,9 @@ class ForumPPEntry {
 
     /**
      * delete an entry and all his descendants from the mptt-table
-     * 
+     *
      * @param type $topic_id the id of the entry to delete
-     * 
+     *
      * @return void
      */
     function delete($topic_id) {
@@ -545,30 +545,30 @@ class ForumPPEntry {
             $stmt->bindParam(':ids', $ids, StudipPDO::PARAM_ARRAY);
             $stmt->execute();
         }
-        
+
         // delete all entries
         $stmt = DBManager::get()->prepare("DELETE FROM forumpp_entries
             WHERE seminar_id = ? AND lft >= ? AND rgt <= ?");
-        
+
         $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
-        
+
         // update lft and rgt
         $diff = $constraints['rgt'] - $constraints['lft'] + 1;
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET lft = lft - $diff
             WHERE lft > ? AND seminar_id = ?");
         $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
-        
+
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET rgt = rgt - $diff
             WHERE rgt > ? AND seminar_id = ?");
         $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
     }
-    
+
     /**
      * move the passed topic to the passed area
-     * 
+     *
      * @param type $topic_id the topic to move
      * @param type $destination the area_id where the topic is moved to
-     * 
+     *
      * @return void
      */
     function move($topic_id, $destination) {
@@ -580,31 +580,31 @@ class ForumPPEntry {
             SET lft = lft * -1, rgt = (rgt * -1)
             WHERE seminar_id = ? AND lft >= ? AND rgt <= ?");
         $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
-        
+
         // update the lft and rgt values of the parent to reflect the "deletion"
         $diff = $constraints['rgt'] - $constraints['lft'] + 1;
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET lft = lft - $diff
             WHERE lft > ? AND seminar_id = ?");
         $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
-        
+
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries SET rgt = rgt - $diff
             WHERE rgt > ? AND seminar_id = ?");
-        $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));        
-    
+        $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
+
         // make some space by updating the lft and rgt values of the target node
         $constraints_destination = self::getConstraints($destination);
         $size = $constraints['rgt'] - $constraints['lft'] + 1;
 
-        DBManager::get()->exec("UPDATE forumpp_entries SET lft = lft + $size 
+        DBManager::get()->exec("UPDATE forumpp_entries SET lft = lft + $size
             WHERE lft > ". $constraints_destination['rgt'] ." AND seminar_id = '". $constraints_destination['seminar_id'] ."'");
         DBManager::get()->exec("UPDATE forumpp_entries SET rgt = rgt + $size
             WHERE rgt >= ". $constraints_destination['rgt'] ." AND seminar_id = '". $constraints_destination['seminar_id'] . "'");
-        
+
         //move the entries from "outside" the tree to the target node
         $constraints_destination = self::getConstraints($destination);
-       
+
         $diff = ($constraints_destination['rgt'] - ($constraints['rgt'] - $constraints['lft'])) - 1 - $constraints['lft'];
-        
+
         DBManager::get()->exec("UPDATe forumpp_entries
             SET lft = (lft * -1) + $diff, rgt = (rgt * -1) + $diff
             WHERE seminar_id = '". $constraints_destination['seminar_id'] ."'
@@ -614,9 +614,9 @@ class ForumPPEntry {
     /**
      * check, if the default root-node for this seminar exists and make sure
      * the default category exists as well
-     * 
-     * @param type $seminar_id 
-     * 
+     *
+     * @param type $seminar_id
+     *
      * @return void
      */
     function checkRootEntry($seminar_id) {
@@ -627,10 +627,10 @@ class ForumPPEntry {
         if ($stmt->fetchColumn() == 0) {
             $stmt = DBManager::get()->prepare("INSERT INTO forumpp_entries
                 (topic_id, seminar_id, name, mkdate, chdate, lft, rgt, depth)
-                VALUES (?, ?, 'Startseite', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 1, 0)");
+                VALUES (?, ?, 'Übersicht', UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 0, 1, 0)");
             $stmt->execute(array($seminar_id, $seminar_id));
         }
-        
+
         // make sure, that the category "Allgemein" exists
         $stmt = DBManager::get()->prepare("REPLACE INTO forumpp_categories
             (category_id, seminar_id, entry_name) VALUES (?, ?, 'Allgemein')");

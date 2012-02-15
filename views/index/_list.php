@@ -12,11 +12,6 @@
                 <? else: ?>
                 <span class="category_name">
                     <?= $categories[$category_id] ?>
-                    <? if ($category_id == $seminar_id) : ?>
-                    <span style="color: #666666">
-                        <?= _('Vordefinierter Bereich, kann nicht bearbeitet oder gelöscht werden') ?>
-                    </span>
-                    <? endif ?>
                 </span>
                 <? endif ?>
             </span>
@@ -24,7 +19,7 @@
                 <input type="text" name="name" size="40" value="<?= $categories[$category_id] ?>">
 
                 <?= Studip\LinkButton::createAccept('Kategorie speichern', "javascript:STUDIP.ForumPP.saveCategoryName('". $category_id ."')") ?>
-                <?= Studip\LinkButton::createCancel('abbrechen', "javascript:STUDIP.ForumPP.cancelEditCategoryName('". $category_id ."')") ?>
+                <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditCategoryName('". $category_id ."')") ?>
             </span>
         </td>
 
@@ -33,37 +28,44 @@
             <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
-        <td class="forum_header" width="30%" colspan="2">
+        <td class="forum_header" width="30%" colspan="2" align="right">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
-            <? if ($has_perms && $category_id != $seminar_id) : ?>
-            <span style="float: right; padding-right: 10px;">
+            <? if ($has_perms) : ?>
+            <span style="float: right; padding-right: 5px;">
+                <? if ($category_id == $seminar_id) : ?>
+                <?= Assets::img('icons/16/blue/info.png', array(
+                    'onClick' => "alert('" . _('Vordefinierter Bereich, '
+                        . 'kann nicht bearbeitet oder gelöscht werden') . "')",
+                    'style'   => 'cursor: pointer')) ?>
+                <? else : ?>
                 <a href="javascript:STUDIP.ForumPP.editCategoryName('<?= $category_id ?>')">
                     <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Name der Kategorie ändern')) ?>
-                </a>                
+                </a>
                 <a href="javascript:STUDIP.ForumPP.deleteCategory('<?= $category_id ?>', '<?= $categories[$category_id] ?>')">
                     <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Kategorie entfernen')) ?>
                 </a>
+                <? endif ?>
             </span>
             <? endif ?>
         </td>
     </tr>
     </thead>
 
-    
+
     <tbody class="sortable">
     <!-- this row allows dropping on otherwise empty categories -->
     <tr class="sort-disabled">
         <td class="areaborder" style="height: 5px"colspan="7"> </td>
     </tr>
-        
+
     <? if (!empty($entries)) foreach ($entries as $entry) :
         $topic_id = $entry['topic_id'];
 
         if ($constraint['depth'] >= 1) :
             $topic_id = ($entry['last_posting']['topic_id'] ? $entry['last_posting']['topic_id'] : $entry['topic_id']);
         endif ?>
-    
+
     <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
@@ -95,25 +97,25 @@
                     <input type="text" name="name" size="20" value="<?= $entry['name'] ?>" onClick="jQuery(this).focus()">
 
                     <?= Studip\LinkButton::createAccept('Titel speichern', "javascript:STUDIP.ForumPP.saveAreaName('". $entry['topic_id'] ."')") ?>
-                    <?= Studip\LinkButton::createCancel('abbrechen', "javascript:STUDIP.ForumPP.cancelEditAreaName('". $entry['topic_id'] ."')") ?>
+                    <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditAreaName('". $entry['topic_id'] ."')") ?>
                 </span>
 
                 <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
                 <span class="action-icons">
                     <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $entry['topic_id'] ?>');">
-                        <?= Assets::img('icons/16/blue/edit.png', 
+                        <?= Assets::img('icons/16/blue/edit.png',
                             array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
                     </a>
-                    
+
                     <a href="javascript:STUDIP.ForumPP.deleteArea(this, '<?= $entry['topic_id'] ?>')">
-                        <?= Assets::img('icons/16/blue/trash.png', 
+                        <?= Assets::img('icons/16/blue/trash.png',
                             array('class' => 'delete-area', 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
                     </a>
                 </span>
                 <? elseif ($constraint['depth'] == 1 && $has_rights) : /* threads */?>
                 <span class="action-icons">
                     <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $entry['topic_id'] ?>');">
-                        <?= Assets::img('icons/16/blue/move_right/folder-full.png', 
+                        <?= Assets::img('icons/16/blue/move_right/folder-full.png',
                             array('class' => 'move-thread', 'title' => 'Diesen Thread verschieben')) ?>
                     </a>
 
@@ -124,7 +126,7 @@
                         <? foreach ($areas as $area_id => $area): ?>
                         <? if ($area_id != $parent['id']) : ?>
                         <div style="font-size: 16px; margin-bottom: 5px;">
-                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>"> 
+                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
                             <?= Assets::img('icons/16/yellow/arr_2right.png') ?>
                             <?= $area['name'] ?>
                             </a>
@@ -193,12 +195,12 @@
             <form class="add_area_form" style="display: none" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
                 <?= CSRFProtection::tokenTag() ?>
                 <input type="text" name="name" size="50" placeholder="Name des neuen Bereiches" required>
-                
+
                 <?= Studip\Button::create('Bereich hinzufügen') ?>
-                <?= Studip\LinkButton::createCancel('abbrechen', "javascript:STUDIP.ForumPP.cancelAddArea()") ?>
+                <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelAddArea()") ?>
             </form>
         </td>
-    </tr>    
+    </tr>
     <? endif ?>
 
 

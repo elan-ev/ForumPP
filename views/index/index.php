@@ -2,7 +2,7 @@
     jQuery(document).ready(function() {
         // set seminar-id
         STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
-        
+
         <? if ($constraint['depth'] == 0) : /* main areas */?>
         // additional initializations for the area-view
         STUDIP.ForumPP.initAreas();
@@ -32,7 +32,7 @@ $infobox_content[] = array(
         array(
             'icon' => 'icons/16/grey/info.png',
             'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
-        )        
+        )
     )
 );
 
@@ -50,7 +50,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? if ($no_entries) : ?>
     <?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
 <? elseif ($no_search_results) : ?>
-    <?= MessageBox::info(_('Es wurden keine Beiträge gefunden die zu Ihren Suchkriterien passen!')) ?>
+    <?= MessageBox::info(_('Es wurden keine Beiträge gefunden, die zu Ihren Suchkriterien passen!')) ?>
 <? endif ?>
 
 <? if (!empty($list)) : ?>
@@ -67,8 +67,8 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? if ($constraint['depth'] == 0) : ?>
     <?= $this->render_partial('index/_new_category') ?>
 <? else : ?>
-    <? if (!$flash['edit_entry']) : ?>  
-    <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Neuen Beitrag erstellen') ?>
+    <? if (!$flash['edit_entry']) : ?>
+    <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Antworten') ?>
     <div style="text-align: center">
         <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
             <?= Studip\Button::create($button_face, array('onClick' => "jQuery('#new_entry_button').hide();jQuery('#new_entry_box').show();")) ?>
@@ -80,6 +80,6 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
         </div>
     </div>
     <? endif ?>
-    
+
 <? endif ?>
 </div>

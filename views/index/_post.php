@@ -13,7 +13,7 @@ shuffle($likes);
 
 <div class="posting <?=($zebra) ? 'bg1' : 'bg2'?>" style="position: relative;">
     <span class="corners-top"><span></span></span>
-    
+
     <? if ($post['fav']) : ?>
     <div class="marked"></div>
     <? endif ?>
@@ -110,9 +110,9 @@ shuffle($likes);
                 <?= end($links) ?>
             <? endif ?>
 
-            <?= _('gefällt das.') ?> | 
+            <?= _('gefällt das.') ?> |
             <? endif ?>
-            
+
             <?foreach ($icons as $an_icon) : ?>
             <a href="<?= $an_icon['link'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
                 <?= $an_icon['content'] ?>
@@ -166,22 +166,22 @@ shuffle($likes);
     <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
         <?= Studip\Button::createAccept('Änderungen speichern') ?>
 
-        <?= Studip\LinkButton::createCancel('abbrechen', PluginEngine::getLink('forumpp/index/index/'. $topic_id)) ?>
-        
+        <?= Studip\LinkButton::createCancel('Abbrechen', PluginEngine::getLink('forumpp/index/index/'. $topic_id)) ?>
+
         <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
-        
+
     <? else : ?>
         <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <?= Studip\LinkButton::create('Eintrag bearbeiten', PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
         <? endif ?>
-        
-        <?= Studip\LinkButton::create('zitieren', PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
-        
-        
+
+        <?= Studip\LinkButton::create('Zitieren', PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
+
+
         <? if ($this->has_perms) : ?>
             <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getLink('forumpp/index/delete_entry/' . $post['topic_id'])) ?>
         <? endif ?>
-            
+
         <? if (!$post['fav']) : ?>
             <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getLink('forumpp/index/set_favorite/' . $post['topic_id'])) ?>
         <? else : ?>
@@ -200,5 +200,3 @@ shuffle($likes);
 
 <?= $this->render_partial('index/_preview', array('preview_id' => 'preview')) ?>
 <? endif ?>
-
-<br>
