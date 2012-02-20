@@ -67,18 +67,15 @@ class ForumPP extends StudipPlugin implements StandardPlugin
     }
 
     function getIconNavigation($course_id, $last_visit) {
-        $num_entries = ForumPPVisit::getCountSeminar($GLOBALS['user']->id, $course_id);
+        $num_entries = ForumPPVisit::getCount($GLOBALS['user']->id, $course_id);
+        
+        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/enter_seminar'));
 
-        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index'));
+        $text = ForumPPHelpers::getVisitText($num_entries, $course_id);
 
-        if ($num_entries == 1) {
-            $text = _("Es ist ein neuer Beitrag in diesem Forum vorhanden.");
-            $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
-        } else if ($num_entries > 1) {
-            $text = sprintf(_("Es sind %s neue Beiträge in diesem Forum vorhanden."), $num_entries);
+        if ($num_entries['abo'] > 0 || $num_entries['new'] > 0) {
             $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
         } else {
-            $text = sprintf(_('Keine neuen Beiträge. Es gibt insgesamt %s Beiträge in diesem Forum.'), ForumPPEntry::countEntries($course_id));
             $navigation->setImage('icons/16/grey/forum.png', array('title' => $text));
         }
 

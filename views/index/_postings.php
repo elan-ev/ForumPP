@@ -3,18 +3,10 @@
 <?
 $posting_num = 1;
 $zebra = 0;
-$cutoff = false;
 if (!$section) $section = 'index';
 
 foreach ($postings as $post) :
-    // show the line only once and do not show it before the first posting of a thread
-    if ($post['mkdate'] >= $visitdate && !$cutoff) : ?>
-        <? if ($posting_num > 1) : ?>
-        <hr>
-        <? endif ?>
-        <? $cutoff = true; ?>
-    <? endif;
-    
+    // show the line only once and do not show it before the first posting of a thread    
     $zebra = 1 - $zebra;
     echo $this->render_partial('index/_post', compact('post', 'zebra', 'visitdate', 'section'));
 

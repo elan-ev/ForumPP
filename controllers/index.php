@@ -65,7 +65,26 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /*  V   I   E   W   -   A   C   T   I   O   N   S  */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
+    
+    /**
+     * this action is called when the user enters the seminar. It removes the
+     * the last_visitdates (sets it to zero) for immediate recalculation
+     * of new entries
+     */
+    function enter_seminar_action() {
+        ForumPPVisit::enterSeminar($GLOBALS['user']->id, $this->getId());
 
+        $this->redirect(PluginEngine::getLink('forumpp/index/index/'));
+    }
+
+    /**
+     * the main action for the forum. May be called with a topic_id to be displayed
+     * and optionally the page to display
+     * 
+     * @param type $topic_id the topic to display, defaults to the main
+     *                       view of the current seminar
+     * @param type $page the page to be displayed (for thread-view)
+     */
     function index_action($topic_id = null, $page = null)
     {
         $nav = Navigation::getItem('course/forum2');
@@ -91,12 +110,6 @@ class IndexController extends StudipController
 
         $this->topic_id     = $topic_id ? $topic_id : $this->getId();
         $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
-
-        // set the visit-date
-        ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
-            
-        // get the stored visit-date
-        $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
 
         // set page to which we shall jump
         if ($page) {
@@ -164,6 +177,10 @@ class IndexController extends StudipController
             }
             $this->number_of_entries = $list['count'];
         }
+
+        // set the visit-date and get the stored last_visitdate
+        ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
+        $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
 
         $this->seminar_id = $this->getId();
         $this->breadcrumb = true;
