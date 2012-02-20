@@ -69,20 +69,21 @@
     <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
-            <? if ($entry['mkdate'] >= $visitdate) : ?>
-                <? $new_postings = ForumPPEntry::countEntries($entry['topic_id']) ?>
+            <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $topic_id) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
+                <? /* $new_postings = ForumPPEntry::countEntries($entry['topic_id']) */ ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
-                    'title' => sprintf(_('Es gibt %s neue Beiträge seit Ihrem letzten Besuch.'), $new_postings)
+                    'title' => _('Dieser Eintrag ist neu!')
                 )) ?>
             <? else : ?>
-                <? $new_postings = ForumPPVisit::getCountForTopic($GLOBALS['user']->id, $entry['topic_id']) ?>
-                <? if ($new_postings > 0) : ?>
+                <? $new_postings = ForumPPVisit::getCount($GLOBALS['user']->id, $entry['topic_id']) ?>
+                <? $text = ForumPPHelpers::getVisitText($num_postings, $topic_id) ?>
+                <? if ($new_postings['abo'] > 0 || $num_postings['new'] > 0) : ?>
                     <?= Assets::img('icons/16/red/forum.png', array(
-                        'title' => sprintf(_('Es gibt %s neue Beiträge seit Ihrem letzten Besuch.'), $new_postings)
+                        'title' => $text
                     )) ?>
                 <? else : ?>
                     <?= Assets::img('icons/16/black/forum.png', array(
-                        'title' => _('Es gab seit Ihrem letzten Besuch keine neuen Beiträge.')
+                        'title' => $text
                     )) ?>
                 <? endif ?>
             <? endif ?>

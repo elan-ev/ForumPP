@@ -21,7 +21,7 @@ shuffle($likes);
     <div class="postbody">
         <div class="title">
 
-            <? if (isset($visitdate) && $post['mkdate'] >= $visitdate) : ?>
+            <? if (isset($visitdate) && $post['mkdate'] >= $visitdate && $post['owner_id'] != $GLOBALS['user']->id) : ?>
             <span class="new_posting">
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
@@ -166,26 +166,24 @@ shuffle($likes);
     <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
         <?= Studip\Button::createAccept('Änderungen speichern') ?>
 
-        <?= Studip\LinkButton::createCancel('Abbrechen', PluginEngine::getLink('forumpp/index/index/'. $topic_id)) ?>
-
+        <?= Studip\LinkButton::createCancel('Abbrechen', PluginEngine::getURL('forumpp/index/index/'. $topic_id)) ?>
         <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
 
     <? else : ?>
         <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
-            <?= Studip\LinkButton::create('Eintrag bearbeiten', PluginEngine::getLink('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Eintrag bearbeiten', PluginEngine::getURL('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
         <? endif ?>
-
-        <?= Studip\LinkButton::create('Zitieren', PluginEngine::getLink('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
-
+            
+        <?= Studip\LinkButton::create('Zitieren', PluginEngine::getURL('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
 
         <? if ($this->has_perms) : ?>
-            <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getLink('forumpp/index/delete_entry/' . $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id'])) ?>
         <? endif ?>
 
         <? if (!$post['fav']) : ?>
-            <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getLink('forumpp/index/set_favorite/' . $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getURL('forumpp/index/set_favorite/' . $post['topic_id'])) ?>
         <? else : ?>
-            <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getLink('forumpp/index/unset_favorite/' . $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getURL('forumpp/index/unset_favorite/' . $post['topic_id'])) ?>
         <? endif ?>
     <? endif ?>
         </div>

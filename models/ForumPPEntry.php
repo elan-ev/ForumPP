@@ -57,21 +57,60 @@ class ForumPPEntry {
      * returns the left and the right value of the passed entry
      *
      * @param  string  $topic_id
-     * @return array   array('lft' => ..., 'rgt' => ...)
+     * @return array   array('lft' => ..., 'rgt' => ..., seminar_id => ...)
      *
      * @throws Exception
      */
     static function getConstraints($topic_id) {
-        // look up the range of postings
-        $range_stmt = DBManager::get()->prepare("SELECT lft, rgt, depth, seminar_id
-            FROM forumpp_entries WHERE topic_id = ?");
-        $range_stmt->execute(array($topic_id));
-        if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
-            return false;
-            // throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
+        static $constraints;
+        
+        if (!$constraints[$topic_id]) {
+            // look up the range of postings
+            $range_stmt = DBManager::get()->prepare("SELECT lft, rgt, depth, seminar_id
+                FROM forumpp_entries WHERE topic_id = ?");
+            $range_stmt->execute(array($topic_id));
+            if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
+                return false;
+                // throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
+            }
+            
+            $constraints[$topic_id] = $data;
         }
 
-        return $data;
+        return $constraints[$topic_id];
+    }
+    
+    /**
+     * return the topic_id of the parent element, false if there is none (ie the
+     * passed topic_id is already the upper-most node in the tree)
+     * 
+     * @param string $topic_id the topic_id for which the parent shall be found
+     * 
+     * @return string the topic_id of the parent element or false
+     */
+    static function getParentTopicId($topic_id) {
+        $path = self::getPathToPosting($topic_id);
+        array_pop($path);
+        $data = array_pop($path);
+        
+        return $data['id'] ?: false;
+    }
+    
+    
+    /**
+     * get the topic_ids of all childs of the passed topic including itself
+     * 
+     * @param string $topic_id the topic_id to find the childs for
+     * @return array a list if topic_ids
+     */
+    static function getChildTopicIds($topic_id) {
+        $constraints = self::getConstraints($topic_id);
+        
+        $stmt = DBManager::get()->prepare("SELECT topic_id
+            FROM forumpp_entries WHERE lft >= ? AND rgt <= ?");
+        $stmt->execute(array($constraints['lft'], $constraints['rgt']));
+        
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
     static function hasEditPerms($topic_id) {
@@ -497,7 +536,7 @@ class ForumPPEntry {
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
 
-        ForumPPVisit::entryAdded($data['topic_id']);
+        ForumPPVisit::entryAdded($data['topic_id'], $constraint['seminar_id']);
     }
 
 
