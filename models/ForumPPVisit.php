@@ -35,6 +35,9 @@ class ForumPPVisit {
      * @param type $seminar_id
      */
     static function set($user_id, $topic_id, $seminar_id) {
+        // update visits older than one hour. Not the optimal place here
+        self::updateVisitedEntries($user_id, $seminar_id, time() - self::LAST_VISIT_LIFETIME);
+
         // check, if there is already an entry in the db
         $stmt = DBManager::get()->prepare("SELECT visitdate, last_visitdate FROM
             forumpp_visits WHERE user_id = ?
@@ -56,30 +59,26 @@ class ForumPPVisit {
 
             $stmt->execute($new_data = array($user_id, $topic_id, $seminar_id, $visitdate));
         } else {
-            /*
-            if ($data['last_visitdate'] < (time() - self::LAST_VISIT_LIFETIME)) {
-                // the last_visitdate is overwritten after an hour
-                $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-                    SET visitdate = UNIX_TIMESTAMP(), last_visitdate = ?, new_entries = 0
-                    WHERE user_id = ? AND topic_id = ? AND seminar_id = ?");
-                $stmt->execute(array($data['visitdate'], $user_id, $topic_id, $seminar_id));
-            } else {
-             * 
-             */
-                // visitdate is always set to the latest visit
-                $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-                    SET visitdate = UNIX_TIMESTAMP() /* , update_on_entry = 1 */
-                    WHERE user_id = ? AND topic_id = ? AND seminar_id = ?");
-                $stmt->execute(array($user_id, $topic_id, $seminar_id));
-            // }
+           // visitdate is always set to the latest visit
+            $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
+                SET visitdate = UNIX_TIMESTAMP() , visited = 1
+                WHERE user_id = ? AND topic_id = ? AND seminar_id = ?");
+            $stmt->execute(array($user_id, $topic_id, $seminar_id));
         }
     }
     
-    static function enterSeminar($user_id, $seminar_id) {
-        $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-            SET last_visitdate = visitdate, new_entries = 0
-            WHERE user_id = ? AND seminar_id = ?
-             /* AND #TODO: only update those who have not been revisited */");
+    static function updateVisitedEntries($user_id, $seminar_id, $since = false) {
+        if ($since) {
+            $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
+                SET last_visitdate = visitdate, new_entries = 0
+                WHERE user_id = ? AND seminar_id = ?
+                    AND visited = 1 AND last_visitdate <= ". $since);
+        } else {
+            $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
+                SET last_visitdate = visitdate, new_entries = 0, visited = 0
+                WHERE user_id = ? AND seminar_id = ?
+                    AND visited = 1");
+        }
         $stmt->execute(array($user_id, $seminar_id));
     }
 
@@ -117,7 +116,8 @@ class ForumPPVisit {
         
         $stmt = DBManager::get()->prepare("SELECT SUM(new_entries) FROM forumpp_visits
             WHERE user_id = :user_id AND topic_id IN (:topic_ids)
-            AND visitdate > (UNIX_TIMESTAMP() - ". self::LAST_VISIT_MAX .") ");
+                AND visitdate > (UNIX_TIMESTAMP() - ". self::LAST_VISIT_MAX .") 
+                AND topic_id != seminar_id");
 
         $stmt->bindParam(':topic_ids', $topic_ids, StudipPDO::PARAM_ARRAY);
         $stmt->bindParam(':user_id', $user_id);
@@ -126,14 +126,22 @@ class ForumPPVisit {
         $num_entries['abo'] = $stmt->fetchColumn();
        
         // get additionally the number of new entries since last visit
-        $stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries as fe
-            LEFT JOIN forumpp_visits as fv ON (fe.topic_id = fv.topic_id AND fe.seminar_id = fv.seminar_id)
-            WHERE fv.topic_id IS NULL AND fe.lft > ? AND fe.rgt < ? AND fe.depth = ?
-                AND fe.seminar_id = ? AND fv.user_id = ?");
-        $stmt->execute($data = array($constraints['lft'], $constraints['rgt'],
-            $constraints['depth'] + 1, $constraints['seminar_id'], $user_id));
+        if ($constraints['depth'] <= 1) {
+            $stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries as fe
+                LEFT JOIN forumpp_visits as fv ON (fe.topic_id = fv.topic_id 
+                    AND fe.seminar_id = fv.seminar_id 
+                    AND fv.user_id = ?)
+                WHERE fv.topic_id IS NULL 
+                    AND fe.lft > ? 
+                    AND fe.rgt < ? 
+                    AND fe.depth = ?
+                    AND fe.seminar_id = ?");
+            $stmt->execute($data = array($user_id, $constraints['lft'], $constraints['rgt'],
+                $constraints['depth'] + 1, $constraints['seminar_id']));
+        }
         
-        $num_entries['new'] += $stmt->fetchColumn();
+        # echo '<br>'. sprintf(str_replace('?', "'%s'", $query), $data[0], $data[1], $data[2], $data[3], $data[4]) .'<br>';
+        $num_entries['new'] = $stmt->fetchColumn();
 
         return $num_entries;
     }

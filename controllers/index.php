@@ -16,9 +16,6 @@
  */
 
 //require_once ( "sphinxapi.php" );
-//require_once('db/ForumPPDB.php');
-//require_once('ForumPPTraversal.class.php');
-// require_once('models/ForumPPEntry.class.php');
 require_once 'app/controllers/studip_controller.php';
 require_once 'lib/classes/AdminModules.class.php';
 require_once 'lib/classes/Config.class.php';
@@ -72,7 +69,7 @@ class IndexController extends StudipController
      * of new entries
      */
     function enter_seminar_action() {
-        ForumPPVisit::enterSeminar($GLOBALS['user']->id, $this->getId());
+        ForumPPVisit::updateVisitedEntries($GLOBALS['user']->id, $this->getId());
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/'));
     }

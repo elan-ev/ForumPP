@@ -60,24 +60,23 @@
     </tr>
 
     <? if (!empty($entries)) foreach ($entries as $entry) :
-        $topic_id = $entry['topic_id'];
+        $jump_to_topic_id = $entry['topic_id'];
 
         if ($constraint['depth'] >= 1) :
-            $topic_id = ($entry['last_posting']['topic_id'] ? $entry['last_posting']['topic_id'] : $entry['topic_id']);
+            $jump_to_topic_id = ($entry['last_posting']['topic_id'] ? $entry['last_posting']['topic_id'] : $entry['topic_id']);
         endif ?>
 
     <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
         <td class="areaentry icon" width="1%" valign="top" align="center">
-            <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $topic_id) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
-                <? /* $new_postings = ForumPPEntry::countEntries($entry['topic_id']) */ ?>
+            <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!')
                 )) ?>
             <? else : ?>
-                <? $new_postings = ForumPPVisit::getCount($GLOBALS['user']->id, $entry['topic_id']) ?>
-                <? $text = ForumPPHelpers::getVisitText($num_postings, $topic_id) ?>
-                <? if ($new_postings['abo'] > 0 || $num_postings['new'] > 0) : ?>
+                <? $num_postings = ForumPPVisit::getCount($GLOBALS['user']->id, $entry['topic_id']) ?>
+                <? $text = ForumPPHelpers::getVisitText($num_postings, $entry['topic_id'], $constraint['depth']) ?>
+                <? if ($num_postings['abo'] > 0 || $num_postings['new'] > 0) : ?>
                     <?= Assets::img('icons/16/red/forum.png', array(
                         'title' => $text
                     )) ?>
@@ -90,7 +89,7 @@
         </td>
         <td class="areaentry" valign="top">
             <div style="position: relative;">
-                <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $topic_id .'#'. $topic_id) ?>">
+                <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
                     <span class="areaname"><?= $entry['name'] ?></span>
                 </a>
 
