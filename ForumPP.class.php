@@ -68,7 +68,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
     function getIconNavigation($course_id, $last_visit) {
         $num_entries = ForumPPVisit::getCount($GLOBALS['user']->id, $course_id);
-        
+
         $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/enter_seminar'));
 
         $text = ForumPPHelpers::getVisitText($num_entries, $course_id);

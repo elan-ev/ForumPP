@@ -157,12 +157,21 @@ class ForumPPHelpers {
         self::$page = $page_num;
     }
     
-    static function getVisitText($num_entries, $topic_id) {
+    static function getVisitText($num_entries, $topic_id, $depth = -1) {
         if ($num_entries['abo'] > 0 && $num_entries['new'] > 0) {
-            $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche'
-                . ' und %s neue Einträge/Themen in den bisherigen Bereichen'), $num_entries['new'], $num_entries['abo']);
+            if ($depth > -1) {
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche'
+                    . ' und %s neue Einträge/Themen in den bisherigen Bereichen'), $num_entries['new'], $num_entries['abo']);
+            } else {
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Themen'
+                    . ' und %s neue Einträge bei den bisherigen Themen'), $num_entries['new'], $num_entries['abo']);
+            }
         } else if ($num_entries['abo'] > 0) {
-            $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Einträge/Themen'), $num_entries['abo']);
+            if ($depth > 0) {
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Einträge'), $num_entries['abo']);
+            } else {
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Einträge/Themen'), $num_entries['abo']);
+            }
         } else if ($num_entries['new'] > 0) {
             $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche'), $num_entries['new']);
         } else {

@@ -25,7 +25,7 @@ class AddTables extends DBMigration {
                 visitdate int(11) NOT NULL,
                 last_visitdate int(11) NOT NULL,
                 new_entries int(11) NOT NULL,
-                update_on_entry tinyint(1) NOT NULL DEFAULT 0,
+                visited tinyint(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY ( `user_id` , `seminar_id`, `topic_id` )
             );
         ");
