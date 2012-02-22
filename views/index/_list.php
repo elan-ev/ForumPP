@@ -35,8 +35,8 @@
             <span style="float: right; padding-right: 5px;">
                 <? if ($category_id == $seminar_id) : ?>
                 <?= Assets::img('icons/16/blue/info.png', array(
-                    'onClick' => "alert('" . _('Vordefinierter Bereich, '
-                        . 'kann nicht bearbeitet oder gelöscht werden') . "')",
+                    'onClick' => "alert('" . _('Vordefinierte Kategorie, kann nicht bearbeitet oder gelöscht werden.' . '\n'
+                        . 'Für Nutzer/innen ohne Moderationsrechte taucht diese Kategorie nur auf, wenn sie Bereiche enthält.') . "')",
                     'style'   => 'cursor: pointer')) ?>
                 <? else : ?>
                 <a href="javascript:STUDIP.ForumPP.editCategoryName('<?= $category_id ?>')">
@@ -191,7 +191,7 @@
     <? if ($category_id && $has_perms) : ?>
     <tr>
         <td class="areaborder" colspan="7">
-            <div class="add_area">+</div>
+            <div class="add_area" title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">+</div>
             <form class="add_area_form" style="display: none" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
                 <?= CSRFProtection::tokenTag() ?>
                 <input type="text" name="name" size="50" placeholder="Name des neuen Bereiches" required>

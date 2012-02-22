@@ -388,7 +388,7 @@ class IndexController extends StudipController
 
             $this->flash['new_entry'] = true;
             $this->flash['new_entry_content'] = $content;
-            $this->flash['new_entry_title'] = _('Re:') . ' ' . $entry['name'];
+            $this->flash['new_entry_title'] = _('Re:') . ' ' . htmlReady($entry['name']);
         }
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));

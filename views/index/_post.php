@@ -30,7 +30,7 @@ shuffle($likes);
             <? endif ?>
 
             <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-                <input type="text" name="name" value="<?= $post['name_raw'] ?>" style="width: 100%">
+                <input type="text" name="name" value="<?= htmlReady($post['name_raw']) ?>" style="width: 100%">
             <? else : ?>
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
                 <? if ($show_full_path) : ?>
@@ -124,7 +124,7 @@ shuffle($likes);
         <!-- Postinginhalt -->
         <p class="content">
             <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-            <textarea id="inhalt" name="content" class="add_toolbar"><?= $post['content_raw'] ?></textarea>
+            <textarea id="inhalt" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
             <? else : ?>
                 <?= ForumPPHelpers::highlight($post['content'], $highlight) ?>
             <? endif ?>
