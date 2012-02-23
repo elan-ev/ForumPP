@@ -15,6 +15,7 @@ STUDIP.ForumPP = {
         jQuery('#sortable_areas').sortable({
             axis: 'y',
             items: ">*.movable",
+            handle: 'td.handle',
             stop: function() {
                 var categories = {};
                 categories['categories'] = {};
@@ -35,6 +36,7 @@ STUDIP.ForumPP = {
             axis: 'y',
             items: ">*:not(.sort-disabled)",
             connectWith: 'tbody.sortable',
+            handle: 'div.handle',
             helper: function(e, ui) {
                 ui.children().each(function() {
                     jQuery(this).width(jQuery(this).width());

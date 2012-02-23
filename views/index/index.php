@@ -54,7 +54,11 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? endif ?>
 
 <? if (!empty($list)) : ?>
-    <?= $this->render_partial('index/_list') ?>
+    <? if ($constraint['depth'] == 0) : ?>
+    <?= $this->render_partial('index/_areas') ?>
+    <? else : ?>
+    <?= $this->render_partial('index/_threads') ?>
+    <? endif ?>
 <? elseif ($constraint['depth'] == 0 && $section == 'forum') : ?>
     <?= MessageBox::info(_('Dieses Forum wurde noch nicht eingerichtet. '.
             'Es gibt bisher keine Bereiche, in denen man ein Thema erstellen könnte.')); ?>
