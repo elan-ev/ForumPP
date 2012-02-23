@@ -97,13 +97,12 @@ class IndexController extends StudipController
 
         $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
 
-        // if ($this->flash['new_entry']) {
-            if (!$topic_id) {
-                $this->has_rights = $this->rechte;
-            } else {
-                $this->has_rights = $this->writable;
-            }
-        // }
+        // has_perms checks the perms in general, has_rights checks the write and edit perms
+        if (!$topic_id) {
+            $this->has_rights = $this->rechte;
+        } else {
+            $this->has_rights = $this->writable;
+        }
 
         $this->topic_id     = $topic_id ? $topic_id : $this->getId();
         $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
@@ -180,6 +179,8 @@ class IndexController extends StudipController
         $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
 
         $this->seminar_id = $this->getId();
+
+        // enable breadcrumb-navigation for this view
         $this->breadcrumb = true;
     }
 

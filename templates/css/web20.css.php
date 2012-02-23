@@ -277,7 +277,7 @@
     height: 20em;
 }
 
-#forumpp tr.movable {
+#forumpp .handle {
     cursor: move;
 }
 

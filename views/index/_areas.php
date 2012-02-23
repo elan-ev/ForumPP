@@ -1,10 +1,10 @@
 <br>
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
-<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $contrains['depth'] == 0 && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
+<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
-        <td class="forum_header" colspan="3" align="left" width="65%">
+        <td class="forum_header <?= $has_perms && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3" width="65%">
             <span class="corners-top"></span>
             <span class="heading">
                 <? if (!$category_id) : ?>
@@ -28,7 +28,7 @@
             <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
-        <td class="forum_header" width="30%" colspan="2" align="right">
+        <td class="forum_header" width="30%" colspan="2">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
             <? if ($has_perms) : ?>
@@ -60,15 +60,19 @@
     </tr>
 
     <? if (!empty($entries)) foreach ($entries as $entry) :
-        $jump_to_topic_id = $entry['topic_id'];
+        $jump_to_topic_id = $entry['topic_id']; ?>
 
-        if ($constraint['depth'] >= 1) :
-            $jump_to_topic_id = ($entry['last_posting']['topic_id'] ? $entry['last_posting']['topic_id'] : $entry['topic_id']);
-        endif ?>
+    <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms) ? 'class="movable"' : '' ?>>
 
-    <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms && $constraint['depth'] == 0) ? 'class="movable"' : '' ?>>
         <td class="areaborder"> </td>
+
         <td class="areaentry icon" width="1%" valign="top" align="center">
+            <? if ($has_perms) : ?>
+            <div style="height: 50px; float: left; margin-left: 10px;" class="handle">
+                <?= Assets::img('icons/16/black/plus.png') ?>
+            </div>
+            <? endif ?>
+
             <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!')
@@ -100,7 +104,7 @@
                     <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditAreaName('". $entry['topic_id'] ."')") ?>
                 </span>
 
-                <? if ($constraint['depth'] == 0 && $has_rights) : /* main areas */?>
+                <? if ($has_rights) : /* main areas */?>
                 <span class="action-icons">
                     <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png',
@@ -112,29 +116,6 @@
                             array('class' => 'delete-area', 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
                     </a>
                 </span>
-                <? elseif ($constraint['depth'] == 1 && $has_rights) : /* threads */?>
-                <span class="action-icons">
-                    <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $entry['topic_id'] ?>');">
-                        <?= Assets::img('icons/16/blue/move_right/folder-full.png',
-                            array('class' => 'move-thread', 'title' => 'Diesen Thread verschieben')) ?>
-                    </a>
-
-                    <div id="dialog_<?= $entry['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
-                        <? $path = ForumPPEntry::getPathToPosting($entry['topic_id']);
-                        $parent = array_pop(array_slice($path, sizeof($path) - 2, 1)); ?>
-
-                        <? foreach ($areas as $area_id => $area): ?>
-                        <? if ($area_id != $parent['id']) : ?>
-                        <div style="font-size: 16px; margin-bottom: 5px;">
-                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
-                            <?= Assets::img('icons/16/yellow/arr_2right.png') ?>
-                            <?= $area['name'] ?>
-                            </a>
-                        </div>
-                        <? endif ?>
-                        <? endforeach ?>
-                    </div>
-                </span>
                 <? endif ?>
 
                 <br/>
@@ -145,26 +126,12 @@
                 </a>
                 <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
                 <br>
-
-                <? if ($this->constraint['depth'] == 1) : ?>
-                    <? if ($entry['content_short'] && strlen($entry['content'] > strlen($entry['content_short']))) : ?>
-                        <?= $entry['content_short'] ?>...
-                    <? else : ?>
-                        <?= $entry['content_short'] ?>
-                    <? endif ?>
-                <? else: ?>
-                <?= $entry['content'] ?>
-                <? endif ?>
             </div>
         </td>
 
         <td align="center" valign="top" class="areaentry2">
             <br>
-            <? if ($constraint['depth'] == 1) : ?>
-                <?= $entry['num_postings'] ?>
-            <? else : ?>
-                <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
-            <? endif ?>
+            <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
         </td>
 
         <td align="left" valign="top" class="areaentry2">
@@ -191,7 +158,9 @@
     <? if ($category_id && $has_perms) : ?>
     <tr>
         <td class="areaborder" colspan="7">
-            <div class="add_area" title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">+</div>
+            <div class="add_area" title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">
+                <?= Assets::img('icons/16/black/plus.png') ?>
+            </div>
             <form class="add_area_form" style="display: none" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
                 <?= CSRFProtection::tokenTag() ?>
                 <input type="text" name="name" size="50" placeholder="Name des neuen Bereiches" required>

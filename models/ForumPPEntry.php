@@ -483,7 +483,7 @@ class ForumPPEntry {
 
     static function countEntries($parent_id) {
         $data = ForumPPEntry::getConstraints($parent_id);
-        return (($data['rgt'] - $data['lft'] - 1) / 2) + 1;
+        return max((($data['rgt'] - $data['lft'] - 1) / 2) + 1, 0);
     }
 
     static function countUserEntries($user_id) {
