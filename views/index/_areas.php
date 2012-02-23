@@ -69,7 +69,7 @@
         <td class="areaentry icon" width="1%" valign="top" align="center">
             <? if ($has_perms) : ?>
             <div style="height: 50px; float: left; margin-left: 10px;" class="handle">
-                <?= Assets::img('icons/16/black/plus.png') ?>
+                <img src="<?= $picturepath ?>/move.png">
             </div>
             <? endif ?>
 
