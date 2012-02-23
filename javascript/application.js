@@ -225,3 +225,22 @@ STUDIP.ForumPP = {
         });
     }
 }
+
+STUDIP.ForumPP.Postings = {
+  init: function() {
+    jQuery('p.content').each(function() {
+      if (jQuery(this).height() > 500) {
+        jQuery(this).css('max-height', '500px');
+        jQuery(this).parent().find('.read_more').show()
+          .bind('click', function(){
+            STUDIP.ForumPP.Postings.readMore(this);
+          });
+      }
+    });
+  },
+
+  readMore: function(element) {
+    jQuery(element).parent().find('p.content').css('max-height', '');
+    jQuery(element).hide();
+  }
+}

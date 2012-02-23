@@ -197,9 +197,9 @@
     clear: both;
 }
 
-#forumpp div.postbody p.content:hover {
+/* #forumpp div.postbody p.content:hover {
     overflow: visible;
-}
+} */
 
 #forumpp .postprofile {
     border-left: 1px solid #FFFFFF;
@@ -305,4 +305,22 @@
 
 #forumpp dd.online-status img {
     vertical-align: bottom;
+}
+
+.fade_out {
+    height: 40px;
+
+    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, transparent),color-stop(1, #ECF3F7));
+    background-image: -webkit-linear-gradient(top, transparent, #ECF3F7);
+    background-image: -moz-linear-gradient(to bottom, rgba(236, 243, 247, 0), rgba(236, 243, 247, 100));
+    background-image: -ms-linear-gradient(top, transparent, #ECF3F7);
+    background-image: -o-linear-gradient(top, transparent, #ECF3F7);
+}
+
+.read_more {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
 }
