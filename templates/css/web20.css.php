@@ -302,3 +302,7 @@
 #forumpp div.action-icons {
     display: none;
 }
+
+#forumpp dd.online-status img {
+    vertical-align: bottom;
+}

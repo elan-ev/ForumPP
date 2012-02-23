@@ -151,7 +151,19 @@ shuffle($likes);
         <dd>
             <?= ForumPPHelpers::translate_perm($GLOBALS['perm']->get_studip_perm($constraint['seminar_id'], $post['owner_id']))?>
         </dd>
-        <dd>&nbsp;</dd>
+        <dd class="online-status">
+            <? switch(ForumPPHelpers::getOnlineStatus($post['owner_id'])) :
+                case 'available': ?>
+                    <img src="<?= $picturepath ?>/community.png">
+                    <?= _('Online') ?>
+                <? break; ?>
+
+                <? case 'offline': ?>
+                    <?= Assets::img('icons/16/black/community.png') ?>
+                    <?= _('Offline') ?>
+                <? break; ?>
+            <? endswitch ?>
+        </dd>
         <dd>
             Beiträge:
             <?= ForumPPEntry::countUserEntries($post['owner_id']) ?>
