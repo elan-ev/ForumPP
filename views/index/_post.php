@@ -124,22 +124,11 @@ shuffle($likes);
         <!-- Postinginhalt -->
         <p class="content">
             <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
-                <textarea id="inhalt" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
+            <textarea id="inhalt" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
             <? else : ?>
                 <?= ForumPPHelpers::highlight($post['content'], $highlight) ?>
             <? endif ?>
         </p>
-
-        <br>
-        <? if ($flash['edit_entry'] != $post['topic_id']) : ?>
-        <div class="read_more">
-            <div class="fade_out"></div>
-            <a href="javascript:">
-                <?= Assets::img('icons/16/blue/arr_eol-down.png', array('title' => _('Weiterlesen!'), 'style' => 'vertical-align: bottom')) ?>
-                <?= _('Weiterlesen...') ?>
-            </a>
-        </div>
-        <? endif ?>
     </div>
 
     <? if ($flash['edit_entry'] == $post['topic_id']) : ?>

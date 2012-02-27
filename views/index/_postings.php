@@ -1,9 +1,4 @@
 <br style="clear: both">
-<script>
-    jQuery(document).ready(function() {
-        STUDIP.ForumPP.Postings.init();
-    });
-</script>
 
 <?
 $posting_num = 1;
