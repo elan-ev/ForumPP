@@ -227,19 +227,20 @@ class ForumPPEntry {
             }
 
             $posting_list[$data['topic_id']] = array(
-                'author' => $data['author'],
-                'topic_id' => $data['topic_id'],
-                'name' => formatReady($data['name']),
-                'name_raw' => $data['name'],
-                'content' => formatReady(ForumPPEntry::parseEdit($data['content'])),
-                'content_raw' => ForumPPEntry::killEdit($data['content']),
-                'content_short' => $desc_short,
-                'chdate' => $data['chdate'],
-                'mkdate' => $data['mkdate'],
-                'owner_id' => $data['user_id'],
-                'raw_title' => $data['name'],
+                'author'          => $data['author'],
+                'topic_id'        => $data['topic_id'],
+                'name'            => formatReady($data['name']),
+                'name_raw'        => $data['name'],
+                'content'         => formatReady(ForumPPEntry::parseEdit($data['content'])),
+                'content_raw'     => ForumPPEntry::killEdit($data['content']),
+                'content_short'   => $desc_short,
+                'chdate'          => $data['chdate'],
+                'mkdate'          => $data['mkdate'],
+                'owner_id'        => $data['user_id'],
+                'raw_title'       => $data['name'],
                 'raw_description' => ForumPPEntry::killEdit($data['content']),
-                'fav' => ($data['fav'] == 'fav'),
+                'fav'             => ($data['fav'] == 'fav'),
+                'depth'           => $data['depth']
             );
         } // retrieve the postings
 
@@ -266,7 +267,7 @@ class ForumPPEntry {
                 . ($limit ? " LIMIT $start, $limit" : ''));
             $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
 
-            $count_stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries
+            $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
                 LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.seminar_id = ?
                     AND forumpp_entries.seminar_id != forumpp_entries.topic_id
@@ -301,6 +302,8 @@ class ForumPPEntry {
                 . " ORDER BY forumpp_entries.mkdate $sort_order");
             $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
             $count = $count_stmt->fetchColumn();
+            
+            // vprintf(str_replace('?', "'%s'", $query), $data);die;
         }
 
         if (!$stmt) {
@@ -374,20 +377,23 @@ class ForumPPEntry {
                 $stmt = DBManager::get()->prepare("SELECT topic_id as en_topic_id,
                         IF (
                             (SELECT MAX(f1.mkdate) FROM forumpp_entries as f1
-                                WHERE fe.seminar_id = '834499e2b8a2cd71637890e5de31cba3'
+                                WHERE fe.seminar_id = :seminar_id
                                 AND f1.lft > fe.lft AND f1.rgt < fe.rgt) IS NULL,
                             fe.mkdate, (SELECT MAX(f1.mkdate)
                                 FROM forumpp_entries as f1
-                                WHERE fe.seminar_id = '834499e2b8a2cd71637890e5de31cba3'
+                                WHERE fe.seminar_id = :seminar_id
                                     AND f1.lft > fe.lft AND f1.rgt < fe.rgt)
                             ) as en_mkdate, f2.*
                     FROM forumpp_entries AS fe
                     LEFT JOIN forumpp_entries f2 USING (topic_id)
-                    WHERE fe.seminar_id = ? AND fe.lft > ?
-                        AND fe.rgt < ? AND fe.depth = 2
+                    WHERE fe.seminar_id = :seminar_id AND fe.lft > :left
+                        AND fe.rgt < :right AND fe.depth = 2
                     ORDER BY en_mkdate DESC
                     LIMIT $start, ". self::POSTINGS_PER_PAGE);
-                $stmt->execute(array($constraint['seminar_id'], $constraint['lft'], $constraint['rgt']));
+                $stmt->bindParam(':seminar_id', $constraint['seminar_id']);
+                $stmt->bindParam(':left', $constraint['lft']);
+                $stmt->bindParam(':right', $constraint['rgt']);
+                $stmt->execute();
 
                 $postings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
