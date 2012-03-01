@@ -189,7 +189,15 @@ shuffle($likes);
         <?= Studip\LinkButton::create('Zitieren', PluginEngine::getURL('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
 
         <? if ($this->has_perms) : ?>
-            <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id'])) ?>
+            <? if ($constraint['depth'] == $post['depth']) : /* this is not only a posting, but a thread */ ?>
+                <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
+                    array('onClick' => "return confirm('". _('Wenn Sie diesen Beitrag löschen wird ebenfalls das gesamte Thema gelöscht.\n'
+                            . ' Sind Sie sicher, dass Sie das tun möchten?') ."')")) ?>
+            <? else : ?>
+                <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
+                    array('onClick' => "return confirm('". _('Möchten Sie diesen Beitrag wirklich löschen?') ."')")) ?>
+            <? /* "javascript:STUDIP.ForumPP.deleteEntry('{$post['topic_id']}');" */ ?>
+            <? endif ?>
         <? endif ?>
 
         <? if (!$post['fav']) : ?>

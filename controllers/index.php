@@ -126,9 +126,6 @@ class IndexController extends StudipController
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
          * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-        $areas = ForumPPEntry::getList('area', $this->getId());
-        $this->areas = $areas['list'];
-
         if ($this->constraint['depth'] > 1) {   // POSTINGS
             $list = ForumPPEntry::getList('postings', $this->topic_id);
             if (!empty($list['list'])) {
@@ -144,6 +141,7 @@ class IndexController extends StudipController
 
             if ($this->constraint['depth'] == 0) {  // BEREICHE
                 $new_list = array();
+                // iterate over all categories and add the belonging areas to them
                 foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
                     if ($category['topic_id']) {
                         $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
@@ -155,7 +153,8 @@ class IndexController extends StudipController
                 }
 
                 if (!empty($list['list'])) {
-                    $new_list[$this->getId()] = $list['list'];
+                    // append the remaining entries to the standard category
+                    $new_list[$this->getId()] = array_merge($new_list[$this->getId()], $list['list']);
                 }
 
                 // put 'Allgemein' always to the end of the list
