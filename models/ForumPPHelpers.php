@@ -46,6 +46,7 @@ class ForumPPHelpers {
             return self::do_highlight($text, $highlight);
         }
 
+        // cycle trough the text between the tags and highlight all hits
         $last_pos = 0;
         foreach ($treffer[0] as $taginfo) {
             $size = strlen($taginfo[0]);
@@ -59,7 +60,7 @@ class ForumPPHelpers {
 
         // don't miss the last portion of a posting
         if ($last_pos < strlen($text)) {
-            $data[] = substr($text, $last_pos, strlen($text) - $last_pos);
+            $data[] = self::do_highlight(substr($text, $last_pos, strlen($text) - $last_pos), $highlight);
         }
 
         return implode('', $data);
