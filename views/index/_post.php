@@ -1,7 +1,5 @@
 <?
 if (!is_array($highlight)) $highlight = array();
-$likes = ForumPPLike::getLikes($post['topic_id']);
-shuffle($likes);
 ?>
 <!-- Anker, um zu diesem Posting springen zu können -->
 <a name="<?= $post['topic_id'] ?>"></a>
@@ -53,73 +51,9 @@ shuffle($likes);
         </div>
 
         <!-- Aktionsicons -->
-        <?
-        // like
-        if (!in_array($GLOBALS['user']->id, $likes)) {
-            $icons[] = array(
-                'link' => PluginEngine::getLink('forumpp/index/like/'. $post['topic_id']),
-                'content' => _('Gefällt mir!')
-            );
-        } else {
-            $icons[] = array(
-                'link' => PluginEngine::getLink('forumpp/index/dislike/'. $post['topic_id']),
-                'content' => _('Gefällt mir nicht mehr.')
-            );
-        }
-        ?>
-
-        <? if (!empty($icons)) : ?>
-        <span class="action-icons">
-            <!-- the likes for this post -->
-            <? if (!empty($likes)) : ?>
-            <? // set the current user to the front
-            $pos = array_search($GLOBALS['user']->id, $likes);
-            if ($pos !== false) :
-                unset($likes[$pos]);
-                array_unshift($likes, $GLOBALS['user']->id);
-            endif;
-
-            $i = 0;
-            foreach ($likes as $user_id) :
-                if ($i > 4) break;
-
-                if ($user_id == $GLOBALS['user']->id) :
-                    $name = 'Dir';
-                else :
-                    $name = get_fullname($user_id);
-                endif;
-
-                $username = get_username($user_id);
-                $links[] = '<a href="'. URLHelper::getLink('about.php?username='. $username) .'">'. $name .'</a>';
-                $i++;
-            endforeach ?>
-
-            <? if (sizeof($likes) > 4) : ?>
-                <?= implode(', ', $links) ?>
-                <? if ((sizeof($likes) - 4) > 1) : ?>
-                und <?= sizeof($likes) - 4 ?> weiteren
-                <? else: ?>
-                und einem weiteren
-                <? endif ?>
-            <? else : ?>
-                <? if (sizeof($links) > 1) : ?>
-                <?= implode(', ', array_slice($links, 0, sizeof($links) - 1)) ?>
-                und
-                <? endif ?>
-
-                <?= end($links) ?>
-            <? endif ?>
-
-            <?= _('gefällt das.') ?> |
-            <? endif ?>
-
-            <?foreach ($icons as $an_icon) : ?>
-            <a href="<?= $an_icon['link'] ?>" title="<?= $an_icon['title'] ?>" alt="<?= $an_icon['title'] ?>">
-                <?= $an_icon['content'] ?>
-            </a>&nbsp;
-            <? endforeach; ?>
+        <span class="action-icons" id="like_<?= $post['topic_id'] ?>">
+            <?= $this->render_partial('index/_like', array('topic_id' => $post['topic_id'])) ?>
         </span>
-        <? endif ?>
 
         <!-- Postinginhalt -->
         <p class="content">
