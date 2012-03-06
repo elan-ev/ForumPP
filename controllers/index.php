@@ -427,14 +427,24 @@ class IndexController extends StudipController
     {
         ForumPPLike::like($topic_id);
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+        if (Request::isAjax()) {
+            $this->topic_id = $topic_id;
+            $this->render_template('index/_like');
+        } else {
+            $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+        }
     }
 
     function dislike_action($topic_id)
     {
         ForumPPLike::dislike($topic_id);
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+        
+        if (Request::isAjax()) {
+            $this->topic_id = $topic_id;
+            $this->render_template('index/_like');
+        } else {
+            $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+        }
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -444,6 +454,7 @@ class IndexController extends StudipController
     function add_category_action()
     {
         ForumPPCat::add($this->getId(), Request::get('category'));
+        $this->topic_id = $topic_id;
 
         $this->redirect(PluginEngine::getLink('forumpp/index'));
     }
@@ -582,6 +593,11 @@ class IndexController extends StudipController
 
         parent::before_filter($action, $args);
 
+        // set correct encoding if this is an ajax-call
+        if (Request::isAjax()) {
+            header('Content-Type: text/html; charset=Windows-1252');
+        }
+        
         $this->flash = Trails_Flash::instance();
 
         // set default layout
