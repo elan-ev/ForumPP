@@ -67,14 +67,20 @@
                 <span class="action-icons">
                     <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/move_right/folder-full.png',
-                            array('class' => 'move-thread', 'title' => 'Diesen Thread verschieben')) ?>
+                            array('class' => 'move-thread', 'title' => 'Dieses Thema verschieben')) ?>
+                    </a>
+                    
+                    <a href="<?= PluginEngine::getURL('forumpp/index/delete_entry/' . $entry['topic_id']) ?>"
+                       onClick="return confirm('<?= _('Möchten Sie dieses Thema wirklich löschen?') ?>')">
+                        <?= Assets::img('icons/16/blue/trash.png',
+                            array('class' => 'move-thread', 'title' => 'Dieses Thema löschen')) ?>
                     </a>
 
                     <div id="dialog_<?= $entry['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
                         <? $path = ForumPPEntry::getPathToPosting($entry['topic_id']);
                         $parent = array_pop(array_slice($path, sizeof($path) - 2, 1)); ?>
 
-                        <? foreach ($areas as $area_id => $area): ?>
+                        <? foreach ($areas['list'] as $area_id => $area): ?>
                         <? if ($area_id != $parent['id']) : ?>
                         <div style="font-size: 16px; margin-bottom: 5px;">
                             <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
