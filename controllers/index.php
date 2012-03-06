@@ -126,6 +126,9 @@ class IndexController extends StudipController
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
          * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+        // load list of areas for use in thread-movement
+        $this->areas = ForumPPEntry::getList('area', $this->getId());
+
         if ($this->constraint['depth'] > 1) {   // POSTINGS
             $list = ForumPPEntry::getList('postings', $this->topic_id);
             if (!empty($list['list'])) {
