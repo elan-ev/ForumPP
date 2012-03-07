@@ -62,22 +62,16 @@ class ForumPPEntry {
      * @throws Exception
      */
     static function getConstraints($topic_id) {
-        static $constraints;
-        
-        if (!$constraints[$topic_id]) {
-            // look up the range of postings
-            $range_stmt = DBManager::get()->prepare("SELECT lft, rgt, depth, seminar_id
-                FROM forumpp_entries WHERE topic_id = ?");
-            $range_stmt->execute(array($topic_id));
-            if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
-                return false;
-                // throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
-            }
-            
-            $constraints[$topic_id] = $data;
+        // look up the range of postings
+        $range_stmt = DBManager::get()->prepare("SELECT lft, rgt, depth, seminar_id
+            FROM forumpp_entries WHERE topic_id = ?");
+        $range_stmt->execute(array($topic_id));
+        if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
+            return false;
+            // throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
         }
 
-        return $constraints[$topic_id];
+        return $data;
     }
     
     /**
@@ -620,7 +614,7 @@ class ForumPPEntry {
         // #TODO: Zusammenfassen in eine Transaktion!!!
         $constraints = self::getConstraints($topic_id);
 
-        // move the affect entries "outside" the tree
+        // move the affected entries "outside" the tree
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries
             SET lft = lft * -1, rgt = (rgt * -1)
             WHERE seminar_id = ? AND lft >= ? AND rgt <= ?");
