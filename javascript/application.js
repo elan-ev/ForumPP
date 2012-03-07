@@ -1,20 +1,25 @@
+/* ------------------------------------------------------------------------
+ * the global STUDIP namespace
+ * ------------------------------------------------------------------------ */
+var STUDIP = STUDIP || {};
+
 STUDIP.ForumPP = {
     deleteAreaTemplate : null,
     deleteCategoryTemplate: null,
     current_area_id: null,
     current_category_id: null,
     seminar_id: null,
-     
-    init: function() {
+
+    init: function () {
         STUDIP.ForumPP.initAreas();
         STUDIP.ForumPP.initSmileys();
     },
-    
+
     initAreas: function() {
         // bind click events on add-area at bottom row of each category
         jQuery('div.add_area').bind('click', function() {
             STUDIP.ForumPP.addArea(this);
-        })
+        });
 
         // make categories and areas sortable
         jQuery('#sortable_areas').sortable({
@@ -23,10 +28,10 @@ STUDIP.ForumPP = {
             handle: 'td.handle',
             stop: function() {
                 var categories = {};
-                categories['categories'] = {};
+                categories.categories = {};
                 jQuery(this).find('table').each(function() {
                     var name = jQuery(this).attr('data-category-id');
-                    categories['categories'][name] = name;
+                    categories.categories[name] = name;
                 });
 
                 jQuery.ajax({
@@ -52,16 +57,16 @@ STUDIP.ForumPP = {
             stop: function() {
                 // iterate over each category and get the areas there
                 var areas = {};
-                areas['areas'] = {};
+                areas.areas = {};
                 jQuery('#sortable_areas').find('table').each(function() {
                     var category_id = jQuery(this).attr('data-category-id');
                     
-                    areas['areas'][category_id] = {}
+                    areas.areas[category_id] = {};
                     
                     jQuery(this).find('tr').each(function() {
                         var area_id = jQuery(this).attr('data-area-id');
-                        areas['areas'][category_id][area_id] = area_id;
-                    })
+                        areas.areas[category_id][area_id] = area_id;
+                    });
                 });
 
                 jQuery.ajax({
@@ -80,7 +85,7 @@ STUDIP.ForumPP = {
     initSmileys: function() {
         jQuery('.smiley_favorites img').bind('click', function(){
             jQuery('#inhalt').insertAtCaret(jQuery(this).attr('data-smiley'));
-        })    
+        });
     },
 
     approveDelete: function() {
@@ -172,10 +177,10 @@ STUDIP.ForumPP = {
     
     saveCategoryName: function(category_id) {
         var name = {};
-        name['name'] = jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val();
+        name.name = jQuery('table[data-category-id=' + category_id + '] span.heading_edit input[type=text]').val();
 
         // display the new name immediately
-        jQuery('table[data-category-id=' + category_id + '] span.category_name').text(name['name']);
+        jQuery('table[data-category-id=' + category_id + '] span.category_name').text(name.name);
 
         jQuery('table[data-category-id=' + category_id + '] span.heading_edit').hide();
         jQuery('table[data-category-id=' + category_id + '] span.heading').show();
@@ -204,10 +209,10 @@ STUDIP.ForumPP = {
     
     saveAreaName: function(area_id) {
         var name = {};
-        name['name'] = jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit input[type=text]').val();
+        name.name = jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit input[type=text]').val();
 
         // display the new name immediately
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname').text(name['name']);
+        jQuery('tr[data-area-id=' + area_id + '] span.areaname').text(name.name);
 
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
         jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().show();
@@ -223,8 +228,8 @@ STUDIP.ForumPP = {
     },
     
     preview: function(text_element_id, preview_id) {
-        var posting = {}
-        posting['posting'] = jQuery('#' + text_element_id).val();
+        var posting = {};
+        posting.posting = jQuery('#' + text_element_id).val();
         
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/preview?cid=' + STUDIP.ForumPP.seminar_id), {
             type: 'POST',
@@ -235,7 +240,7 @@ STUDIP.ForumPP = {
             }
         });
     }
-}
+};
 
 
 // TODO: make TIC and add this to the Stud.IP-Core
@@ -245,10 +250,10 @@ jQuery.fn.extend({
             if (document.selection) {
                 //For browsers like Internet Explorer
                 this.focus();
-                sel = document.selection.createRange();
+                var sel = document.selection.createRange();
                 sel.text = myValue;
                 this.focus();
-            } else if (this.selectionStart || this.selectionStart == '0') {
+            } else if (this.selectionStart || this.selectionStart === '0') {
                 //For browsers like Firefox and Webkit based
                 var startPos = this.selectionStart;
                 var endPos = this.selectionEnd;
@@ -262,6 +267,6 @@ jQuery.fn.extend({
                 this.value += myValue;
                 this.focus();
             }
-        })
+        });
     }
 });
