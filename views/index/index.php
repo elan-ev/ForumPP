@@ -2,11 +2,7 @@
     jQuery(document).ready(function() {
         // set seminar-id
         STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
-
-        <? if ($constraint['depth'] == 0) : /* main areas */?>
-        // additional initializations for the area-view
-        STUDIP.ForumPP.initAreas();
-        <? endif ?>
+        STUDIP.ForumPP.init();
     });
 </script>
 <div id="forumpp">

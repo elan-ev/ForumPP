@@ -2,12 +2,12 @@
 require_once('app/models/smiley.php');
 $sm = new SmileyFavorites($GLOBALS['user']->id);
 ?>
-<div style="text-align: center; padding-right: 5px;">
+<div class="smiley_favorites">
     <? $smileys = Smiley::getByIds($sm->get()) ?>
     <? if (!empty($smileys)) : ?>
         <? foreach ($smileys as $smiley) : ?>
-            <img src="<?= $smiley->getUrl() ?>"
-                style="cursor: pointer;" onClick="jQuery('#inhalt').val(jQuery('#inhalt').val() + ' :<?= $smiley->name ?>:')">&nbsp;
+            <img src="<?= $smiley->getUrl() ?>" data-smiley=":<?= $smiley->name ?>: "
+                style="cursor: pointer;" <? /* onClick="jQuery('#inhalt').val(jQuery('#inhalt').val() + ' :<?= $smiley->name ?>:')" */ ?>>
         <? endforeach ?>
     <? endif ?>
     <br/>
