@@ -51,7 +51,7 @@ if (!is_array($highlight)) $highlight = array();
         </div>
 
         <!-- Aktionsicons -->
-        <span class="action-icons" id="like_<?= $post['topic_id'] ?>">
+        <span class="action-icons likes" id="like_<?= $post['topic_id'] ?>">
             <?= $this->render_partial('index/_like', array('topic_id' => $post['topic_id'])) ?>
         </span>
 

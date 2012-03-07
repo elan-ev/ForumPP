@@ -174,8 +174,8 @@
 
 #forumpp div.title {
     text-align: left;
-    width: 80%;
     float: left;
+    padding-right: 280px;
 }
 
  #forumpp .title {
@@ -206,7 +206,7 @@
     display: inline;
     float: right;
     min-height: 80px;
-    width: 19%;
+    width: 18%;
     margin: 0pt;
     padding: 0pt 0pt 0pt 8px;
 }
@@ -266,6 +266,10 @@
     position: absolute;
     right: 10px;
     top: 0px;
+}
+
+#forumpp .likes {
+    max-width: 270px;
 }
 
 #forumpp .action-buttons {
