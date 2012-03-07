@@ -84,6 +84,7 @@ class IndexController extends StudipController
      */
     function index_action($topic_id = null, $page = null)
     {
+        // echo '<pre>';print_r(debug_backtrace());die;
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum2/index');
@@ -126,64 +127,84 @@ class IndexController extends StudipController
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
          * B E R E I C H E / T H R E A D S / P O S T I N G S   L A D E N *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-        // load list of areas for use in thread-movement
-        $this->areas = ForumPPEntry::getList('area', $this->getId());
-
-        if ($this->constraint['depth'] > 1) {   // POSTINGS
-            $list = ForumPPEntry::getList('postings', $this->topic_id);
-            if (!empty($list['list'])) {
-                $this->postings          = $list['list'];
-                $this->number_of_entries = $list['count'];
-            }
-        } else {
-            if ($this->constraint['depth'] == 0) {  // BEREICHE
-                $list = ForumPPEntry::getList('area', $this->topic_id);
-            } else {
-                $list = ForumPPEntry::getList('list', $this->topic_id);
-            }
-
-            if ($this->constraint['depth'] == 0) {  // BEREICHE
-                $new_list = array();
-                // iterate over all categories and add the belonging areas to them
-                foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
-                    if ($category['topic_id']) {
-                        $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
-                        unset($list['list'][$category['topic_id']]);
-                    } else if ($this->has_perms) {
-                        $new_list[$category['category_id']] = array();
-                    }
-                    $this->categories[$category['category_id']] = $category['entry_name'];
-                }
-
-                if (!empty($list['list'])) {
-                    // append the remaining entries to the standard category
-                    $new_list[$this->getId()] = array_merge($new_list[$this->getId()], $list['list']);
-                }
-
-                // put 'Allgemein' always to the end of the list
-                if (isset($new_list[$this->getId()])) {
-                    $allgemein = $new_list[$this->getId()];
-                    unset($new_list[$this->getId()]);
-                    $new_list[$this->getId()] = $allgemein;
-                }
-
-                $this->list = $new_list;
-            } else if ($this->constraint['depth'] == 1) {   // THREADS
-                if (!empty($list['list'])) {
-                    $this->list = array($list['list']);
-                }
-            }
-            $this->number_of_entries = $list['count'];
-        }
-
         // set the visit-date and get the stored last_visitdate
         ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
         $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
 
-        $this->seminar_id = $this->getId();
+        $this->cache_key = 'forumpp/'. $GLOBALS['user']->id .'/'. $this->topic_id;
 
-        // enable breadcrumb-navigation for this view
-        $this->breadcrumb = true;
+        // compare visitdate with visitdate in cache
+        $visit_cache_key = 'forumpp/'. $GLOBALS['user']->id .'/visitdate/'. $this->topic_id;
+        if ($cached_visitdate = $this->cache->read($visit_cache_key)) {
+            if ($cached_visitdate != $this->visitdate) {
+                $this->cache->expire($this->cache_key);
+            }
+        }
+        
+        $this->add_infobox();
+
+        // check if there is some data in the cache, rerender the page if necessary
+        if ($data = $this->cache->read($this->cache_key)) {
+            $this->cached_data = $data;
+        } else {
+            // cache the visit date
+            $this->cache->write($visit_cache_key, $this->visitdate, 500);
+            
+            // load list of areas for use in thread-movement
+            $this->areas = ForumPPEntry::getList('area', $this->getId());
+
+            if ($this->constraint['depth'] > 1) {   // POSTINGS
+                $list = ForumPPEntry::getList('postings', $this->topic_id);
+                if (!empty($list['list'])) {
+                    $this->postings          = $list['list'];
+                    $this->number_of_entries = $list['count'];
+                }
+            } else {
+                if ($this->constraint['depth'] == 0) {  // BEREICHE
+                    $list = ForumPPEntry::getList('area', $this->topic_id);
+                } else {
+                    $list = ForumPPEntry::getList('list', $this->topic_id);
+                }
+
+                if ($this->constraint['depth'] == 0) {  // BEREICHE
+                    $new_list = array();
+                    // iterate over all categories and add the belonging areas to them
+                    foreach ($categories = ForumPPCat::getList($this->getId(), false) as $category) {
+                        if ($category['topic_id']) {
+                            $new_list[$category['category_id']][$category['topic_id']] = $list['list'][$category['topic_id']];
+                            unset($list['list'][$category['topic_id']]);
+                        } else if ($this->has_perms) {
+                            $new_list[$category['category_id']] = array();
+                        }
+                        $this->categories[$category['category_id']] = $category['entry_name'];
+                    }
+
+                    if (!empty($list['list'])) {
+                        // append the remaining entries to the standard category
+                        $new_list[$this->getId()] = array_merge($new_list[$this->getId()], $list['list']);
+                    }
+
+                    // put 'Allgemein' always to the end of the list
+                    if (isset($new_list[$this->getId()])) {
+                        $allgemein = $new_list[$this->getId()];
+                        unset($new_list[$this->getId()]);
+                        $new_list[$this->getId()] = $allgemein;
+                    }
+
+                    $this->list = $new_list;
+                } else if ($this->constraint['depth'] == 1) {   // THREADS
+                    if (!empty($list['list'])) {
+                        $this->list = array($list['list']);
+                    }
+                }
+                $this->number_of_entries = $list['count'];
+            }
+
+            $this->seminar_id = $this->getId();
+
+            // enable breadcrumb-navigation for this view
+            $this->breadcrumb = true;
+        }
     }
 
     function latest_action($page = null)
@@ -207,14 +228,11 @@ class IndexController extends StudipController
         $this->number_of_entries = $list['count'];
         $this->show_full_path    = true;
 
-        // set default layout
-        $layout = $GLOBALS['template_factory']->open('layouts/base');
-        $this->set_layout($layout);
-
         if (empty($this->postings)) {
             $this->no_entries = true;
         }
 
+        $this->add_infobox();
         $this->render_action('index');
     }
 
@@ -238,14 +256,11 @@ class IndexController extends StudipController
         $this->number_of_entries = $list['count'];
         $this->show_full_path    = true;
 
-        // set default layout
-        $layout = $GLOBALS['template_factory']->open('layouts/base');
-        $this->set_layout($layout);
-
         if (empty($this->postings)) {
             $this->no_entries = true;
         }
 
+        $this->add_infobox();
         $this->render_action('index');
     }
 
@@ -274,10 +289,7 @@ class IndexController extends StudipController
             $this->no_search_results = true;
         }
 
-        // set default layout
-        $layout = $GLOBALS['template_factory']->open('layouts/base');
-        $this->set_layout($layout);
-
+        $this->add_infobox();
         $this->render_action('index');
     }
 
@@ -628,7 +640,9 @@ class IndexController extends StudipController
         //$this->check_token();
         $this->check_write_and_edit();
 
-        object_set_visit($this->getId(), 'forum');
+        // object_set_visit($this->getId(), 'forum');
+        
+        $this->cache = StudipCacheFactory::getCache(); 
     }
 
     function check_write_and_edit()
@@ -732,5 +746,78 @@ class IndexController extends StudipController
         $this->POSTINGS_PER_PAGE = $this->FEED_POSTINGS;
 
         $this->loadView();
+    }
+    
+    /**
+     * Overwrites the parent method to add some serious caching
+     * 
+     * @param type $template_name
+     * @param type $layout 
+     */
+    function render_template($template_name, $layout = NULL) {
+        # open template
+        $factory = $this->get_template_factory();
+        $template = $factory->open($template_name);
+
+        $template->set_attributes($this->get_assigned_variables());
+
+        // fetch the template from cache or render it fresh
+        if ($this->cached_data) {
+            $content_for_layout = $this->cached_data;
+        } else {
+            $content_for_layout = $template->render();
+            if ($this->cache_key && $this->cache) {
+                $this->cache->write($this->cache_key, 'CACHED: '. $content_for_layout, 500);
+            }
+        }
+        
+        if (isset($layout)) {
+            $template_layout = $factory->open($layout);
+            $this->render_text($template_layout->render(array(
+                'content_for_layout' => $content_for_layout,
+                'infobox'            => $this->infobox
+            )));
+        } else {
+            $this->render_text($template->render());
+        }
+    }
+    
+    /**
+     * add the default infobox to the output 
+     */
+    function add_infobox() {
+        /* * * * * * * * * * * * * * * * * * * * * * * *
+         * * * * * *     I N F O B O X   * * * * * * * *
+         * * * * * * * * * * * * * * * * * * * * * * * */
+        
+        $factory = $this->get_template_factory();
+        $search_template = $factory->open('index/_search');
+
+        $infobox_content[] = array(
+            'kategorie' => _('Suche'),
+            'eintrag'   => array(
+                array(
+                    'icon' => $section == 'search' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
+                    'text' => $search_template->render()
+                )
+            )
+        );
+
+        $infobox_content[] = array(
+            'kategorie' => _('Version'),
+            'eintrag'   => array(
+                array(
+                    'icon' => 'icons/16/grey/info.png',
+                    'text' => 'Installierte Version: ' . ForumPPVersion::getCurrent()
+                ),
+
+                array(
+                    'icon' => 'icons/16/grey/info.png',
+                    'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
+                )
+            )
+        );
+
+        $this->infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);    
     }
 }

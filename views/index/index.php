@@ -10,35 +10,6 @@
     });
 </script>
 <div id="forumpp">
-<?
-$infobox_content[] = array(
-    'kategorie' => _('Suche'),
-    'eintrag'   => array(
-        array(
-            'icon' => $section == 'search' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => $this->render_partial('index/_search')
-        )
-    )
-);
-
-$infobox_content[] = array(
-    'kategorie' => _('Version'),
-    'eintrag'   => array(
-        array(
-            'icon' => 'icons/16/grey/info.png',
-            'text' => 'Installierte Version: ' . ForumPPVersion::getCurrent()
-        ),
-
-        array(
-            'icon' => 'icons/16/grey/info.png',
-            'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
-        )
-    )
-);
-
-$infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
-?>
-
 <!-- Breadcrumb navigation -->
 <?= $this->render_partial('index/_breadcrumb') ?>
 
