@@ -310,3 +310,8 @@
 #forumpp dd.online-status img {
     vertical-align: bottom;
 }
+
+#forumpp .smiley_favorites {
+    text-align: center;
+    padding-right: 5px;
+}
