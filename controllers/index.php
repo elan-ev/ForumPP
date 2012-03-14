@@ -252,6 +252,8 @@ class IndexController extends StudipController
 
     function search_action($page = null)
     {
+        ForumPPPerm::check('search', $this->getId());
+        
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum2/index');
@@ -304,6 +306,8 @@ class IndexController extends StudipController
         if (!Request::option('parent')) {
             throw new Exception('missing seminar_id/topic_id while adding a new entry!');
         }
+        
+        ForumPPPerm::check('add_entry', $this->getId());
 
         $new_id = md5(uniqid(rand()));
 
@@ -322,6 +326,8 @@ class IndexController extends StudipController
 
     function add_area_action($category_id)
     {
+        ForumPPPerm::check('add_area', $this->getId());
+        
         $new_id = md5(uniqid(rand()));
 
         ForumPPEntry::insert(array(
@@ -341,7 +347,7 @@ class IndexController extends StudipController
 
     function delete_entry_action($topic_id)
     {
-        if (ForumPPEntry::hasEditPerms($topic_id)) {
+        if (ForumPPEntry::hasEditPerms($topic_id) || ForumPPPerm::has('remove_entry', $seminar_id)) {
             $path = ForumPPEntry::getPathToPosting($topic_id);
             $topic  = array_pop($path);
             $parent = array_pop($path);
@@ -379,6 +385,8 @@ class IndexController extends StudipController
     }
 
     function move_thread_action($thread_id, $destination) {
+        ForumPPPerm::check('move_thread', $this->getId());
+
         ForumPPEntry::move($thread_id, $destination);
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $thread_id .'#'. $thread_id));
@@ -454,6 +462,8 @@ class IndexController extends StudipController
 
     function add_category_action()
     {
+        ForumPPPerm::check('add_category', $this->getId());
+
         ForumPPCat::add($this->getId(), Request::get('category'));
         $this->topic_id = $topic_id;
 
@@ -462,9 +472,7 @@ class IndexController extends StudipController
 
     function add_areas_action()
     {
-        if (!$this->rechte) {
-            die;
-        }
+        ForumPPPerm::check('sort_area', $this->getId());
 
         foreach (Request::getArray('areas') as $area_id) {
             ForumPPCat::addArea(Request::option('cat_id'), $area_id);
@@ -475,9 +483,7 @@ class IndexController extends StudipController
 
     function remove_area_action($area_id)
     {
-        if (!$this->rechte) {
-            die;
-        }
+        ForumPPPerm::check('sort_area', $this->getId());
 
         ForumPPCat::removeArea($area_id);
         $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
@@ -485,12 +491,10 @@ class IndexController extends StudipController
 
     function remove_category_action($category_id)
     {
-        if (!$this->rechte) {
-            $this->flash['messages'] = array('error' => _('Sie besitzen nicht genügend Rechte um Kategorien zu löschen!'));
-        } else {
-            $this->flash['messages'] = array('success' => _('Die Kategorie wurde gelöscht!'));
-            ForumPPCat::remove($category_id, $this->getId());
-        }
+        ForumPPPerm::check('remove_category', $this->getId());
+        
+        $this->flash['messages'] = array('success' => _('Die Kategorie wurde gelöscht!'));
+        ForumPPCat::remove($category_id, $this->getId());
 
         if (Request::isAjax()) {
             $this->render_template('messages');
@@ -502,9 +506,7 @@ class IndexController extends StudipController
 
     function edit_area_action($area_id)
     {
-        if (!$this->rechte) {
-            die;
-        }
+        ForumPPPerm::check('edit_area', $this->getId());
 
         if (Request::isAjax()) {
             $name = utf8_decode(Request::get('name'));
@@ -518,10 +520,8 @@ class IndexController extends StudipController
     }
 
     function edit_category_action($category_id) {
-        if (!$this->rechte) {
-            die;
-        }
-
+        ForumPPPerm::check('edit_category', $this->getId());
+        
         if (Request::isAjax()) {
             $name = utf8_decode(Request::get('name'));
         } else {
@@ -534,9 +534,7 @@ class IndexController extends StudipController
 
     function savecats_action()
     {
-        if (!$this->rechte) {
-            die;
-        }
+        ForumPPPerm::check('sort_category', $this->getId());
 
         $pos = 0;
         foreach (Request::getArray('categories') as $category_id) {
@@ -549,9 +547,7 @@ class IndexController extends StudipController
 
     function saveareas_action()
     {
-        if (!$this->rechte) {
-            die;
-        }
+        ForumPPPerm::check('sort_area', $this->getId());
 
         foreach (Request::getArray('areas') as $category_id => $areas) {
             $pos = 0;

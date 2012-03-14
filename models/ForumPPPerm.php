@@ -36,11 +36,15 @@ class ForumPPPerm {
         }
         
         // check the status and the passed permission
-        if ($status == 'dozent' && in_array($perm, words('edit_category')) !== false) {
+        if ($status == 'dozent' && in_array($perm,
+            words('edit_category add_category remove_category sort_category '
+            . 'edit_area add_area remove_area sort_area '
+            . 'search edit_entry add_entry remove_entry move_thread')
+        ) !== false) {
             return true;
-        } else if ($status == 'tutor' && in_array($perm, words('edit_area')) !== false) {
+        } else if ($status == 'tutor' && in_array($perm, words('search add_entry')) !== false) {
             return true;
-        } else if ($status == 'autor' && in_array($perm, words('')) !== false) {
+        } else if ($status == 'autor' && in_array($perm, words('search add_entry')) !== false) {
             return true;
         } else if ($status == 'user' && in_array($perm, words('')) !== false) {
             return true;
@@ -48,5 +52,14 @@ class ForumPPPerm {
         
         // user has no permission
         return false;
+    }
+    
+    function check($perm, $seminar_id, $user_id = null) {
+        if (!self::has($perm, $seminar_id, $user_id)) {
+            throw new AccessDeniedException(sprintf(
+                _("Sie haben keine Berechtigung für diese Aktion! Benötigte Berechtigung: %s"),
+                $perm)
+            );
+        }
     }
 }

@@ -63,19 +63,13 @@
                     <span class="areaname"><?= $entry['name'] ?></span>
                 </a>
 
-                <? if ($has_perms) : /* threads */?>
                 <span class="action-icons">
+                    <? if (ForumPPPerm::has('move_thread', $seminar_id)) : ?>
                     <a href="javascript:STUDIP.ForumPP.moveThreadDialog('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/move_right/folder-full.png',
                             array('class' => 'move-thread', 'title' => 'Dieses Thema verschieben')) ?>
                     </a>
                     
-                    <a href="<?= PluginEngine::getURL('forumpp/index/delete_entry/' . $entry['topic_id']) ?>"
-                       onClick="return confirm('<?= _('Möchten Sie dieses Thema wirklich löschen?') ?>')">
-                        <?= Assets::img('icons/16/blue/trash.png',
-                            array('class' => 'move-thread', 'title' => 'Dieses Thema löschen')) ?>
-                    </a>
-
                     <div id="dialog_<?= $entry['topic_id'] ?>" style="display: none" title="<?= _('Bereich, in den dieser Thread verschoben werden soll:') ?>">
                         <? $path = ForumPPEntry::getPathToPosting($entry['topic_id']);
                         $parent = array_pop(array_slice($path, sizeof($path) - 2, 1)); ?>
@@ -90,9 +84,17 @@
                         </div>
                         <? endif ?>
                         <? endforeach ?>
-                    </div>
+                    </div>                    
+                    <? endif ?>
+                    
+                    <? if (ForumPPPerm::has('remove_entry', $seminar_id)) : ?>
+                    <a href="<?= PluginEngine::getURL('forumpp/index/delete_entry/' . $entry['topic_id']) ?>"
+                       onClick="return confirm('<?= _('Möchten Sie dieses Thema wirklich löschen?') ?>')">
+                        <?= Assets::img('icons/16/blue/trash.png',
+                            array('class' => 'move-thread', 'title' => 'Dieses Thema löschen')) ?>
+                    </a>
+                    <? endif ?>
                 </span>
-                <? endif ?>
 
                 <br/>
 

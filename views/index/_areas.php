@@ -4,7 +4,7 @@
 <table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
-        <td class="forum_header <?= $has_perms && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3" width="65%">
+        <td class="forum_header <?= ForumPPPerm::has('sort_category', $seminar_id) && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3" width="65%">
             <span class="corners-top"></span>
             <span class="heading">
                 <? if (!$category_id) : ?>
@@ -31,7 +31,7 @@
         <td class="forum_header" width="30%" colspan="2">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
-            <? if ($has_perms) : ?>
+            <? if (ForumPPPerm::has('edit_category', $seminar_id) || ForumPPPerm::has('remove_category', $seminar_id)) : ?>
             <span style="float: right; padding-right: 5px;">
                 <? if ($category_id == $seminar_id) : ?>
                 <?= Assets::img('icons/16/blue/info.png', array(
@@ -39,12 +39,17 @@
                         . 'Für Nutzer/innen ohne Moderationsrechte taucht diese Kategorie nur auf, wenn sie Bereiche enthält.') . "')",
                     'style'   => 'cursor: pointer')) ?>
                 <? else : ?>
-                <a href="javascript:STUDIP.ForumPP.editCategoryName('<?= $category_id ?>')">
-                    <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Name der Kategorie ändern')) ?>
-                </a>
-                <a href="javascript:STUDIP.ForumPP.deleteCategory('<?= $category_id ?>', '<?= $categories[$category_id] ?>')">
-                    <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Kategorie entfernen')) ?>
-                </a>
+                    <? if (ForumPPPerm::has('edit_category', $seminar_id)) : ?>
+                    <a href="javascript:STUDIP.ForumPP.editCategoryName('<?= $category_id ?>')">
+                        <?= Assets::img('icons/16/blue/edit.png', array('title' => 'Name der Kategorie ändern')) ?>
+                    </a>
+                    <? endif ?>
+
+                    <? if(ForumPPPerm::has('remove_category', $seminar_id)) : ?>
+                    <a href="javascript:STUDIP.ForumPP.deleteCategory('<?= $category_id ?>', '<?= $categories[$category_id] ?>')">
+                        <?= Assets::img('icons/16/blue/trash.png', array('title' => 'Kategorie entfernen')) ?>
+                    </a>
+                    <? endif ?>
                 <? endif ?>
             </span>
             <? endif ?>
@@ -67,7 +72,7 @@
         <td class="areaborder"> </td>
 
         <td class="areaentry icon" width="1%" valign="top" align="center">
-            <? if ($has_perms) : ?>
+            <? if (ForumPPPerm::has('sort_area', $seminar_id)) : ?>
             <div style="height: 50px; float: left; margin-left: 10px;" class="handle">
                 <img src="<?= $picturepath ?>/move.png">
             </div>
@@ -97,26 +102,31 @@
                     <span class="areaname"><?= $entry['name'] ?></span>
                 </a>
 
+                <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
                 <span class="areaname_edit" style="display: none;">
                     <input type="text" name="name" size="20" value="<?= $entry['name'] ?>" onClick="jQuery(this).focus()">
 
                     <?= Studip\LinkButton::createAccept('Titel speichern', "javascript:STUDIP.ForumPP.saveAreaName('". $entry['topic_id'] ."')") ?>
                     <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditAreaName('". $entry['topic_id'] ."')") ?>
                 </span>
+                <? endif ?>
 
-                <? if ($has_rights) : /* main areas */?>
+                
                 <span class="action-icons">
+                    <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
                     <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png',
                             array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
                     </a>
-
+                    <? endif ?>
+                    
+                    <? if (ForumPPPerm::has('remove_area', $seminar_id)) : ?>
                     <a href="javascript:STUDIP.ForumPP.deleteArea(this, '<?= $entry['topic_id'] ?>')">
                         <?= Assets::img('icons/16/blue/trash.png',
                             array('class' => 'delete-area', 'title' => 'Bereich mitsamt allen Einträgen löschen!')) ?>
                     </a>
+                    <? endif ?>
                 </span>
-                <? endif ?>
 
                 <br/>
 
@@ -155,7 +165,7 @@
     </tbody>
 
     <tfoot>
-    <? if ($category_id && $has_perms) : ?>
+    <? if ($category_id && ForumPPPerm::has('add_area', $seminar_id)) : ?>
     <tr>
         <td class="areaborder" colspan="7">
             <div class="add_area" title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">
