@@ -117,7 +117,7 @@ if (!is_array($highlight)) $highlight = array();
 
     <? else : ?>
         <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
-            <?= Studip\LinkButton::create('Eintrag bearbeiten', PluginEngine::getURL('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
+            <?= Studip\LinkButton::create('Beitrag bearbeiten', PluginEngine::getURL('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
         <? endif ?>
             
         <?= Studip\LinkButton::create('Zitieren', PluginEngine::getURL('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>

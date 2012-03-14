@@ -157,7 +157,7 @@ class ForumPPEntry {
         if (!empty($parent)) {
             $parent_constraint = ForumPPEntry::getConstraints($parent['id']);
 
-            return floor((($constraint['lft'] - $parent_constraint['lft']) / 2) / self::POSTINGS_PER_PAGE) + 1;
+            return floor((($constraint['lft'] - $parent_constraint['lft']) / 2) / (self::POSTINGS_PER_PAGE - 1)) + 1;
         }
 
         return 0;

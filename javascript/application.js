@@ -21,6 +21,13 @@ STUDIP.ForumPP = {
         jQuery('div.add_area').bind('click', function () {
             STUDIP.ForumPP.addArea(this);
         });
+        
+        jQuery('#new_entry_button button').bind('click', function() {
+            jQuery('#new_entry_button').hide();
+            jQuery('#new_entry_box').show();
+            jQuery('html').animate({ scrollTop: jQuery(document).height() }, 'slow');
+            return false;
+        });
 
         // make categories and areas sortable
         jQuery('#sortable_areas').sortable({

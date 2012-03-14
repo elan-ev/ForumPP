@@ -71,7 +71,7 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
     <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Antworten') ?>
     <div style="text-align: center">
         <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
-            <?= Studip\Button::create($button_face, array('onClick' => "jQuery('#new_entry_button').hide();jQuery('#new_entry_box').show();")) ?>
+            <?= Studip\Button::create($button_face) ?>
         </div>
 
         <div id="new_entry_box" <?= $this->flash['new_entry_title'] ? '' : 'style="display: none"' ?>>

@@ -20,6 +20,7 @@ require_once 'app/controllers/studip_controller.php';
 require_once 'lib/classes/AdminModules.class.php';
 require_once 'lib/classes/Config.class.php';
 require_once $this->trails_root .'/models/ForumPPEntry.php';
+require_once $this->trails_root .'/models/ForumPPPerm.php';
 require_once $this->trails_root .'/models/ForumPPHelpers.php';
 require_once $this->trails_root .'/models/ForumPPCat.php';
 require_once $this->trails_root .'/models/ForumPPLike.php';
