@@ -116,13 +116,15 @@ if (!is_array($highlight)) $highlight = array();
         <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
 
     <? else : ?>
-        <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
+        <? if (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('edit_entry', $seminar_id)) : ?>
             <?= Studip\LinkButton::create('Beitrag bearbeiten', PluginEngine::getURL('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
         <? endif ?>
             
+        <? if (ForumPPPerm::has('add_entry', $seminar_id)) : ?>
         <?= Studip\LinkButton::create('Zitieren', PluginEngine::getURL('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
+        <? endif ?>
 
-        <? if ($this->has_perms) : ?>
+        <? if (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id)) : ?>
             <? if ($constraint['depth'] == $post['depth']) : /* this is not only a posting, but a thread */ ?>
                 <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
                     array('onClick' => "return confirm('". _('Wenn Sie diesen Beitrag löschen wird ebenfalls das gesamte Thema gelöscht.\n'

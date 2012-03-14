@@ -6,33 +6,40 @@
     });
 </script>
 <div id="forumpp">
-<?
-$infobox_content[] = array(
-    'kategorie' => _('Suche'),
-    'eintrag'   => array(
-        array(
-            'icon' => $section == 'search' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
-            'text' => $this->render_partial('index/_search')
+<? 
+if (ForumPPPerm::has('search', $seminar_id)) :
+    $infobox_content[] = array(
+        'kategorie' => _('Suche'),
+        'eintrag'   => array(
+            array(
+                'icon' => $section == 'search' ? 'icons/16/red/arr_1right.png' : 'icons/16/grey/arr_1right.png',
+                'text' => $this->render_partial('index/_search')
+            )
         )
-    )
-);
+    );
+endif;
 
-$infobox_content[] = array(
-    'kategorie' => _('Version'),
-    'eintrag'   => array(
-        array(
-            'icon' => 'icons/16/grey/info.png',
-            'text' => 'Installierte Version: ' . ForumPPVersion::getCurrent()
-        ),
+if (ForumPPPerm::has('version', $seminar_id)) :
+    $infobox_content[] = array(
+        'kategorie' => _('Version'),
+        'eintrag'   => array(
+            array(
+                'icon' => 'icons/16/grey/info.png',
+                'text' => 'Installierte Version: ' . ForumPPVersion::getCurrent()
+            ),
 
-        array(
-            'icon' => 'icons/16/grey/info.png',
-            'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
+            array(
+                'icon' => 'icons/16/grey/info.png',
+                'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
+            )
         )
-    )
-);
+    );
+endif;
 
-$infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
+// show the infobox only if it contains elements
+if (!empty($infobox_content)) :
+    $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
+endif;
 ?>
 
 <!-- Breadcrumb navigation -->
@@ -65,9 +72,11 @@ $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_con
 <? endif ?>
 
 <? if ($constraint['depth'] == 0) : ?>
-    <?= $this->render_partial('index/_new_category') ?>
+    <? if (ForumPPPerm::has('add_category', $seminar_id)) : ?>
+        <?= $this->render_partial('index/_new_category') ?>
+    <? endif ?>
 <? else : ?>
-    <? if (!$flash['edit_entry']) : ?>
+    <? if (!$flash['edit_entry'] && ForumPPPerm::has('add_entry', $seminar_id)) : ?>
     <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Antworten') ?>
     <div style="text-align: center">
         <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>

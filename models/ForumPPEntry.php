@@ -132,7 +132,7 @@ class ForumPPEntry {
             $data = $stmt->fetch();
 
             $perms[$topic_id] = (($GLOBALS['user']->id == $data['user_id'] && $last_posting) ||
-                $GLOBALS['perm']->have_studip_perm('tutor', $data['seminar_id']));
+                ForumPPPerm::has('edit_entry', $constraints['seminar_id']));
         }
 
         return $perms[$topic_id];
