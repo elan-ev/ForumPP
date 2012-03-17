@@ -110,12 +110,14 @@ if (!is_array($highlight)) $highlight = array();
     <div class="buttons">
         <div class="button-group">
     <? if ($flash['edit_entry'] == $post['topic_id']) : ?>
+        <!-- Buttons für den Bearbeitungsmodus -->
         <?= Studip\Button::createAccept('Änderungen speichern') ?>
 
-        <?= Studip\LinkButton::createCancel('Abbrechen', PluginEngine::getURL('forumpp/index/index/'. $topic_id)) ?>
+        <?= Studip\LinkButton::createCancel('Abbrechen', PluginEngine::getURL('forumpp/index/index/'. $post['topic_id'])) ?>
         <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');") ?>
 
     <? else : ?>
+        <!-- Aktions-Buttons für diesen Beitrag -->
         <? if (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('edit_entry', $seminar_id)) : ?>
             <?= Studip\LinkButton::create('Beitrag bearbeiten', PluginEngine::getURL('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
         <? endif ?>
