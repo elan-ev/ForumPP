@@ -5,6 +5,8 @@
         STUDIP.ForumPP.init();
     });
 </script>
+
+<!-- set a CSS "namespace" for forumpp -->
 <div id="forumpp">
 <? 
 if (ForumPPPerm::has('search', $seminar_id)) :
@@ -45,6 +47,19 @@ endif;
 <!-- Breadcrumb navigation -->
 <?= $this->render_partial('index/_breadcrumb') ?>
 
+<!-- Seitenwähler (bei Bedarf) am oberen Rand anzeigen -->
+<div style="float: right; padding-right: 10px;">
+    <? if ($constraint['depth'] > 0 || !$breadcrumb) : ?>
+    <?= $pagechooser = $GLOBALS['template_factory']->render('shared/pagechooser', array(
+        'page'         => ForumPPHelpers::getPage() + 1,
+        'num_postings' => $number_of_entries,
+        'perPage'      => ForumPPEntry::POSTINGS_PER_PAGE,
+        'pagelink'     => PluginEngine::getLink('forumpp/index/goto_page/'. $topic_id .'/'. $section .'/%s')
+    )); ?>
+    <? endif ?>
+</div>
+<br style="clear: both">
+
 <!-- Message area -->
 <div id="message_area">
     <? $this->render_partial('messages') ?>
@@ -56,7 +71,9 @@ endif;
     <?= MessageBox::info(_('Es wurden keine Beiträge gefunden, die zu Ihren Suchkriterien passen!')) ?>
 <? endif ?>
 
+<!-- Bereiche / Themen / Beiträge -->
 <? if (!empty($list)) : ?>
+    <!-- Bereiche / Themen darstellen -->
     <? if ($constraint['depth'] == 0) : ?>
     <?= $this->render_partial('index/_areas') ?>
     <? else : ?>
@@ -68,9 +85,18 @@ endif;
 <? endif ?>
 
 <? if (!empty($postings)) : ?>
+    <!-- Beiträge für das ausgewählte Thema darstellen -->
     <?= $this->render_partial('index/_postings') ?>
 <? endif ?>
 
+<!-- Seitenwähler (bei Bedarf) am unteren Rand anzeigen -->
+<? if ($pagechooser) : ?>
+<div style="float: right; padding-right: 10px;">
+    <?= $pagechooser ?>
+</div>
+<? endif ?>
+
+<!-- Erstellen eines neuen Elements (Kateogire, Thema, Beitrag) -->
 <? if ($constraint['depth'] == 0) : ?>
     <? if (ForumPPPerm::has('add_category', $seminar_id)) : ?>
         <?= $this->render_partial('index/_new_category') ?>

@@ -13,12 +13,3 @@ foreach ($postings as $post) :
     $posting_num++;
 endforeach
 ?>
-
-<div style="float: right; padding-right: 10px;">
-    <?= $GLOBALS['template_factory']->render('shared/pagechooser', array(
-        'page'         => ForumPPHelpers::getPage() + 1,
-        'num_postings' => $number_of_entries,
-        'perPage'      => ForumPPEntry::POSTINGS_PER_PAGE,
-        'pagelink'     => PluginEngine::getLink('forumpp/index/goto_page/'. $topic_id .'/'. $section .'/%s')
-    )); ?>
-</div>

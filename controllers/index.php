@@ -97,6 +97,7 @@ class IndexController extends StudipController
          * * * * * * * * * * * * * * * * * * */
 
         $this->has_perms = $GLOBALS['perm']->have_studip_perm('tutor', $this->getId());
+        $this->section   = 'index';
 
         // has_perms checks the perms in general, has_rights checks the write and edit perms
         if (!$topic_id) {
