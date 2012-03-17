@@ -102,6 +102,13 @@ if (!is_array($highlight)) $highlight = array();
             Beiträge:
             <?= ForumPPEntry::countUserEntries($post['owner_id']) ?>
         </dd>
+        <? foreach (PluginEngine::sendMessage('PostingApplet', 'getHTML', $post['name_raw'], $post['content_raw'],
+                PluginEngine::getLink('forumpp/index/index/' . $post['topic_id'] .'#'. $post['topic_id']),
+                $post['owner_id']) as $applet_data) : ?>
+        <dd>
+            <?= $applet_data ?>
+        </dd>
+        <? endforeach ?>
     </dl>
     <? endif ?>
 
