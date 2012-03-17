@@ -44,24 +44,35 @@
     text-transform: uppercase;
 }
 
+#forumpp table.forum {
+    border-collapse: collapse;
+    width: 100%;
+}
+
 #forumpp .areaentry {
     border-top: 1px solid #FFFFFF;
     border-bottom: 1px solid #000000;
     background-color: #DEE2E8;
+    vertical-align: top;
+    padding-left: 5px;
 }
 
-#forumpp .areaentry2 {
-    border-top: 1px solid #FFFFFF;
-    border-bottom: 1px solid #000000;
+#forumpp td.postings {
     border-left: 1px solid #FFFFFF;
-    margin: 0pt;
-    padding: 0pt 5px;
-    background-color: #DEE2E8;
+    border-right: 1px solid #FFFFFF;
+    vertical-align: middle;
+    text-align: center;
+    width: 80px;
+    
 }
 
-#forumpp .areaborder {
+#forumpp td.answer {
+    width: 300px;
+}
+
+#forumpp table.forum td.areaborder {
     background-color: #899AB9;
-    width: 0.5%;
+    width: 5px;
     padding: 0pt;
     margin: 0pt;
 }
@@ -91,8 +102,11 @@
 #forumpp .icon {
     padding: 8px 0 0 0;
     margin: 0pt;
-    width: 20px;
+    width: 30px;
     height: 50px;
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: top;
 }
 
 #forumpp .icon_thread {
@@ -236,24 +250,24 @@
 }
 
 #forumpp span.corners-top {
-    background-image: url('<?= $picturepath ?>/corners_left.png');
+    background-image: url('../img/corners_left.png');
     background-position: 0pt 0pt;
 }
 
 #forumpp span.corners-top-right, #forumpp span.corners-top span {
-    background-image: url('<?= $picturepath ?>/corners_right.png');
+    background-image: url('../img/corners_right.png');
     background-position: 100% 0pt;
 }
 
 #forumpp span.corners-bottom {
-    background-image: url('<?= $picturepath ?>/corners_left.png');
+    background-image: url('../img/corners_left.png');
     background-position: 0pt -7px;
 
     clear:both;
 }
 
 #forumpp span.corners-bottom span {
-    background-image: url('<?= $picturepath ?>/corners_right.png');
+    background-image: url('../img/corners_right.png');
     background-position: 100% -7px;
 }
 

@@ -1,22 +1,22 @@
 <br>
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
-<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum" data-category-id="<?= $category_id ?>">
+<table class="forum" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
-        <td class="forum_header" colspan="3" width="65%">
+        <td class="forum_header" colspan="3">
             <span class="corners-top"></span>
             <span class="heading">
                 <?= _('Themen') ?>
             </span>
         </td>
 
-        <td class="forum_header" width="5%">
+        <td class="forum_header">
             <span class="no-corner"></span>
             <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
-        <td class="forum_header" width="30%" colspan="2">
+        <td class="forum_header" colspan="2">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
         </td>
@@ -37,7 +37,7 @@
 
         <td class="areaborder"> </td>
 
-        <td class="areaentry icon" width="1%" valign="top" align="center">
+        <td class="areaentry icon">
             <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!')
@@ -57,7 +57,7 @@
             <? endif ?>
         </td>
 
-        <td class="areaentry" valign="top">
+        <td class="areaentry">
             <div style="position: relative;">
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
                     <span class="areaname"><?= $entry['name'] ?></span>
@@ -113,12 +113,11 @@
             </div>
         </td>
 
-        <td align="center" valign="top" class="areaentry2">
-            <br>
+        <td class="areaentry postings">
             <?= $entry['num_postings'] ?>
         </td>
 
-        <td align="left" valign="top" class="areaentry2">
+        <td class="areaentry answer">
             <? if (is_array($entry['last_posting'])) : ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $entry['last_posting']['username']) ?>">

@@ -42,15 +42,8 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // add the navigation next to the traditional forum
         Navigation::insertItem('/course/forum2', $navigation, 'members');
 
-
-        $style_attributes = array(
-            'rel'   => 'stylesheet',
-            'href'  => PluginEngine::getLink('forumpp/index/css')
-        );
-
-        PageLayout::addHeadElement('link',  array_merge($style_attributes, array()));
-
-        PageLayout::addScript($this->getPluginURL() . '/javascript/application.js');
+        PageLayout::addScript($this->getPluginURL() . '/javascript/forumpp.js');
+        PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/forumpp.css');
     }
 
     /**

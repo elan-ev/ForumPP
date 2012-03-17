@@ -1,10 +1,10 @@
 <br>
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
-<table cellspacing="0" cellpadding="2" border="0" width="100%" class="forum <?= $has_perms && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
+<table class="forum <?= $has_perms && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
     <thead>
     <tr>
-        <td class="forum_header <?= ForumPPPerm::has('sort_category', $seminar_id) && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3" width="65%">
+        <td class="forum_header <?= ForumPPPerm::has('sort_category', $seminar_id) && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3">
             <span class="corners-top"></span>
             <span class="heading">
                 <? if (!$category_id) : ?>
@@ -23,12 +23,12 @@
             </span>
         </td>
 
-        <td class="forum_header" width="5%">
+        <td class="forum_header">
             <span class="no-corner"></span>
             <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
-        <td class="forum_header" width="30%" colspan="2">
+        <td class="forum_header" colspan="2">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
             <? if (ForumPPPerm::has('edit_category', $seminar_id) || ForumPPPerm::has('remove_category', $seminar_id)) : ?>
@@ -71,11 +71,9 @@
 
         <td class="areaborder"> </td>
 
-        <td class="areaentry icon" width="1%" valign="top" align="center">
+        <td class="areaentry icon">
             <? if (ForumPPPerm::has('sort_area', $seminar_id)) : ?>
-            <div style="height: 50px; float: left; margin-left: 10px;" class="handle">
-                <img src="<?= $picturepath ?>/move.png">
-            </div>
+            <img src="<?= $picturepath ?>/move.png" class="handle">
             <? endif ?>
 
             <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
@@ -96,7 +94,7 @@
                 <? endif ?>
             <? endif ?>
         </td>
-        <td class="areaentry" valign="top">
+        <td class="areaentry">
             <div style="position: relative;">
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
                     <span class="areaname"><?= $entry['name'] ?></span>
@@ -139,12 +137,11 @@
             </div>
         </td>
 
-        <td align="center" valign="top" class="areaentry2">
-            <br>
+        <td class="areaentry postings">
             <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
         </td>
 
-        <td align="left" valign="top" class="areaentry2">
+        <td class="areaentry answer">
             <? if (is_array($entry['last_posting'])) : ?>
             <?= _("von") ?>
             <a href="<?= UrlHelper::getLink('about.php?username='. $entry['last_posting']['username']) ?>">

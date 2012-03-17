@@ -54,7 +54,7 @@ STUDIP.ForumPP = {
             axis: 'y',
             items: ">*:not(.sort-disabled)",
             connectWith: 'tbody.sortable',
-            handle: 'div.handle',
+            handle: 'img.handle',
             helper: function (e, ui) {
                 ui.children().each(function () {
                     jQuery(this).width(jQuery(this).width());
