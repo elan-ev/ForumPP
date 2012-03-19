@@ -471,25 +471,6 @@ class IndexController extends StudipController
         $this->redirect(PluginEngine::getLink('forumpp/index'));
     }
 
-    function add_areas_action()
-    {
-        ForumPPPerm::check('sort_area', $this->getId());
-
-        foreach (Request::getArray('areas') as $area_id) {
-            ForumPPCat::addArea(Request::option('cat_id'), $area_id);
-        }
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
-    }
-
-    function remove_area_action($area_id)
-    {
-        ForumPPPerm::check('sort_area', $this->getId());
-
-        ForumPPCat::removeArea($area_id);
-        $this->redirect(PluginEngine::getLink('forumpp/index/config_areas'));
-    }
-
     function remove_category_action($category_id)
     {
         ForumPPPerm::check('remove_category', $this->getId());
