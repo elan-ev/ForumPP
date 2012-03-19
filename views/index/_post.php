@@ -58,7 +58,7 @@ if (!is_array($highlight)) $highlight = array();
         </span>
 
         <!-- Postinginhalt -->
-        <p class="content">
+        <div class="content">
             <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
                 <textarea data-textarea="<?= $post['topic_id'] ?>" data-reset="<?= htmlReady($post['content_raw']) ?>" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
             </span>
@@ -66,7 +66,7 @@ if (!is_array($highlight)) $highlight = array();
             <span data-show-topic="<?= $post['topic_id'] ?>" data-topic-content="<?= $post['topic_id'] ?>">
                 <?= ForumPPHelpers::highlight($post['content'], $highlight) ?>
             </span>
-        </p>
+        </div>
     </div>
 
     <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
@@ -140,7 +140,6 @@ if (!is_array($highlight)) $highlight = array();
     <span data-show-topic="<?= $post['topic_id'] ?>">
         <!-- Aktions-Buttons für diesen Beitrag -->
         <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
-            <? Studip\LinkButton::create('Beitrag bearbeiten', PluginEngine::getURL('forumpp/index/edit_entry/'. $post['topic_id'])) ?>
             <?= Studip\LinkButton::create('Beitrag bearbeiten', "javascript:STUDIP.ForumPP.editEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
             

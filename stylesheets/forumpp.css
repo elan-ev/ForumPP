@@ -206,13 +206,17 @@
     margin: 2px 0px 8px 0px;
 }
 
-#forumpp div.postbody p.content {
+#forumpp div.postbody .content {
     overflow: hidden;
     clear: both;
 }
 
-#forumpp div.postbody p.content:hover {
+#forumpp div.postbody .content:hover {
     overflow: visible;
+}
+
+#forumpp .content {
+    clear: both;
 }
 
 #forumpp span.username {
