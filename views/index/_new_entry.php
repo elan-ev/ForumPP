@@ -27,14 +27,14 @@
         <? if ($constraint['depth'] > 0): ?>
 
         <div class="postbody">
-            <textarea class="add_toolbar" id="inhalt" name="content" required tabindex="2"
+            <textarea class="add_toolbar" data-textarea="new_entry" name="content" required tabindex="2"
                 placeholder="<?= _('Schreiben Sie hier Ihren Beitrag. Hilfe zu Formatierungen'
                     . ' finden Sie rechts neben diesem Textfeld.') ?>"><?= $this->flash['new_entry_content'] ?></textarea>
         </div>
 
         <dl class="postprofile">
             <dt>
-                <?= $this->render_partial('index/_smiley_favorites') ?>
+                <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => 'new_entry')) ?>
             </dt>
         </dl>
 
@@ -45,17 +45,17 @@
                 <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
 
                 <?= Studip\Button::createCancel('Abbrechen', array(
-                    'onClick' => "jQuery('#new_entry_button').show();jQuery('#new_entry_box').hide();return false;",
+                    'onClick' => "STUDIP.ForumPP.cancelNewEntry();",
                     'tabindex' => '4')) ?>
 
-                <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview');", array('tabindex' => '5')) ?>
+                <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('new_entry', 'new_entry_preview');", array('tabindex' => '5')) ?>
             </div>
         </div>
 
         <span class="corners-bottom"><span></span></span>
     </div>
 
-    <?= $this->render_partial('index/_preview', array('preview_id' => 'preview')) ?>
+    <?= $this->render_partial('index/_preview', array('preview_id' => 'new_entry_preview')) ?>
 
     <input type="hidden" name="parent" value="<?= $topic_id ?>">
 </form>

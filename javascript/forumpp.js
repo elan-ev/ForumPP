@@ -12,20 +12,13 @@ STUDIP.ForumPP = {
     seminar_id: null,
 
     init: function () {
-        STUDIP.ForumPP.initAreas();
-        STUDIP.ForumPP.initSmileys();
-    },
-
-    initAreas: function () {
         // bind click events on add-area at bottom row of each category
         jQuery('div.add_area').bind('click', function () {
             STUDIP.ForumPP.addArea(this);
         });
         
         jQuery('#new_entry_button button').bind('click', function() {
-            jQuery('#new_entry_button').hide();
-            jQuery('#new_entry_box').show();
-            jQuery('html').animate({ scrollTop: jQuery(document).height() }, 'slow');
+            STUDIP.ForumPP.newEntry();
             return false;
         });
 
@@ -90,10 +83,14 @@ STUDIP.ForumPP = {
         STUDIP.ForumPP.deleteCategoryTemplate = _.template(jQuery('#question_delete_category').text());
     },
 
-    initSmileys: function () {
-        jQuery('.smiley_favorites img').bind('click', function () {
-            jQuery('#inhalt').insertAtCaret(jQuery(this).attr('data-smiley'));
-        });
+    insertSmiley: function(textarea_id, element) {
+        jQuery('textarea[data-textarea=' + textarea_id + ']').insertAtCaret(jQuery(element).attr('data-smiley'));
+    },
+    
+    newEntry: function() {
+        jQuery('#new_entry_button').hide();
+        jQuery('#new_entry_box').show();
+        jQuery('html').animate({ scrollTop: jQuery(document).height() }, 'slow');
     },
 
     approveDelete: function () {
@@ -232,6 +229,14 @@ STUDIP.ForumPP = {
     },
 
     saveEntry: function(topic_id) {
+        jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').attr('data-reset',
+            jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val()
+        );
+            
+        jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').attr('data-reset',
+            jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val()
+        );
+
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/update_entry/' + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
             type: 'POST',
             data: jQuery('form[data-topicid='+ topic_id +']').serializeObject(),
@@ -261,8 +266,37 @@ STUDIP.ForumPP = {
     
     cancelEditEntry: function (topic_id) {
         jQuery('div[id*=preview]').parent().hide();
+
+        jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val(
+            jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').attr('data-reset')
+        );
+
+        jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val(
+            jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').attr('data-reset')
+        );
+
         jQuery('span[data-edit-topic=' + topic_id +']').hide();
         jQuery('span[data-show-topic=' + topic_id +']').show();  
+    },
+
+    cancelNewEntry: function() {
+        jQuery('#new_entry_button').show();
+        jQuery('#new_entry_box').hide();
+        
+        jQuery('#new_entry_box textarea, #new_entry_box input[name=name]').val('');
+        return false;
+    },
+    
+    citeEntry: function(topic_id) {
+        var name    = jQuery('span.username[data-profile=' + topic_id +']').text().trim();
+        var title   = 'Re: ' + jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val();
+        var content = '[quote=' + name + ']' + "\n"
+            + jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val()
+            + "\n[/quote]"
+        
+        jQuery('#new_entry_box textarea').val(content);
+        jQuery('#new_entry_box input[name=name]').val(title);
+        STUDIP.ForumPP.newEntry();
     },
 
     moveThreadDialog: function (topic_id) {
@@ -271,7 +305,7 @@ STUDIP.ForumPP = {
 
     preview: function (text_element_id, preview_id) {
         var posting = {};
-        posting.posting = jQuery('#' + text_element_id).val();
+        posting.posting = jQuery('textarea[data-textarea=' + text_element_id + ']').val();
 
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/preview?cid=' + STUDIP.ForumPP.seminar_id), {
             type: 'POST',

@@ -39,7 +39,7 @@ class ForumPPVersion {
         $version = $cache->read($cache_key);
 
         if (!$version) {
-            $ini_file = parse_ini_string(file_get_contents('http://plugins.studip.de/svn/plugins/ForumPP/trunk/plugin.manifest'));
+            $ini_file = parse_ini_string(file_get_contents('https://raw.github.com/tgloeggl/ForumPP/master/plugin.manifest'));
             $version = $ini_file['version'];
             $cache->write($cache_key, $version, 3600);
         }

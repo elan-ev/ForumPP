@@ -6,8 +6,8 @@ $sm = new SmileyFavorites($GLOBALS['user']->id);
     <? $smileys = Smiley::getByIds($sm->get()) ?>
     <? if (!empty($smileys)) : ?>
         <? foreach ($smileys as $smiley) : ?>
-            <img src="<?= $smiley->getUrl() ?>" data-smiley=":<?= $smiley->name ?>: "
-                style="cursor: pointer;" <? /* onClick="jQuery('#inhalt').val(jQuery('#inhalt').val() + ' :<?= $smiley->name ?>:')" */ ?>>
+            <img src="<?= $smiley->getUrl() ?>" data-smiley=" :<?= $smiley->name ?>: "
+                style="cursor: pointer;" onClick="STUDIP.ForumPP.insertSmiley('<?= $textarea_id ?>', this)">
         <? endforeach ?>
     <? endif ?>
     <br/>

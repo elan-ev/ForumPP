@@ -215,6 +215,10 @@
     overflow: visible;
 }
 
+#forumpp span.username {
+    font-weight: bold;
+}
+
 #forumpp .postprofile {
     border-left: 1px solid #FFFFFF;
     display: inline;

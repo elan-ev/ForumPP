@@ -375,11 +375,11 @@ class IndexController extends StudipController
 
     function update_entry_action($topic_id)
     {
+        $name    = studip_utf8decode(Request::get('name', _('Kein Titel')));
+        $content = studip_utf8decode(Request::get('content', _('Keine Beschreibung')));
+
         if (ForumPPEntry::hasEditPerms($topic_id)) {
-            ForumPPEntry::update($topic_id,
-                Request::get('name', _('Kein Titel')),
-                Request::get('content', _('Keine Beschreibung'))
-            );
+            ForumPPEntry::update($topic_id, $name, $content);
         } else {
             $this->flash['messages']['error'] = 'Keine Berechtigung!';
             $this->render_template('messages');
@@ -390,8 +390,8 @@ class IndexController extends StudipController
             $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
         } else {
             $this->render_text(json_encode(array(
-                'name'    => formatReady(Request::get('name', _('Kein Titel'))),
-                'content' => formatReady(Request::get('content', _('Keine Beschreibung')))
+                'name'    => formatReady($name),
+                'content' => formatReady($content)
             )));
         }
     }

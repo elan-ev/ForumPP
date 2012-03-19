@@ -27,7 +27,7 @@ if (!is_array($highlight)) $highlight = array();
 
             <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
-                <input type="text" name="name" value="<?= htmlReady($post['name_raw']) ?>" style="width: 100%">
+                <input type="text" name="name" value="<?= htmlReady($post['name_raw']) ?>" data-reset="<?= htmlReady($post['name_raw']) ?>" style="width: 100%">
             </span>
             <? endif ?>
             
@@ -63,7 +63,7 @@ if (!is_array($highlight)) $highlight = array();
         <p class="content">
             <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
-                <textarea id="inhalt" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
+                <textarea data-textarea="<?= $post['topic_id'] ?>" data-reset="<?= htmlReady($post['content_raw']) ?>" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
             </span>
             <? endif ?>
             
@@ -77,7 +77,7 @@ if (!is_array($highlight)) $highlight = array();
     <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
         <dl class="postprofile">
             <dt>
-                <?= $this->render_partial('index/_smiley_favorites') ?>
+                <?= $this->render_partial('index/_smiley_favorites', array('textarea_id' => $post['topic_id'])) ?>
             </dt>
         </dl>
     </span>
@@ -91,7 +91,9 @@ if (!is_array($highlight)) $highlight = array();
                     <?= Avatar::getAvatar($post['owner_id'])->getImageTag(Avatar::MEDIUM,
                         array('title' => get_username($post['owner_id']))) ?>
                     <br>
-                    <strong><?= htmlReady(get_fullname($post['owner_id'])) ?></strong>
+                    <span class="username" data-profile="<?= $post['topic_id'] ?>">
+                        <?= htmlReady(get_fullname($post['owner_id'])) ?>
+                    </span>
                 </a>
             </dt>
             <dd>
@@ -131,13 +133,11 @@ if (!is_array($highlight)) $highlight = array();
     <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
     <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
         <!-- Buttons für den Bearbeitungsmodus -->
-        <? Studip\Button::createAccept('Änderungen speichern') ?>
         <?= Studip\LinkButton::createAccept('Änderungen speichern', "javascript:STUDIP.ForumPP.saveEntry('". $post['topic_id'] ."')") ?>
 
-        <? Studip\LinkButton::createCancel('Abbrechen', PluginEngine::getURL('forumpp/index/index/'. $post['topic_id'])) ?>
         <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditEntry('". $post['topic_id'] ."')") ?>
         
-        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('inhalt', 'preview_". $post['topic_id'] ."');") ?>
+        <?= Studip\LinkButton::create('Vorschau', "javascript:STUDIP.ForumPP.preview('". $post['topic_id'] ."', 'preview_". $post['topic_id'] ."');") ?>
     </span>
     <? endif ?>
             
@@ -149,7 +149,7 @@ if (!is_array($highlight)) $highlight = array();
         <? endif ?>
             
         <? if (ForumPPPerm::has('add_entry', $seminar_id)) : ?>
-        <?= Studip\LinkButton::create('Zitieren', PluginEngine::getURL('forumpp/index/cite/'. $post['topic_id'] .'/#create')) ?>
+        <?= Studip\LinkButton::create('Zitieren', "javascript:STUDIP.ForumPP.citeEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
 
         <? if (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id)) : ?>
