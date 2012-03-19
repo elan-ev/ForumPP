@@ -380,9 +380,20 @@ class IndexController extends StudipController
                 Request::get('name', _('Kein Titel')),
                 Request::get('content', _('Keine Beschreibung'))
             );
+        } else {
+            $this->flash['messages']['error'] = 'Keine Berechtigung!';
+            $this->render_template('messages');
+            return;
         }
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+        if (!Request::isAjax()) {
+            $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
+        } else {
+            $this->render_text(json_encode(array(
+                'name'    => formatReady(Request::get('name', _('Kein Titel'))),
+                'content' => formatReady(Request::get('content', _('Keine Beschreibung')))
+            )));
+        }
     }
 
     function move_thread_action($thread_id, $destination) {

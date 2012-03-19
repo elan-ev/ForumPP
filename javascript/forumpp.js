@@ -231,6 +231,40 @@ STUDIP.ForumPP = {
         });
     },
 
+    saveEntry: function(topic_id) {
+        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/update_entry/' + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
+            type: 'POST',
+            data: jQuery('form[data-topicid='+ topic_id +']').serializeObject(),
+            success: function (data) {
+                var json = jQuery.parseJSON(data);
+                // set the new name and content
+                jQuery('span[data-topic-name=' + topic_id +']').html(json.name);
+                jQuery('span[data-topic-content=' + topic_id +']').html(json.content);
+                
+                // hide the other stuff
+                jQuery('div[id*=preview]').parent().hide();
+                jQuery('span[data-edit-topic*=]').hide();
+                jQuery('span[data-show-topic*=]').show();
+                
+            }
+        });
+    },
+    
+    editEntry: function (topic_id) {
+        jQuery('div[id*=preview]').parent().hide();
+        jQuery('span[data-edit-topic*=]').hide();
+        jQuery('span[data-show-topic*=]').show();
+        
+        jQuery('span[data-edit-topic=' + topic_id +']').show();
+        jQuery('span[data-show-topic=' + topic_id +']').hide();
+    },
+    
+    cancelEditEntry: function (topic_id) {
+        jQuery('div[id*=preview]').parent().hide();
+        jQuery('span[data-edit-topic=' + topic_id +']').hide();
+        jQuery('span[data-show-topic=' + topic_id +']').show();  
+    },
+
     moveThreadDialog: function (topic_id) {
         jQuery('#dialog_' + topic_id).dialog();
     },
@@ -252,6 +286,10 @@ STUDIP.ForumPP = {
 
 
 // TODO: make TIC and add this to the Stud.IP-Core
+/**
+ * found at stackoverflow.com
+ * http://stackoverflow.com/questions/946534/insert-text-into-textarea-with-jquery/946556#946556
+ */
 jQuery.fn.extend({
     insertAtCaret: function (myValue) {
         return this.each(function (i) {
@@ -279,3 +317,24 @@ jQuery.fn.extend({
         });
     }
 });
+
+/** 
+ * Thanks to Tobias Cohen for this function
+ * http://stackoverflow.com/questions/1184624/convert-form-data-to-js-object-with-jquery
+ */
+jQuery.fn.serializeObject = function()
+{
+    var o = {};
+    var a = this.serializeArray();
+    jQuery.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};

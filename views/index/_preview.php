@@ -1,4 +1,4 @@
-<div class="posting bg2" style="margin-top: 20px; display: none; position: relative; text-align: left;">
+<div class="posting bg2" style="margin-bottom: 20px; display: none; position: relative; text-align: left;">
     <span class="corners-top"><span></span></span>
 
     <span class="title" style="padding-left: 5px; font-weight: bold">

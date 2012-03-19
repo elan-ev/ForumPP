@@ -576,7 +576,7 @@ class ForumPPEntry {
         $stmt->execute(array($constraints['seminar_id'], $constraints['lft'], $constraints['rgt']));
         $ids = $stmt->fetch(PDO::FETCH_COLUMN);
 
-        if (!is_array($ids)) $ids = array($ids);
+        if (strlen($ids) == 32 && !is_array($ids)) $ids = array($ids);        
 
         if (!empty($ids)) {
             $stmt = DBManager::get()->prepare("DELETE FROM forumpp_categories_entries
