@@ -25,11 +25,9 @@ if (!is_array($highlight)) $highlight = array();
             </span>
             <? endif ?>
 
-            <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
                 <input type="text" name="name" value="<?= htmlReady($post['name_raw']) ?>" data-reset="<?= htmlReady($post['name_raw']) ?>" style="width: 100%">
             </span>
-            <? endif ?>
             
             <span data-show-topic="<?= $post['topic_id'] ?>">
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
@@ -61,11 +59,9 @@ if (!is_array($highlight)) $highlight = array();
 
         <!-- Postinginhalt -->
         <p class="content">
-            <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
                 <textarea data-textarea="<?= $post['topic_id'] ?>" data-reset="<?= htmlReady($post['content_raw']) ?>" name="content" class="add_toolbar"><?= htmlReady($post['content_raw']) ?></textarea>
             </span>
-            <? endif ?>
             
             <span data-show-topic="<?= $post['topic_id'] ?>" data-topic-content="<?= $post['topic_id'] ?>">
                 <?= ForumPPHelpers::highlight($post['content'], $highlight) ?>
