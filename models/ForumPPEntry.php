@@ -108,7 +108,7 @@ class ForumPPEntry {
     }
 
     static function hasEditPerms($topic_id) {
-        static $perms;
+        static $perms = array();
 
         if (!$perms[$topic_id]) {
             // find out if the posting is the last in the thread
@@ -121,10 +121,10 @@ class ForumPPEntry {
             $parent_constraints = self::getConstraints($parent['id']);
 
             $last_posting = false;
-            if (($parent_constraints['rgt'] - 1 == (int)$constraints['rgt']) && $constraints['depth'] > 2) {
+            if (($parent_constraints['rgt'] - 1 == (int)$constraints['rgt']) && $constraints['depth'] >= 2) {
                 $last_posting = true;
             }
-
+            
             $stmt = DBManager::get()->prepare("SELECT user_id, seminar_id
                 FROM forumpp_entries WHERE topic_id = ?");
             $stmt->execute(array($topic_id));
