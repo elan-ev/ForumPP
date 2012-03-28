@@ -102,6 +102,11 @@ if (!is_array($highlight)) $highlight = array();
                         <?= _('Online') ?>
                     <? break; ?>
 
+                    <? case 'away': ?>
+                        <?= Assets::img('icons/16/grey/community.png') ?>
+                        <?= _('Abwesend') ?>                        
+                    <? break; ?>
+
                     <? case 'offline': ?>
                         <?= Assets::img('icons/16/black/community.png') ?>
                         <?= _('Offline') ?>

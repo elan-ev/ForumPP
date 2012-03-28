@@ -186,17 +186,21 @@ class ForumPPHelpers {
     static function getOnlineStatus($user_id) {
         static $online_status;
 
-        if (!$online_status[$user_id]) {
-            $stmt = DBManager::get()->prepare("SELECT *
-                FROM " . PHPLIB_USERDATA_TABLE . "
-                LEFT JOIN user_visibility ON(user_id = sid) 
-                WHERE changed > UNIX_TIMESTAMP() - 300
-                    AND sid = ? AND sid != 'nobody'");
-            $stmt->execute(array($user_id));
-
-            $online_status[$user_id] = ($stmt->fetchColumn() > 0) ? 'available' : 'offline';
+        if ($GLOBALS['user']->id == $user_id) {
+            return 'available';
         }
 
-        return $online_status[$user_id];
+        if (!$online_status) {
+            $online_users = get_users_online(15);
+            foreach ($online_users as $username => $data) {
+                if ($data['last_action'] >= 300) {
+                    $online_status[$data['userid']] = 'away';
+                } else {
+                    $online_status[$data['userid']] = 'available';
+                }
+            }
+        }
+
+        return $online_status[$user_id] ?: 'offline';
     }
 }
