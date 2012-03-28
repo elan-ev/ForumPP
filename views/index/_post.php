@@ -139,17 +139,18 @@ if (!is_array($highlight)) $highlight = array();
             
     <span data-show-topic="<?= $post['topic_id'] ?>">
         <!-- Aktions-Buttons für diesen Beitrag -->
-        <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
-            <?= Studip\LinkButton::create('Beitrag bearbeiten', "javascript:STUDIP.ForumPP.editEntry('". $post['topic_id'] ."')") ?>
-        <? endif ?>
             
         <? if (ForumPPPerm::has('add_entry', $seminar_id)) : ?>
-        <?= Studip\LinkButton::create('Zitieren', "javascript:STUDIP.ForumPP.citeEntry('". $post['topic_id'] ."')") ?>
+        <?= Studip\LinkButton::create('Beitrag zitieren', "javascript:STUDIP.ForumPP.citeEntry('". $post['topic_id'] ."')") ?>
+        <? endif ?>
+
+        <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
+            <?= Studip\LinkButton::create('Beitrag bearbeiten', "javascript:STUDIP.ForumPP.editEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
 
         <? if (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id)) : ?>
             <? if ($constraint['depth'] == $post['depth']) : /* this is not only a posting, but a thread */ ?>
-                <?= Studip\LinkButton::create('Beitrag löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
+                <?= Studip\LinkButton::create('Thema löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
                     array('onClick' => "return confirm('". _('Wenn Sie diesen Beitrag löschen wird ebenfalls das gesamte Thema gelöscht.\n'
                             . ' Sind Sie sicher, dass Sie das tun möchten?') ."')")) ?>
             <? else : ?>
