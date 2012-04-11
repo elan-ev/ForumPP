@@ -50,7 +50,8 @@ class ForumPPAbo {
     {
         // send message to all abo-users
         $db = DBManager::get();
-        $messaging = new Messaging();
+        $messaging = new ForumPPBulkMail();
+        // $messaging = new Messaging();
 
         // get all parent topic-ids, to find out which users to notify
         $path = ForumPPEntry::getPathToPosting($topic_id);
@@ -71,16 +72,18 @@ class ForumPPAbo {
         // notify users
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user_id = $data['user_id'];
-            
+
             // create subject and content
-            setTempLanguage(get_userid($data['user_id']));
-            $subject = _('[Forum]') . ' ' . ($topic['name'] ?: _('Neuer Eintrag'));
-            $message = $template->render(compact('user_id', 'topic', 'path'));
+            setTempLanguage(get_userid($user_id));
+            $subject = addslashes(_('[Forum]') . ' ' . ($topic['name'] ? $topic['name'] : _('Neuer Eintrag')));
+            $message = addslashes($template->render(compact('user_id', 'topic', 'path')));
             restoreLanguage();
             
             // #TODO: why ist $db->quote not working here?
-            $messaging->insert_message(mysql_escape_string($message), get_username($data['user_id']),
-                "____%system%____", false, false, false, false, mysql_escape_string($subject));
+            $messaging->insert_message($message, get_username($user_id),
+                "____%system%____", false, false, false, false, $subject);
         }
+        
+        $messaging->bulkSend();
     }
 }

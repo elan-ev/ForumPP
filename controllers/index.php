@@ -28,6 +28,7 @@ require_once $this->trails_root .'/models/ForumPPVersion.php';
 require_once $this->trails_root .'/models/ForumPPVisit.php';
 require_once $this->trails_root .'/models/ForumPPFavorite.php';
 require_once $this->trails_root .'/models/ForumPPAbo.php';
+require_once $this->trails_root .'/models/ForumPPBulkMail.php';
 
 /*
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -161,7 +162,7 @@ class IndexController extends StudipController
 
                 if (!empty($list['list'])) {
                     // append the remaining entries to the standard category
-                    $new_list[$this->getId()] = array_merge($new_list[$this->getId()], $list['list']);
+                    $new_list[$this->getId()] = array_merge((array)$new_list[$this->getId()], $list['list']);
                 }
 
                 // put 'Allgemein' always to the end of the list

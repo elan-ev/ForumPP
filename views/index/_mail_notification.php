@@ -11,7 +11,7 @@ printf(_('Im Forum der Veranstaltung **%s** gibt es einen neuen Beitrag unter **
     $sem['name'], implode(' > ', $path_name), $topic['author']) ?>
 
 
-<?= $topic['name'] ? '**' . $topic['name'] ."**\n\n" : '' ?>
+<?= $topic['name'] ? '**' . $topic['name'] ."** \n\n" : '' ?>
 <?= $topic['content'] ?>
 
 

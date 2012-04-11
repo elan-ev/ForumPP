@@ -38,7 +38,6 @@ if (ForumPPPerm::has('version', $seminar_id)) :
     );
 endif;
 
-/*
 if ($constraint['depth'] > 0) :
    $abo_link = '<span id="abolink">' . $this->render_partial('index/_abo_link', compact('constraint')) . '</span>';
 
@@ -52,8 +51,6 @@ if ($constraint['depth'] > 0) :
         )
 );
 endif;
- * 
- */
 
 // show the infobox only if it contains elements
 if (!empty($infobox_content)) :
