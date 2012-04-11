@@ -129,7 +129,7 @@
             </a>
             <? else: ?>
             <br>
-            <?= _('keine Beiträge') ?>
+            <?= _('keine Antworten') ?>
             <? endif; ?>
         </td>
         <td class="areaborder"> </td>
