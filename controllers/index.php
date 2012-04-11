@@ -27,6 +27,7 @@ require_once $this->trails_root .'/models/ForumPPLike.php';
 require_once $this->trails_root .'/models/ForumPPVersion.php';
 require_once $this->trails_root .'/models/ForumPPVisit.php';
 require_once $this->trails_root .'/models/ForumPPFavorite.php';
+require_once $this->trails_root .'/models/ForumPPAbo.php';
 
 /*
 if (!defined('FEEDCREATOR_VERSION')) {
@@ -119,8 +120,9 @@ class IndexController extends StudipController
             ForumPPHelpers::setPage(ForumPPEntry::getPostingPage($this->topic_id));
 
             $path               = ForumPPEntry::getPathToPosting($this->topic_id);
+            array_shift($path);array_shift($path);$path_element = array_shift($path);
             $this->child_topic  = $this->topic_id;
-            $this->topic_id     = $path[2]['id'];
+            $this->topic_id     = $path_element['id'];
             $this->constraint   = ForumPPEntry::getConstraints($this->topic_id);
         }
 
@@ -321,6 +323,8 @@ class IndexController extends StudipController
             'author'      => get_fullname($GLOBALS['user']->id),
             'author_host' => getenv('REMOTE_ADDR')
         ), Request::option('parent'));
+
+        $this->flash['notify'] = $new_id;
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $new_id .'#'. $new_id));
     }
@@ -553,6 +557,22 @@ class IndexController extends StudipController
 
         $this->render_nothing();
     }
+    
+    function abo_action($topic_id)
+    {
+        ForumPPAbo::add($topic_id);
+        $this->constraint = ForumPPEntry::getConstraints($topic_id);
+        
+        $this->render_template('index/_abo_link');
+    }
+    
+    function remove_abo_action($topic_id)
+    {
+        ForumPPAbo::delete($topic_id);
+        $this->constraint = ForumPPEntry::getConstraints($topic_id);
+        
+        $this->render_template('index/_abo_link');
+    }    
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * H E L P E R   F U N C T I O N S * * * * */

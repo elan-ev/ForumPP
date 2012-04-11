@@ -315,6 +315,11 @@ STUDIP.ForumPP = {
                 jQuery('#' + preview_id).parent().show();
             }
         });
+    },
+    
+    loadAction: function(element, action) {
+        jQuery(element).load(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/'
+            + action + '?cid=' + STUDIP.ForumPP.seminar_id))
     }
 };
 
@@ -356,8 +361,7 @@ jQuery.fn.extend({
  * Thanks to Tobias Cohen for this function
  * http://stackoverflow.com/questions/1184624/convert-form-data-to-js-object-with-jquery
  */
-jQuery.fn.serializeObject = function()
-{
+jQuery.fn.serializeObject = function() {
     var o = {};
     var a = this.serializeArray();
     jQuery.each(a, function() {

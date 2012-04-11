@@ -63,12 +63,16 @@ class ForumPPEntry {
      */
     static function getConstraints($topic_id) {
         // look up the range of postings
-        $range_stmt = DBManager::get()->prepare("SELECT lft, rgt, depth, seminar_id
+        $range_stmt = DBManager::get()->prepare("SELECT *
             FROM forumpp_entries WHERE topic_id = ?");
         $range_stmt->execute(array($topic_id));
         if (!$data = $range_stmt->fetch(PDO::FETCH_ASSOC)) {
             return false;
             // throw new Exception("Could not find entry with id >>$topic_id<< in forumpp_entries, " . __FILE__ . " on line " . __LINE__);
+        }
+        
+        if ($data['depth'] == 1) {
+            $data['area'] = 1;
         }
 
         return $data;
@@ -192,7 +196,7 @@ class ForumPPEntry {
         $stmt->execute(array($data['lft'], $data['rgt'], $data['seminar_id']));
 
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $ret[] = array(
+            $ret[$data['topic_id']] = array(
                 'id'   => $data['topic_id'],
                 'name' => $data['name']
             );
