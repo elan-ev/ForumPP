@@ -38,19 +38,22 @@ if (ForumPPPerm::has('version', $seminar_id)) :
     );
 endif;
 
+/*
 if ($constraint['depth'] > 0) :
    $abo_link = '<span id="abolink">' . $this->render_partial('index/_abo_link', compact('constraint')) . '</span>';
 
-$infobox_content[] = array(
-    'kategorie' => _('Aktionen'),
-    'eintrag'   => array(
-        array(
-            'icon' => 'icons/16/blue/link-intern.png',
-            'text' => $abo_link
+    $infobox_content[] = array(
+        'kategorie' => _('Aktionen'),
+        'eintrag'   => array(
+            array(
+                'icon' => 'icons/16/blue/link-intern.png',
+                'text' => $abo_link
+            )
         )
-    )
 );
 endif;
+ * 
+ */
 
 // show the infobox only if it contains elements
 if (!empty($infobox_content)) :

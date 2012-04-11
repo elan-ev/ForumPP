@@ -154,14 +154,10 @@ class ForumPPEntry {
       */
     static function getPostingPage($topic_id) {
         $constraint = ForumPPEntry::getConstraints($topic_id);
-        $path   = ForumPPEntry::getPathToPosting($topic_id);
-        array_pop($path);
-        $parent = array_pop($path);
+        if ($parent_id = ForumPPEntry::getParentTopicId($topic_id)) {
+            $parent_constraint = ForumPPEntry::getConstraints($parent_id);
 
-        if (!empty($parent)) {
-            $parent_constraint = ForumPPEntry::getConstraints($parent['id']);
-
-            return floor((($constraint['lft'] - $parent_constraint['lft']) / 2) / (self::POSTINGS_PER_PAGE - 1)) + 1;
+            return ceil((($constraint['lft'] - $parent_constraint['lft'] + 3) / 2) / self::POSTINGS_PER_PAGE);
         }
 
         return 0;
