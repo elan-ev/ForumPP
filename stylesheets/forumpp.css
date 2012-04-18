@@ -5,6 +5,18 @@
     display: inline;
 }
 
+@media screen and (min-width: 1300px) {
+    #forumpp .small_screen, #forumpp .searchbar {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 1299px) {
+    #forumpp .large_screen, #layout_sidebar {
+        display: none;
+    }
+}
+
 #forumpp img {
     border: none;
     max-width: 600px;
@@ -21,12 +33,24 @@
         border-radius: 3px;
 }
 
+#forumpp .searchbar {
+    text-align: center;
+}
+
+#forumpp .searchbar input[name=searchfor] {
+    width: 94%;
+} 
+
 /* posting lists*/
 #forumpp .forum_header {
     background-color: #899AB9;
     color: #FFFFFF;
     margin: 0pt;
     padding: 0pt;
+}
+
+#forumpp .forum_header .button {
+    margin: 0px;
 }
 
 #forumpp .listheader {
@@ -57,6 +81,11 @@
     padding-left: 5px;
 }
 
+#forumpp .areaentry > div {
+    height: 50px;
+    overflow: hidden;
+}
+
 #forumpp td.postings {
     border-left: 1px solid #FFFFFF;
     border-right: 1px solid #FFFFFF;
@@ -84,7 +113,12 @@
 }
 
 #forumpp .area_input, #forumpp .add_area_form {
+    display: block;
     padding: 0 5px;
+}
+
+#forumpp .add_area_form {
+    text-align: center;
 }
 
 #forumpp .add_area {
@@ -118,6 +152,7 @@
 
 #forumpp span.areaname {
     font-weight: bold;
+    width: 100%;
 }
 
 /* thread specififc stuff */

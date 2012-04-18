@@ -50,7 +50,7 @@ class ForumPPCat {
             WHERE topic_id = ?");
         $stmt->execute(array($area_id));
 
-        // add area to this category, make sure it is at the and
+        // add area to this category, make sure it is at the end
         $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM
             forumpp_categories_entries
             WHERE category_id = ?");

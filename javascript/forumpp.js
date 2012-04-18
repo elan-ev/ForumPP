@@ -148,12 +148,12 @@ STUDIP.ForumPP = {
 
     addArea: function (element) {
         this.cancelAddArea();
-        jQuery(element).hide().parent().find("form.add_area_form").show();
+        jQuery(element).parent().parent().hide().parent().find("tr.new_area").show();
     },
 
     cancelAddArea: function () {
-        jQuery('form.add_area_form').hide();
-        jQuery('div.add_area').show();
+        jQuery('tr.new_area').hide();
+        jQuery('tr.add_area').show();
     },
 
     deleteCategory: function (category_id, name) {
@@ -197,30 +197,39 @@ STUDIP.ForumPP = {
     },
 
 
-    editAreaName: function (area_id) {
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().hide();
+    editArea: function (area_id) {
+        jQuery('tr[data-area-id=' + area_id + '] span.areadata').hide();
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').show();
+        jQuery('tr[data-area-id=' + area_id + '] span.areadata').parent().css('height', 'auto');
     },
 
-    cancelEditAreaName: function (area_id) {
+    cancelEditArea: function (area_id) {
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().show();
+        jQuery('tr[data-area-id=' + area_id + '] span.areadata').show();
 
         // reset the input field with the unchanged name
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit input[type=text]').val(
+        jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit input[name=name]').val(
             jQuery('tr[data-area-id=' + area_id + '] span.areaname').text().trim()
         );
+
+        jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit textarea[name=content]').val(
+            jQuery('tr[data-area-id=' + area_id + '] span.areacontent').text().trim()
+        );
+            
+            jQuery('tr[data-area-id=' + area_id + '] span.areadata').parent().css('height', '');
     },
 
-    saveAreaName: function (area_id) {
+    saveArea: function (area_id) {
         var name = {};
         name.name = jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit input[type=text]').val();
+        name.content = jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit textarea').val();
 
         // display the new name immediately
         jQuery('tr[data-area-id=' + area_id + '] span.areaname').text(name.name);
+        jQuery('tr[data-area-id=' + area_id + '] span.areacontent').text(name.content);
 
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
-        jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().show();
+        jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().parent().show();
 
         jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/edit_area/' + area_id + '?cid=' + STUDIP.ForumPP.seminar_id), {
             type: 'POST',

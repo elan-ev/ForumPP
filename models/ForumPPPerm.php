@@ -39,12 +39,12 @@ class ForumPPPerm {
         if ($status == 'dozent' && in_array($perm,
             words('edit_category add_category remove_category sort_category '
             . 'edit_area add_area remove_area sort_area '
-            . 'search edit_entry add_entry remove_entry move_thread version')
+            . 'search edit_entry add_entry remove_entry move_thread version abo')
         ) !== false) {
             return true;
-        } else if ($status == 'tutor' && in_array($perm, words('search add_entry version')) !== false) {
+        } else if ($status == 'tutor' && in_array($perm, words('search add_entry version abo')) !== false) {
             return true;
-        } else if ($status == 'autor' && in_array($perm, words('search add_entry version')) !== false) {
+        } else if ($status == 'autor' && in_array($perm, words('search add_entry version abo')) !== false) {
             return true;
         } else if ($status == 'user' && in_array($perm, words('')) !== false) {
             return true;

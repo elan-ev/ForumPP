@@ -96,25 +96,51 @@
         </td>
         <td class="areaentry">
             <div style="position: relative;">
-                <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
-                    <span class="areaname"><?= $entry['name'] ?></span>
-                </a>
+                <span class="areadata">
+                    <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $jump_to_topic_id .'#'. $jump_to_topic_id) ?>">
+                        <span class="areaname"><?= $entry['name'] ?></span>
+                        <br>
+                    </a>
+                    <span class="areacontent"><?= formatReady(ForumPPEntry::killEdit($entry['content_raw'])) ?></span>
+
+                    <?= _("von") ?>
+                    <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
+                        <?= htmlReady($entry['author']) ?>
+                    </a>
+                    <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
+                </span>
 
                 <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
-                <span class="areaname_edit" style="display: none;">
-                    <input type="text" name="name" size="20" value="<?= $entry['name'] ?>" onClick="jQuery(this).focus()">
+                <span class="areaname_edit" style="display: none; text-align: center;">
+                    <div style="width: 90%">
+                        <input type="text" name="name" size="20" style="width: 100%;" value="<?= $entry['name'] ?>" onClick="jQuery(this).focus()"><br>
+                        <textarea name="content" style="height: 3em;" onClick="jQuery(this).focus()"><?= $entry['content_raw'] ?></textarea>
 
-                    <?= Studip\LinkButton::createAccept('Titel speichern', "javascript:STUDIP.ForumPP.saveAreaName('". $entry['topic_id'] ."')") ?>
-                    <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditAreaName('". $entry['topic_id'] ."')") ?>
+                        <span class="large_screen">
+                            <?= Studip\LinkButton::createAccept('Speichern', "javascript:STUDIP.ForumPP.saveArea('". $entry['topic_id'] ."')") ?>
+                            <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelEditArea('". $entry['topic_id'] ."')") ?>
+                        </span>
+                        
+                        <span class="small_screen">
+                            <?= Assets::img('icons/16/green/accept.png', array(
+                                'title'   => _('Speichern'),
+                                'onClick' => "STUDIP.ForumPP.saveArea('". $entry['topic_id'] ."')"
+                            )) ?>
+                            <?= Assets::img('icons/16/red/decline.png', array(
+                                'title'   => _('Speichern'),
+                                'onClick' => "STUDIP.ForumPP.cancelEditArea('". $entry['topic_id'] ."')"
+                            )) ?>
+                        </span>
+                    </div>
                 </span>
                 <? endif ?>
 
                 
                 <span class="action-icons">
                     <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
-                    <a href="javascript:STUDIP.ForumPP.editAreaName('<?= $entry['topic_id'] ?>');">
+                    <a href="javascript:STUDIP.ForumPP.editArea('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png',
-                            array('class' => 'edit-area', 'title' => 'Name des Bereichs ändern')) ?>
+                            array('class' => 'edit-area', 'title' => 'Name/Beschreibung des Bereichs ändern')) ?>
                     </a>
                     <? endif ?>
                     
@@ -125,15 +151,6 @@
                     </a>
                     <? endif ?>
                 </span>
-
-                <br/>
-
-                <?= _("von") ?>
-                <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
-                    <?= htmlReady($entry['author']) ?>
-                </a>
-                <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
-                <br>
             </div>
         </td>
 
@@ -163,19 +180,30 @@
 
     <tfoot>
     <? if ($category_id && ForumPPPerm::has('add_area', $seminar_id)) : ?>
-    <tr>
+    <tr class="add_area">
         <td class="areaborder" colspan="7">
             <div class="add_area" title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">
                 <?= Assets::img('icons/16/black/plus.png') ?>
             </div>
-            <form class="add_area_form" style="display: none" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
+        </td>
+    </tr>
+
+    <tr style="display: none" class="new_area">
+        <td class="areaborder"></td>
+        <td class="areaentry"></td>
+        <td class="areaentry">
+            <form class="add_area_form" style="display: bgnone" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
                 <?= CSRFProtection::tokenTag() ?>
-                <input type="text" name="name" size="50" placeholder="Name des neuen Bereiches" required>
+                <input type="text" name="name" size="50" style="width: 99%;" placeholder="<?= _('Name des neuen Bereiches') ?>" required><br>
+                <textarea name="content" style="height: 3em; width: 99%;" placeholder="<?= _('Optionale Beschreibung des neuen Bereiches') ?>"></textarea>
 
                 <?= Studip\Button::create('Bereich hinzufügen') ?>
                 <?= Studip\LinkButton::createCancel('Abbrechen', "javascript:STUDIP.ForumPP.cancelAddArea()") ?>
             </form>
         </td>
+        <td class="areaentry postings">0</td>
+        <td class="areaentry answer"><br><?= _('keine Antworten') ?></td>
+        <td class="areaborder"></td>
     </tr>
     <? endif ?>
 

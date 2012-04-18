@@ -38,20 +38,6 @@ if (ForumPPPerm::has('version', $seminar_id)) :
     );
 endif;
 
-if ($constraint['depth'] > 0) :
-   $abo_link = '<span id="abolink">' . $this->render_partial('index/_abo_link', compact('constraint')) . '</span>';
-
-    $infobox_content[] = array(
-        'kategorie' => _('Aktionen'),
-        'eintrag'   => array(
-            array(
-                'icon' => 'icons/16/blue/link-intern.png',
-                'text' => $abo_link
-            )
-        )
-);
-endif;
-
 // show the infobox only if it contains elements
 if (!empty($infobox_content)) :
     $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);
@@ -73,6 +59,10 @@ endif;
     <? endif ?>
 </div>
 <br style="clear: both">
+
+<div class="searchbar">
+    <?= $this->render_partial('index/_search'); ?>
+</div>
 
 <!-- Message area -->
 <div id="message_area">
@@ -120,7 +110,15 @@ endif;
     <? $constraint['depth'] == 1 ? $button_face = _('Neues Thema erstellen') : $button_face = _('Antworten') ?>
     <div style="text-align: center">
         <div id="new_entry_button" <?= $this->flash['new_entry_title'] ? 'style="display: none"' : '' ?>>
-            <?= Studip\Button::create($button_face) ?>
+            <div class="button-group">
+                <?= Studip\Button::create($button_face) ?>
+            
+                <? if ($constraint['depth'] > 0 && ForumPPPerm::has('abo', $seminar_id)) : ?>
+                <span id="abolink">
+                    <?= $this->render_partial('index/_abo_link', compact('constraint')) ?>
+                </span>
+                <? endif ?>
+            </div>
         </div>
 
         <div id="new_entry_box" <?= $this->flash['new_entry_title'] ? '' : 'style="display: none"' ?>>

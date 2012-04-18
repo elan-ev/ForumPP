@@ -341,7 +341,7 @@ class IndexController extends StudipController
             'seminar_id'  => $this->getId(),
             'user_id'     => $GLOBALS['user']->id,
             'name'        => Request::get('name', _('Kein Titel')),
-            'content'     => '',
+            'content'     => Request::get('content'),
             'author'      => get_fullname($GLOBALS['user']->id),
             'author_host' => getenv('REMOTE_ADDR')
         ), $this->getId());
@@ -507,12 +507,14 @@ class IndexController extends StudipController
         ForumPPPerm::check('edit_area', $this->getId());
 
         if (Request::isAjax()) {
-            $name = utf8_decode(Request::get('name'));
+            $name    = utf8_decode(Request::get('name'));
+            $content = utf8_decode(Request::get('content'));
         } else {
-            $name = Request::get('name');
+            $name    = Request::get('name');
+            $content = Request::get('content');
         }
 
-        ForumPPEntry::update($area_id, $name, '');
+        ForumPPEntry::update($area_id, $name, $content);
 
         $this->render_nothing();
     }
@@ -561,6 +563,8 @@ class IndexController extends StudipController
     
     function abo_action($topic_id)
     {
+        ForumPPPerm::check('abo', $this->getId());
+            
         ForumPPAbo::add($topic_id);
         $this->constraint = ForumPPEntry::getConstraints($topic_id);
         
@@ -569,6 +573,8 @@ class IndexController extends StudipController
     
     function remove_abo_action($topic_id)
     {
+        ForumPPPerm::check('abo', $this->getId());
+
         ForumPPAbo::delete($topic_id);
         $this->constraint = ForumPPEntry::getConstraints($topic_id);
         
