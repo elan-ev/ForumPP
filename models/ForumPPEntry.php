@@ -163,6 +163,23 @@ class ForumPPEntry {
         return 0;
     }
 
+    static function getLastUnread($parent_id) {
+        $constraint = ForumPPEntry::getConstraints($parent_id);
+        
+        // take users visitdate into account
+        $visitdate = ForumPPVisit::get($GLOBALS['user']->id, $parent_id, $constraint['seminar_id']);
+        
+        // get the first unread entry
+        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
+            WHERE lft > ? AND rgt < ? AND seminar_id = ?
+                AND mkdate >= ?
+            ORDER BY mkdate ASC LIMIT 1");
+        $stmt->execute(array($constraint['lft'], $constraint['rgt'], $constraint['seminar_id'], $visitdate));
+        $last_unread = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $last_unread ? $last_unread['topic_id'] : null;
+    }
+
     /*
      * retrieve the the latest posting under $parent_id
      * or false if the postings itself is the latest
@@ -171,16 +188,18 @@ class ForumPPEntry {
      * @return mixed the data for the latest postings or false
      */
     static function getLatestPosting($parent_id) {
-        $data = ForumPPEntry::getConstraints($parent_id);
+        $constraint = ForumPPEntry::getConstraints($parent_id);
+
+        // get last entry
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
             WHERE lft > ? AND rgt < ? AND seminar_id = ?
             ORDER BY mkdate DESC LIMIT 1");
-        $stmt->execute(array($data['lft'], $data['rgt'], $data['seminar_id']));
+        $stmt->execute(array($constraint['lft'], $constraint['rgt'], $constraint['seminar_id']));
 
         if (!$data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             return false;
         }
-
+        
         return $data;
     }
 
@@ -334,7 +353,10 @@ class ForumPPEntry {
                 $last_posting['text'] = $text;
             }
 
-            $postings[$key]['last_posting'] = $last_posting;
+            $postings[$key]['last_posting'] = $last_posting;            
+            if (!$postings[$key]['last_unread']  = self::getLastUnread($posting['topic_id'])) {
+                $postings[$key]['last_unread'] = $last_posting['topic_id'];
+            }
             $postings[$key]['num_postings'] = self::countEntries($posting['topic_id']);
 
             unset($last_posting);
@@ -535,8 +557,6 @@ class ForumPPEntry {
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
-
-        ForumPPVisit::entryAdded($data['topic_id'], $constraint['seminar_id']);
     }
 
 

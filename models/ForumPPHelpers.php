@@ -169,15 +169,20 @@ class ForumPPHelpers {
             }
         } else if ($num_entries['abo'] > 0) {
             if ($depth > 0) {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Einträge'), $num_entries['abo']);
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Antworten'), $num_entries['abo']);
             } else {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Einträge/Themen'), $num_entries['abo']);
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Antworten/Themen'), $num_entries['abo']);
             }
         } else if ($num_entries['new'] > 0) {
             $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche'), $num_entries['new']);
         } else {
-            $text = sprintf(_('Seit ihrem letzten Besuch gab es nichts neues.'
-                . ' Es gibt insgesamt %s Einträge in diesem Forum.'), max(ForumPPEntry::countEntries($topic_id) - 1, 0));
+            if ($depth >= 1) {
+                $text = sprintf(_('Seit ihrem letzten Besuch gab es nichts neues.'
+                    . ' Es gibt insgesamt %s Antworten zu diesem Thema.'), max(ForumPPEntry::countEntries($topic_id) - 1, 0));
+            } else {
+                $text = sprintf(_('Seit ihrem letzten Besuch gab es nichts neues.'
+                    . ' Es gibt insgesamt %s Beiträge in diesem Forum.'), max(ForumPPEntry::countEntries($topic_id) - 1, 0));            
+            }
         }
         
         return $text;

@@ -31,7 +31,7 @@
     </tr>
 
     <? if (!empty($entries)) foreach ($entries as $entry) :
-        $jump_to_topic_id = ($entry['last_posting']['topic_id'] ? $entry['last_posting']['topic_id'] : $entry['topic_id']); ?>
+        $jump_to_topic_id = ($entry['last_unread'] ?: $entry['topic_id']); ?>
  
     <tr data-area-id="<?= $entry['topic_id'] ?>">
 

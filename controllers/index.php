@@ -183,7 +183,7 @@ class IndexController extends StudipController
 
         // set the visit-date and get the stored last_visitdate
         ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
-        $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId());
+        $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId(), true);
 
         $this->seminar_id = $this->getId();
 
