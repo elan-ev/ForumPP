@@ -5,6 +5,7 @@
     <thead>
     <tr>
         <td class="forum_header <?= ForumPPPerm::has('sort_category', $seminar_id) && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3">
+            <a name="cat_<?= $category_id ?>"></a>
             <span class="corners-top"></span>
             <span class="heading">
                 <? if (!$category_id) : ?>

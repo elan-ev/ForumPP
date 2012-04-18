@@ -18,7 +18,11 @@ class ForumPPCat {
             (category_id, seminar_id, entry_name)
             VALUES (?, ?, ?)");
 
-        $stmt->execute(array(md5(uniqid(rand())), $seminar_id, $name));
+        $category_id = md5(uniqid(rand()));
+        
+        $stmt->execute(array($category_id, $seminar_id, $name));
+        
+        return $category_id;
     }
 
     static function remove($category_id, $seminar_id) {

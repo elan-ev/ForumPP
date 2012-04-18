@@ -481,10 +481,10 @@ class IndexController extends StudipController
     {
         ForumPPPerm::check('add_category', $this->getId());
 
-        ForumPPCat::add($this->getId(), Request::get('category'));
+        $category_id = ForumPPCat::add($this->getId(), Request::get('category'));
         $this->topic_id = $topic_id;
 
-        $this->redirect(PluginEngine::getLink('forumpp/index'));
+        $this->redirect(PluginEngine::getLink('forumpp/index#cat_'. $category_id));
     }
 
     function remove_category_action($category_id)
