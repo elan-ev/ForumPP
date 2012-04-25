@@ -213,7 +213,7 @@ STUDIP.ForumPP = {
         );
 
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit textarea[name=content]').val(
-            jQuery('tr[data-area-id=' + area_id + '] span.areacontent').text().trim()
+            jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text().trim()
         );
             
             jQuery('tr[data-area-id=' + area_id + '] span.areadata').parent().css('height', '');
@@ -226,7 +226,7 @@ STUDIP.ForumPP = {
 
         // display the new name immediately
         jQuery('tr[data-area-id=' + area_id + '] span.areaname').text(name.name);
-        jQuery('tr[data-area-id=' + area_id + '] span.areacontent').text(name.content);
+        jQuery('tr[data-area-id=' + area_id + '] div.areacontent').text(name.content);
 
         jQuery('tr[data-area-id=' + area_id + '] span.areaname_edit').hide();
         jQuery('tr[data-area-id=' + area_id + '] span.areaname').parent().parent().show();
@@ -307,7 +307,11 @@ STUDIP.ForumPP = {
         if (matches) {                                  // add the x of Re^x if any
             title = title.replace(matches[0], 'Re^' + (count - 1 + parseInt(matches[1])) + ':');
         } else {                                        // otherwise create a new one
-            title = 'Re^' + count + ': ' + title;
+            if (count > 1) {
+                title = 'Re^' + count + ': ' + title;
+            } else {
+                title = 'Re: ' + title;
+            }
         }
 
         title = title.replace(/Re:\ ?/g, '');           // remove all simple Re:

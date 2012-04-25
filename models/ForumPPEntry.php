@@ -5,6 +5,8 @@
  * @author Till Glöggler <tgloeggl@uos.de>
  */
 
+require_once 'app/models/smiley.php';
+
 class ForumPPEntry {
     const WITH_CHILDS = true;
     const WITHOUT_CHILDS = false;
@@ -19,14 +21,23 @@ class ForumPPEntry {
 
     /**
      * is used for posting-preview. replaces all newlines with spaces
+     * 
      * @param string $text the text to work on
      * @returns string
      */
-    static function br2space($text) {
+    static function br2space($text)
+    {
         return str_replace("\n", ' ', str_replace("\r", '', $text));
     }
 
-    static function killEdit($description) {
+    /**
+     * remove the edit-html from a posting
+     *
+     * @param string $description the posting-content
+     * @return string the content stripped by the edit-mark
+     */
+    static function killEdit($description)
+    {
         // wurde schon mal editiert
         if (preg_match('/^(.*)(<admin_msg.*?)$/s', $description, $match)) {
             return $match[1];
@@ -34,12 +45,26 @@ class ForumPPEntry {
         return $description;
     }
 
-    static function appendEdit($description) {
+    /**
+     * add the edit-html to a posting
+     * 
+     * @param string $description the posting-content
+     * @return string the content with the edit-mark
+     */
+    static function appendEdit($description)
+    {
         $edit = "<admin_msg autor=\"" . addslashes(get_fullname()) . "\" chdate=\"" . time() . "\">";
         return $description . $edit;
     }
 
-    static function parseEdit($description) {
+    /**
+     * convert the edit-html to raw text
+     * 
+     * @param string $description the posting-content
+     * @return string the content with the raw text version of the edit-mark
+     */
+    static function parseEdit($description)
+    {
         // wurde schon mal editiert
         if (preg_match('/^.*(<admin_msg.*?)$/s', $description, $match)) {
             $tmp = explode('"', $match[1]);
@@ -49,8 +74,40 @@ class ForumPPEntry {
         return $description;
     }
 
-    static function killQuotes($description) {
+    /**
+     * remove the [quote]-tags from the passed posting
+     * 
+     * @param string $description the posting-content
+     * @return string the posting without [quote]-tags
+     */
+    static function killQuotes($description)
+    {
         return str_replace('[/quote]', '', preg_replace("/\[quote=.*\]/U", "", $description));
+    }
+
+
+    /**
+     * calls Stud.IP's kill_format and additionally removes any found smiley-tag
+     * 
+     * @param string $text the text to parse
+     * @return string the text without format-tags and without smileys
+     */
+    static function killFormat($text)
+    {
+        
+        $text = kill_format($text);
+        
+        // find stuff which is enclosed between to colons
+        preg_match('/:.*:/U', $text, $matches);
+        
+        // remove the match if it is a smiley
+        foreach ($matches as $match) {
+            if (Smiley::getByName($match) || Smiley::getByShort($match)) {
+                $text = str_replace($match, '', $text);
+            }
+        }
+        
+        return $text;
     }
 
     /**
@@ -61,7 +118,8 @@ class ForumPPEntry {
      *
      * @throws Exception
      */
-    static function getConstraints($topic_id) {
+    static function getConstraints($topic_id)
+    {
         // look up the range of postings
         $range_stmt = DBManager::get()->prepare("SELECT *
             FROM forumpp_entries WHERE topic_id = ?");
@@ -87,7 +145,7 @@ class ForumPPEntry {
      * @return string the topic_id of the parent element or false
      */
     static function getParentTopicId($topic_id) {
-        $path = self::getPathToPosting($topic_id);
+        $path = ForumPPEntry::getPathToPosting($topic_id);
         array_pop($path);
         $data = array_pop($path);
         
@@ -102,7 +160,7 @@ class ForumPPEntry {
      * @return array a list if topic_ids
      */
     static function getChildTopicIds($topic_id) {
-        $constraints = self::getConstraints($topic_id);
+        $constraints = ForumPPEntry::getConstraints($topic_id);
         
         $stmt = DBManager::get()->prepare("SELECT topic_id
             FROM forumpp_entries WHERE lft >= ? AND rgt <= ?");
@@ -116,13 +174,13 @@ class ForumPPEntry {
 
         if (!$perms[$topic_id]) {
             // find out if the posting is the last in the thread
-            $constraints = self::getConstraints($topic_id);
+            $constraints = ForumPPEntry::getConstraints($topic_id);
 
             $path   = ForumPPEntry::getPathToPosting($topic_id);
             array_pop($path);
             $parent = array_pop($path);
 
-            $parent_constraints = self::getConstraints($parent['id']);
+            $parent_constraints = ForumPPEntry::getConstraints($parent['id']);
 
             $last_posting = false;
             if (($parent_constraints['rgt'] - 1 == (int)$constraints['rgt']) && $constraints['depth'] >= 2) {
@@ -157,7 +215,7 @@ class ForumPPEntry {
         if ($parent_id = ForumPPEntry::getParentTopicId($topic_id)) {
             $parent_constraint = ForumPPEntry::getConstraints($parent_id);
 
-            return ceil((($constraint['lft'] - $parent_constraint['lft'] + 3) / 2) / self::POSTINGS_PER_PAGE);
+            return ceil((($constraint['lft'] - $parent_constraint['lft'] + 3) / 2) / ForumPPEntry::POSTINGS_PER_PAGE);
         }
 
         return 0;
@@ -232,7 +290,7 @@ class ForumPPEntry {
         // retrieve the postings
         foreach ($postings as $data) {
             // we throw away all formatting stuff, tags, etc, leaving the important bit of information
-            $desc_short = ForumPPEntry::br2space(kill_format(strip_tags($data['content'])));
+            $desc_short = ForumPPEntry::br2space(ForumPPEntry::killFormat(strip_tags($data['content'])));
             if (strlen($desc_short) > (ForumPPEntry::THREAD_PREVIEW_LENGTH + 2)) {
                 $desc_short = substr($desc_short, 0, ForumPPEntry::THREAD_PREVIEW_LENGTH) . '...';
             } else {
@@ -263,7 +321,7 @@ class ForumPPEntry {
     static function getEntries($parent_id, $with_childs = false, $add = '',
         $sort_order = 'DESC', $start = 0, $limit = ForumPPEntry::POSTINGS_PER_PAGE)
     {
-        $constraint = self::getConstraints($parent_id);
+        $constraint = ForumPPEntry::getConstraints($parent_id);
         $seminar_id = $constraint['seminar_id'];
         $depth      = $constraint['depth'] + 1;
 
@@ -327,14 +385,14 @@ class ForumPPEntry {
             throw new Exception('The requested page does not exist!');
         }
 
-        return array('list' => self::parseEntries($stmt->fetchAll(PDO::FETCH_ASSOC)), 'count' => $count);
+        return array('list' => ForumPPEntry::parseEntries($stmt->fetchAll(PDO::FETCH_ASSOC)), 'count' => $count);
     }
 
 
     function getLastPostings($postings) {
         foreach ($postings as $key => $posting) {
 
-            if ($data = self::getLatestPosting($posting['topic_id'])) {
+            if ($data = ForumPPEntry::getLatestPosting($posting['topic_id'])) {
                 $last_posting['topic_id']      = $data['topic_id'];
                 $last_posting['date']          = $data['mkdate'];
                 $last_posting['user_id']       = $data['user_id'];
@@ -343,8 +401,8 @@ class ForumPPEntry {
 
                 // we throw away all formatting stuff, tags, etc, so we have just the important bit of information
                 $text = strip_tags($data['name']);
-                $text = self::br2space($text);
-                $text = kill_format(self::killQuotes($text));
+                $text = ForumPPEntry::br2space($text);
+                $text = ForumPPEntry::killFormat(ForumPPEntry::killQuotes($text));
 
                 if (strlen($text) > 42) {
                     $text = substr($text, 0, 40) . '...';
@@ -354,10 +412,10 @@ class ForumPPEntry {
             }
 
             $postings[$key]['last_posting'] = $last_posting;            
-            if (!$postings[$key]['last_unread']  = self::getLastUnread($posting['topic_id'])) {
+            if (!$postings[$key]['last_unread']  = ForumPPEntry::getLastUnread($posting['topic_id'])) {
                 $postings[$key]['last_unread'] = $last_posting['topic_id'];
             }
-            $postings[$key]['num_postings'] = self::countEntries($posting['topic_id']);
+            $postings[$key]['num_postings'] = ForumPPEntry::countEntries($posting['topic_id']);
 
             unset($last_posting);
         }
@@ -373,20 +431,20 @@ class ForumPPEntry {
      * @return <type>
      */
     static function getList($type, $parent_id) {
-        $start = ForumPPHelpers::getPage() * self::POSTINGS_PER_PAGE;
+        $start = ForumPPHelpers::getPage() * ForumPPEntry::POSTINGS_PER_PAGE;
 
         switch ($type) {
             case 'area':
-                $list = self::getEntries($parent_id, self::WITHOUT_CHILDS, '', 'DESC', 0, 100);
+                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', 0, 100);
                 $postings = $list['list'];
 
-                $postings = self::getLastPostings($postings);
+                $postings = ForumPPEntry::getLastPostings($postings);
                 return array('list' => $postings, 'count' => $list['count']);
 
                 break;
 
             case 'list':
-                $constraint = self::getConstraints($parent_id);
+                $constraint = ForumPPEntry::getConstraints($parent_id);
 
                 // purpose of the following query is to retrieve the threads
                 // for an area ordered by the mkdate of their latest posting
@@ -405,7 +463,7 @@ class ForumPPEntry {
                     WHERE fe.seminar_id = :seminar_id AND fe.lft > :left
                         AND fe.rgt < :right AND fe.depth = 2
                     ORDER BY en_mkdate DESC
-                    LIMIT $start, ". self::POSTINGS_PER_PAGE);
+                    LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
                 $stmt->bindParam(':seminar_id', $constraint['seminar_id']);
                 $stmt->bindParam(':left', $constraint['lft']);
                 $stmt->bindParam(':right', $constraint['rgt']);
@@ -413,7 +471,7 @@ class ForumPPEntry {
 
                 $postings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                $postings = self::parseEntries($postings);
+                $postings = ForumPPEntry::parseEntries($postings);
                 $postings = ForumPPEntry::getLastPostings($postings);
 
                 $stmt_count = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
@@ -542,7 +600,7 @@ class ForumPPEntry {
      * @return void
      */
     static function insert($data, $parent_id) {
-        $constraint = self::getConstraints($parent_id);
+        $constraint = ForumPPEntry::getConstraints($parent_id);
 
         // #TODO: Zusammenfassen in eine Transaktion!!!
         DBManager::get()->exec('UPDATE forumpp_entries SET lft = lft + 2
@@ -570,7 +628,7 @@ class ForumPPEntry {
      * @return void
      */
     static function update($topic_id, $name, $content) {
-        $content = self::appendEdit($content);
+        $content = ForumPPEntry::appendEdit($content);
 
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries
             SET name = ?, content = ?
@@ -586,7 +644,7 @@ class ForumPPEntry {
      * @return void
      */
     function delete($topic_id) {
-        $constraints = self::getConstraints($topic_id);
+        $constraints = ForumPPEntry::getConstraints($topic_id);
         ForumPPVisit::entryDelete($topic_id);
 
         // #TODO: Zusammenfassen in eine Transaktion!!!
@@ -632,7 +690,7 @@ class ForumPPEntry {
      */
     function move($topic_id, $destination) {
         // #TODO: Zusammenfassen in eine Transaktion!!!
-        $constraints = self::getConstraints($topic_id);
+        $constraints = ForumPPEntry::getConstraints($topic_id);
 
         // move the affected entries "outside" the tree
         $stmt = DBManager::get()->prepare("UPDATE forumpp_entries
@@ -651,7 +709,7 @@ class ForumPPEntry {
         $stmt->execute(array($constraints['rgt'], $constraints['seminar_id']));
 
         // make some space by updating the lft and rgt values of the target node
-        $constraints_destination = self::getConstraints($destination);
+        $constraints_destination = ForumPPEntry::getConstraints($destination);
         $size = $constraints['rgt'] - $constraints['lft'] + 1;
 
         DBManager::get()->exec("UPDATE forumpp_entries SET lft = lft + $size
@@ -660,7 +718,7 @@ class ForumPPEntry {
             WHERE rgt >= ". $constraints_destination['rgt'] ." AND seminar_id = '". $constraints_destination['seminar_id'] . "'");
 
         //move the entries from "outside" the tree to the target node
-        $constraints_destination = self::getConstraints($destination);
+        $constraints_destination = ForumPPEntry::getConstraints($destination);
 
         $diff = ($constraints_destination['rgt'] - ($constraints['rgt'] - $constraints['lft'])) - 1 - $constraints['lft'];
 

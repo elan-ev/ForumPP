@@ -102,7 +102,7 @@
                         <span class="areaname"><?= $entry['name'] ?></span>
                         <br>
                     </a>
-                    <span class="areacontent"><?= formatReady(ForumPPEntry::killEdit($entry['content_raw'])) ?></span>
+                    <div class="areacontent"><?= htmlReady(ForumPPEntry::killEdit($entry['content_raw'])) ?></div>
 
                     <?= _("von") ?>
                     <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
