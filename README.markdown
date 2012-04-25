@@ -27,6 +27,10 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.23
+
+* Feature: Beiträge könnene nun als interne Nachricht weitergeleitet werden
+
 ## Version 2.0.22
 
 * Feature: Zusammenfassen der Re:-Angaben im Titel bei Zitaten durch Re^x
