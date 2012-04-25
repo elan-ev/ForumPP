@@ -90,7 +90,7 @@ STUDIP.ForumPP = {
     newEntry: function() {
         jQuery('#new_entry_button').hide();
         jQuery('#new_entry_box').show();
-        jQuery('html').animate({ scrollTop: jQuery(document).height() }, 'slow');
+        jQuery('html').animate({scrollTop: jQuery(document).height()}, 'slow');
     },
 
     approveDelete: function () {
@@ -324,6 +324,17 @@ STUDIP.ForumPP = {
         jQuery('#new_entry_box textarea').val(content);
         jQuery('#new_entry_box input[name=name]').val(title);
         STUDIP.ForumPP.newEntry();
+    },
+    
+    forwardEntry: function(topic_id) {
+        var title   = 'Re: ' + jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val();
+        var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val();
+        
+        window.location = STUDIP.URLHelper.getURL('sms_send.php', { 
+            'message' : '**' + title + "**\n\n" + content + "\n\n"
+                + STUDIP.URLHelper.getURL('plugins.php/forumpp/index/index/' 
+                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '#' + topic_id)
+        });
     },
 
     moveThreadDialog: function (topic_id) {

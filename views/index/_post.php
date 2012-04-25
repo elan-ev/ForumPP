@@ -148,7 +148,7 @@ if (!is_array($highlight)) $highlight = array();
         <? if (ForumPPPerm::has('add_entry', $seminar_id)) : ?>
         <?= Studip\LinkButton::create('Beitrag zitieren', "javascript:STUDIP.ForumPP.citeEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
-
+        
         <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <?= Studip\LinkButton::create('Beitrag bearbeiten', "javascript:STUDIP.ForumPP.editEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
@@ -170,6 +170,8 @@ if (!is_array($highlight)) $highlight = array();
         <? else : ?>
             <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getURL('forumpp/index/unset_favorite/' . $post['topic_id'])) ?>
         <? endif ?>
+        
+        <?= Studip\LinkButton::create('Beitrag weiterleiten', "javascript:STUDIP.ForumPP.forwardEntry('". $post['topic_id'] ."')") ?>
     </span>
         </div>
     </div>
