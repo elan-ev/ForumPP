@@ -333,7 +333,7 @@ STUDIP.ForumPP = {
         window.location = STUDIP.URLHelper.getURL('sms_send.php', { 
             'message' : '**' + title + "**\n\n" + content + "\n\n"
                 + STUDIP.URLHelper.getURL('plugins.php/forumpp/index/index/' 
-                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '#' + topic_id)
+                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '&again=yes#' + topic_id)
         });
     },
 
