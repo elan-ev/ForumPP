@@ -27,6 +27,10 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.22
+
+* Feature: Zusammenfassen der Re:-Angaben im Titel bei Zitaten durch Re^x
+
 ## Version 2.0.21
 
 * Bugfix: Nach dem Anlegen einer neuen Kategorie mittels Anker zu dieser springen

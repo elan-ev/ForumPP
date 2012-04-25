@@ -369,15 +369,6 @@ class IndexController extends StudipController
         }
     }
 
-    function edit_entry_action($topic_id)
-    {
-        if (ForumPPEntry::hasEditPerms($topic_id)) {
-            $this->flash['edit_entry'] = $topic_id;
-        }
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
-    }
-
     function update_entry_action($topic_id)
     {
         $name    = studip_utf8decode(Request::get('name', _('Kein Titel')));
@@ -407,20 +398,6 @@ class IndexController extends StudipController
         ForumPPEntry::move($thread_id, $destination);
 
         $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $thread_id .'#'. $thread_id));
-    }
-
-    function cite_action($topic_id)
-    {
-        if ($entry = ForumPPEntry::getEntry($topic_id)) {
-            $content  = htmlReady(quotes_encode(ForumPPEntry::killEdit($entry['content']), $entry['author']));
-            $content .= "\n\n";
-
-            $this->flash['new_entry'] = true;
-            $this->flash['new_entry_content'] = $content;
-            $this->flash['new_entry_title'] = _('Re:') . ' ' . htmlReady($entry['name']);
-        }
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id));
     }
 
     function set_favorite_action($topic_id)

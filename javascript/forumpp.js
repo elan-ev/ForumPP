@@ -299,6 +299,20 @@ STUDIP.ForumPP = {
     citeEntry: function(topic_id) {
         var name    = jQuery('span.username[data-profile=' + topic_id +']').text().trim();
         var title   = 'Re: ' + jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val();
+
+        // sum the Re's and display them as Re^x:
+        var count   = title.match(/Re:/g).length;       // number of Re: occurrences
+        var matches = title.match(/Re:?\^(\d+):?/);     // check for occurrence of Re^x
+        
+        if (matches) {                                  // add the x of Re^x if any
+            title = title.replace(matches[0], 'Re^' + (count - 1 + parseInt(matches[1])) + ':');
+        } else {                                        // otherwise create a new one
+            title = 'Re^' + count + ': ' + title;
+        }
+
+        title = title.replace(/Re:\ ?/g, '');           // remove all simple Re:
+        
+        // add content from cited posting in [quote]-tags
         var content = '[quote=' + name + ']' + "\n"
             + jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val()
             + "\n[/quote]"
