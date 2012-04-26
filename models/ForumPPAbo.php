@@ -56,11 +56,13 @@ class ForumPPAbo {
         // get all parent topic-ids, to find out which users to notify
         $path = ForumPPEntry::getPathToPosting($topic_id);
 
-        // fetch all users to notify
+        // fetch all users to notify, exlcude current user
         $stmt = $db->prepare("SELECT DISTINCT user_id
             FROM forumpp_abo_users
-            WHERE topic_id IN (:topic_ids)");
+            WHERE topic_id IN (:topic_ids)
+                AND user_id != :user_id");
         $stmt->bindParam(':topic_ids', array_keys($path), StudipPDO::PARAM_ARRAY);
+        $stmt->bindParam(':user_id', $GLOBALS['user']->id);
         $stmt->execute();
         
         // get details for topic
@@ -79,9 +81,15 @@ class ForumPPAbo {
             $message = addslashes($template->render(compact('user_id', 'topic', 'path')));
             restoreLanguage();
             
+            // check if user wants an email for selected messages only
+            $force_email = false;
+            if ($messaging->user_wants_email($user_id) == 3) {
+                $force_email = true;
+            }
+
             // #TODO: why ist $db->quote not working here?
             $messaging->insert_message($message, get_username($user_id),
-                "____%system%____", false, false, false, false, $subject);
+                "____%system%____", false, false, false, false, $subject, $force_email);
         }
         
         $messaging->bulkSend();

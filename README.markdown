@@ -29,7 +29,10 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 ## Version 2.0.23
 
-* Feature: Beiträge könnene nun als interne Nachricht weitergeleitet werden
+* Feature: Beiträge können nun als interne Nachricht weitergeleitet werden
+* Bugfix: Interne Nachrichten über neue Beiträge werden auch dann als E-Mail weitergeleitet,
+  wenn in den Einstellungen "nur, wenn vom Absender gewünscht" ausgewählt ist und der Ersteller
+  des Beitrages erhält keine Nachricht mehr.
 
 ## Version 2.0.22
 
