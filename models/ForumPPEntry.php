@@ -325,6 +325,38 @@ class ForumPPEntry {
         $seminar_id = $constraint['seminar_id'];
         $depth      = $constraint['depth'] + 1;
 
+        // count the entries and set correct page if necessary
+        if ($with_childs) {
+            $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
+                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
+                WHERE (forumpp_entries.seminar_id = ?
+                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
+                    AND lft > ? AND rgt < ?) "
+                . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
+                . $add
+                . " ORDER BY forumpp_entries.mkdate $sort_order");
+            $count_stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
+            $count = $count_stmt->fetchColumn();
+        } else {
+            $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
+                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
+                WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
+                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
+                    AND lft > ? AND rgt < ?) "
+                . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
+                . ') '. $add
+                . " ORDER BY forumpp_entries.mkdate $sort_order");
+            $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
+            $count = $count_stmt->fetchColumn();            
+        }
+
+        // use the last page if the requested page does not exist
+        if ($start > $count) {
+            $page = ceil($count / ForumPPEntry::POSTINGS_PER_PAGE);
+            ForumPPHelpers::setPage($page);
+            $start = max(1, $page - 1) * ForumPPEntry::POSTINGS_PER_PAGE;
+        }
+        
         if ($with_childs) {
             $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 'fav', NULL) as fav
                     FROM forumpp_entries
@@ -337,20 +369,6 @@ class ForumPPEntry {
                 . " ORDER BY forumpp_entries.mkdate $sort_order"
                 . ($limit ? " LIMIT $start, $limit" : ''));
             $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
-
-            $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
-                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE (forumpp_entries.seminar_id = ?
-                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
-                    AND lft > ? AND rgt < ?) "
-                . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
-                . $add
-                . " ORDER BY forumpp_entries.mkdate $sort_order");
-            $count_stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
-            $count = $count_stmt->fetchColumn();
-
-            // vprintf(str_replace('?', "'%s'", $query), $data);die;
-
         } else {
             $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.user_id, 'fav', NULL) as fav
                     FROM forumpp_entries
@@ -362,27 +380,10 @@ class ForumPPEntry {
                 . " ORDER BY forumpp_entries.mkdate $sort_order"
                 . ($limit ? " LIMIT $start, $limit" : ''));
             $stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
-
-            $count_stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
-                LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
-                WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
-                    AND forumpp_entries.seminar_id != forumpp_entries.topic_id
-                    AND lft > ? AND rgt < ?) "
-                . ($depth > 2 ? " OR forumpp_entries.topic_id = ". DBManager::get()->quote($parent_id) : '')
-                . ') '. $add
-                . " ORDER BY forumpp_entries.mkdate $sort_order");
-            $count_stmt->execute(array($GLOBALS['user']->id, $depth, $seminar_id, $constraint['lft'], $constraint['rgt']));
-            $count = $count_stmt->fetchColumn();
-            
-            // vprintf(str_replace('?', "'%s'", $query), $data);die;
         }
 
         if (!$stmt) {
             throw new Exception("Error while retrieving postings in " . __FILE__ . " on line " . __LINE__);
-        }
-
-        if ($start > $count) {
-            throw new Exception('The requested page does not exist!');
         }
 
         return array('list' => ForumPPEntry::parseEntries($stmt->fetchAll(PDO::FETCH_ASSOC)), 'count' => $count);
