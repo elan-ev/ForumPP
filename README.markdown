@@ -33,6 +33,8 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Bugfix: Interne Nachrichten über neue Beiträge werden auch dann als E-Mail weitergeleitet,
   wenn in den Einstellungen "nur, wenn vom Absender gewünscht" ausgewählt ist und der Ersteller
   des Beitrages erhält keine Nachricht mehr.
+* Bugfix: Beitrag weiterleiten wird nun über ein form-post gelöst. Schickt man die Nachricht ab oder klickt
+  auf Abbrechen, landet man wieder im Forum beim Beitrag.
 
 ## Version 2.0.22
 
