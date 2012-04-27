@@ -111,7 +111,7 @@ class ForumPPEntry {
     }
 
     /**
-     * returns the left and the right value of the passed entry
+     * returns the entry for the passed topic_id
      *
      * @param  string  $topic_id
      * @return array   array('lft' => ..., 'rgt' => ..., seminar_id => ...)
@@ -553,12 +553,15 @@ class ForumPPEntry {
         }
     }
 
-    static function getEntry($topic_id) {
-        $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
-            WHERE topic_id = ?");
-        $stmt->execute(array($topic_id));
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    /**
+     * returns the entry for the passed topic_id
+     * 
+     * @param string $topic_id
+     * @return array hash-array with the entries fields
+     */
+    static function getEntry($topic_id)
+    {
+        return ForumPPEntry::getConstraints($topic_id);
     }
 
     static function countEntries($parent_id) {

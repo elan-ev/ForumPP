@@ -304,6 +304,8 @@ STUDIP.ForumPP = {
         var count   = title.match(/Re:/g).length;       // number of Re: occurrences
         var matches = title.match(/Re:?\^(\d+):?/);     // check for occurrence of Re^x
         
+        title = title.replace(/Re:\ ?/g, '');           // remove all simple Re:
+
         if (matches) {                                  // add the x of Re^x if any
             title = title.replace(matches[0], 'Re^' + (count - 1 + parseInt(matches[1])) + ':');
         } else {                                        // otherwise create a new one
@@ -313,9 +315,7 @@ STUDIP.ForumPP = {
                 title = 'Re: ' + title;
             }
         }
-
-        title = title.replace(/Re:\ ?/g, '');           // remove all simple Re:
-        
+      
         // add content from cited posting in [quote]-tags
         var content = '[quote=' + name + ']' + "\n"
             + jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val()
@@ -330,11 +330,27 @@ STUDIP.ForumPP = {
         var title   = 'Re: ' + jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val();
         var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val();
         
-        window.location = STUDIP.URLHelper.getURL('sms_send.php', { 
+        STUDIP.ForumPP.postToUrl(STUDIP.URLHelper.getURL('sms_send.php'), {
             'message' : '**' + title + "**\n\n" + content + "\n\n"
-                + STUDIP.URLHelper.getURL('plugins.php/forumpp/index/index/' 
-                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '&again=yes#' + topic_id)
+                + STUDIP.URLHelper.getURL('plugins.php/forumpp/index/index/'
+                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '&again=yes#' + topic_id),
+            'sms_source_page' : 'plugins.php/forumpp/index/index/'
+                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '#' + topic_id
         });
+    },
+
+    postToUrl: function(path, params) {
+        // create a form
+        var form = jQuery('<form method="post" action="' + path + '">');
+        for (var key in params) {
+            jQuery(form).append('<input type="hidden" name="' + key + '" value="' + params[key] + '">');
+        }
+
+        // append it to the body-element
+        jQuery('body').append(form);
+        
+        // submit it
+        jQuery(form).submit();
     },
 
     moveThreadDialog: function (topic_id) {
