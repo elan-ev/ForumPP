@@ -353,6 +353,9 @@ class IndexController extends StudipController
 
     function delete_entry_action($topic_id)
     {
+        // get the page of the posting to be able to jump there again
+        $page = ForumPPEntry::getPostingPage($topic_id);
+        
         if (ForumPPEntry::hasEditPerms($topic_id) || ForumPPPerm::has('remove_entry', $seminar_id)) {
             $path = ForumPPEntry::getPathToPosting($topic_id);
             $topic  = array_pop($path);
@@ -365,7 +368,7 @@ class IndexController extends StudipController
         if (Request::isAjax()) {
             $this->render_template('messages');
         } else {
-            $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $parent['id']));
+            $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $parent['id'] .'/'. $page));
         }
     }
 
