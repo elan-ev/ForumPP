@@ -22,10 +22,6 @@
     max-width: 600px;
 }
 
-#forumpp img:onClick {
-    max-width: 100%;
-}
-
 /* highlighted search-strings */
 #forumpp span.highlight {
     background-color: yellow;

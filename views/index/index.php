@@ -1,11 +1,3 @@
-<script>
-    jQuery(document).ready(function() {
-        // set seminar-id
-        STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
-        STUDIP.ForumPP.init();
-    });
-</script>
-
 <style>
     @media screen and (max-width: 1299px) {
         #layout_sidebar {
@@ -143,3 +135,9 @@ endif;
 <? if ($flash['notify']) :
     ForumPPAbo::notify($flash['notify']);
 endif ?>
+
+<script>
+    // for some reason jQuery(document).ready(...) is not always working...
+    STUDIP.ForumPP.seminar_id = '<?= $seminar_id ?>';
+    STUDIP.ForumPP.init();
+</script>
