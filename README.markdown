@@ -27,6 +27,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.25
+* Bugfix: Infobox verschwindet jetzt nur noch im Forum
+
 ## Version 2.0.24
 * Bugfix: Springen zu einer Seite  die es nicht gibt führt nun nicht mehr zu einem Fehler. Es
   wird stattdessen auf die letzte Seite des Themas / der Liste gesprungen

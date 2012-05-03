@@ -6,6 +6,14 @@
     });
 </script>
 
+<style>
+    @media screen and (max-width: 1299px) {
+        #layout_sidebar {
+            display: none;
+        }
+    }
+</style>
+
 <!-- set a CSS "namespace" for forumpp -->
 <div id="forumpp">
 <? 

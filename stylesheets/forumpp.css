@@ -12,7 +12,7 @@
 }
 
 @media screen and (max-width: 1299px) {
-    #forumpp .large_screen, #layout_sidebar {
+    #forumpp .large_screen {
         display: none;
     }
 }
