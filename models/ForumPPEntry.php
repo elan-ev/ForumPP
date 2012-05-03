@@ -425,11 +425,11 @@ class ForumPPEntry {
     }
 
     /**
-     *
-     * @param <type> $type
-     * @param <type> $parent
-     * @param <type> $id
-     * @return <type>
+     * get a list of postings of a special type
+     * 
+     * @param string $type one of 'area', 'list', 'postings', 'latest', 'favorites'
+     * @param string $parent_id the are to fetch from
+     * @return array array('list' => ..., 'count' => ...);
      */
     static function getList($type, $parent_id) {
         $start = ForumPPHelpers::getPage() * ForumPPEntry::POSTINGS_PER_PAGE;
@@ -486,16 +486,6 @@ class ForumPPEntry {
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, '', 'ASC', $start);
                 break;
 
-            /*
-            case 'newest':
-                $last_visit = object_get_visit($seminar_id, 'forum');
-                $add = 'AND forumpp_entries.mkdate >= '. DBManager::get()->quote($last_visit);
-
-                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
-                break;
-             *
-             */
-
             case 'latest':
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
@@ -504,54 +494,61 @@ class ForumPPEntry {
                 $add = "AND ou.topic_id IS NOT NULL";
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
                 break;
-
-            case 'search':
-               // parse searchstring
-                $_searchfor = stripslashes(Request::get('searchfor'));
-
-                // if there are quoted parts, they should not be separated
-                $suchmuster = '/".*"/U';
-                preg_match_all($suchmuster, $_searchfor, $treffer);
-
-                // remove the quoted parts from $_searchfor
-                $_searchfor = preg_replace($suchmuster, '', $_searchfor);
-
-                // split the searchstring $_searchfor at every space
-                $_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
-
-                // make an SQL-statement out of the searchstring
-                $search_string = array();
-                foreach ($_searchfor as $key => $val) {
-                    if (!$val) {
-                        unset($_searchfor[$key]);
-                    } else {
-                        $_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
-                        $val = trim(str_replace('"', '', str_replace("'", '', $val)));
-
-                        if (Request::option('search_title')) {
-                            $search_string[] .= "name LIKE '%$val%'";
-                        }
-
-                        if (Request::option('search_content')) {
-                            $search_string[] .= "content LIKE '%$val%'";
-                        }
-
-                        if (Request::option('search_author')) {
-                            $search_string[] .= "author LIKE '%$val%'";
-                        }
-                    }
-                }
-
-                if (!empty($search_string)) {
-                    $add = "AND (" . implode(' OR ', $search_string) . ")";
-                    return array_merge(
-                        array('highlight' => $_searchfor),
-                        ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start)
-                    );
-                }
-                return array('num_postings' => 0, 'list' => array());
-                break;
         }
+    }
+
+    /**
+     ** returns a list of postings for the passed search-term
+     * 
+     * @param string $parent_id the area to search in (can be a whole seminar)
+     * @param string $_searchfor the term to search for
+     * @param array $options filter-options: search_title, search_content, search_author
+     * @return array array('list' => ..., 'count' => ...);
+     */
+    static function getSearchResults($parent_id, $_searchfor, $options) {
+        $start = ForumPPHelpers::getPage() * ForumPPEntry::POSTINGS_PER_PAGE;
+
+        // if there are quoted parts, they should not be separated
+        $suchmuster = '/".*"/U';
+        preg_match_all($suchmuster, $_searchfor, $treffer);
+
+        // remove the quoted parts from $_searchfor
+        $_searchfor = preg_replace($suchmuster, '', $_searchfor);
+
+        // split the searchstring $_searchfor at every space
+        $_searchfor = array_merge(explode(' ', trim($_searchfor)), $treffer[0]);
+
+        // make an SQL-statement out of the searchstring
+        $search_string = array();
+        foreach ($_searchfor as $key => $val) {
+            if (!$val) {
+                unset($_searchfor[$key]);
+            } else {
+                $_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
+                $val = trim(str_replace('"', '', str_replace("'", '', $val)));
+
+                if ($options['search_title']) {
+                    $search_string[] .= "name LIKE '%$val%'";
+                }
+
+                if ($options['search_content']) {
+                    $search_string[] .= "content LIKE '%$val%'";
+                }
+
+                if ($options['search_author']) {
+                    $search_string[] .= "author LIKE '%$val%'";
+                }
+            }
+        }
+
+        if (!empty($search_string)) {
+            $add = "AND (" . implode(' OR ', $search_string) . ")";
+            return array_merge(
+                array('highlight' => $_searchfor),
+                ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start)
+            );
+        }
+        return array('num_postings' => 0, 'list' => array());
     }
 
     /**

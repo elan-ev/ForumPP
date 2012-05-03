@@ -187,8 +187,10 @@ class IndexController extends StudipController
 
         $this->seminar_id = $this->getId();
 
-        // enable breadcrumb-navigation for this view
-        $this->breadcrumb = true;
+        // highlight text if passed some words to highlight
+        if (Request::getArray('highlight')) {
+            $this->highlight = Request::getArray('highlight');
+        }
     }
 
     function latest_action($page = null)
@@ -205,7 +207,6 @@ class IndexController extends StudipController
         $this->section = 'latest';
 
         $this->topic_id = $this->getId();
-        $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
 
         $list = ForumPPEntry::getList('latest', $this->topic_id);
         $this->postings          = $list['list'];
@@ -237,7 +238,6 @@ class IndexController extends StudipController
         $this->section = 'favorites';
 
         $this->topic_id = $this->getId();
-        $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
         $list = ForumPPEntry::getList('favorites', $this->topic_id);
         $this->postings          = $list['list'];
         $this->number_of_entries = $list['count'];
@@ -266,19 +266,29 @@ class IndexController extends StudipController
         if ($page) {
             ForumPPHelpers::setPage($page);
         }
-
         $this->section = 'search';
-
         $this->topic_id = $this->getId();
-        $this->constraint = ForumPPEntry::getConstraints($this->topic_id);
-        $list = ForumPPEntry::getList('search', $this->getId());
-        $this->postings          = $list['list'];
-        $this->number_of_entries = $list['count'];
-        $this->highlight         = $list['highlight'];
         $this->show_full_path    = true;
 
-        if (empty($this->postings)) {
-            $this->no_search_results = true;
+        // parse filter-options
+        foreach (array('search_title', 'search_content', 'search_author') as $option) {
+            $this->options[$option] = Request::option($option);
+        }
+        
+        $this->searchfor = Request::get('searchfor');
+        if (strlen($this->searchfor) < 3) {
+            $this->flash['messages'] = array('error' => _('Ihr Suchbegriff muss mindestens 3 Zeichen lang sein!'));
+        } else {
+            // get search-results
+            $list = ForumPPEntry::getSearchResults($this->getId(), $this->searchfor, $this->options);
+
+            $this->postings          = $list['list'];
+            $this->number_of_entries = $list['count'];
+            $this->highlight         = $list['highlight'];
+
+            if (empty($this->postings)) {
+                $this->flash['messages'] = array('info' => _('Es wurden keine Beiträge gefunden, die zu Ihren Suchkriterien passen!'));
+            }
         }
 
         // set default layout
@@ -421,12 +431,23 @@ class IndexController extends StudipController
             case 'index':
                 $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'/'. (int)$page .'#'. $topic_id));
                 break;
+
+            case 'search':
+                $optionlist = array();
+
+                foreach (array('search_title', 'search_content', 'search_author') as $option) {
+                    if (Request::get($option)) {
+                        $optionlist[] = $option .'='. 1;
+                    }
+                }
+                $this->redirect(PluginEngine::getURL('forumpp/index/'. $section .'/'. (int)$page 
+                    .'/?searchfor='. Request::get('searchfor') .'&'. implode('&', $optionlist)));
+                break;
+
             default:
                 $this->redirect(PluginEngine::getLink('forumpp/index/'. $section .'/'. (int)$page));
                 break;
         }
-
-        
     }
 
     function like_action($topic_id)

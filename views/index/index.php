@@ -57,14 +57,16 @@ endif;
 
 <!-- Seitenwähler (bei Bedarf) am oberen Rand anzeigen -->
 <div style="float: right; padding-right: 10px;">
-    <? if ($constraint['depth'] > 0 || !$breadcrumb) : ?>
+    <? if ($constraint['depth'] > 0 || !isset($constraint)) : ?>
     <?= $pagechooser = $GLOBALS['template_factory']->render('shared/pagechooser', array(
         'page'         => ForumPPHelpers::getPage() + 1,
         'num_postings' => $number_of_entries,
         'perPage'      => ForumPPEntry::POSTINGS_PER_PAGE,
-        'pagelink'     => PluginEngine::getLink('forumpp/index/goto_page/'. $topic_id .'/'. $section .'/%s')
+        'pagelink'     => str_replace('%%s', '%s', str_replace('%', '%%', PluginEngine::getURL('forumpp/index/goto_page/'. $topic_id .'/'. $section 
+            .'/%s/?searchfor=' . $searchfor . (!empty($options) ? '&'. http_build_query($options) : '' ))))
     )); ?>
     <? endif ?>
+    <?= $link  ?>
 </div>
 <br style="clear: both">
 
@@ -74,13 +76,11 @@ endif;
 
 <!-- Message area -->
 <div id="message_area">
-    <? $this->render_partial('messages') ?>
+    <?= $this->render_partial('messages') ?>
 </div>
 
 <? if ($no_entries) : ?>
     <?= MessageBox::info(_('In dieser Ansicht befinden sich zur Zeit keine Beiträge.')) ?>
-<? elseif ($no_search_results) : ?>
-    <?= MessageBox::info(_('Es wurden keine Beiträge gefunden, die zu Ihren Suchkriterien passen!')) ?>
 <? endif ?>
 
 <!-- Bereiche / Themen / Beiträge -->

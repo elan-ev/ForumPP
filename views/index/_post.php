@@ -1,6 +1,4 @@
-<?
-if (!is_array($highlight)) $highlight = array();
-?>
+<? if (!is_array($highlight)) $highlight = array(); ?>
 <!-- Anker, um zu diesem Posting springen zu können -->
 <a name="<?= $post['topic_id'] ?>"></a>
 
@@ -30,11 +28,13 @@ if (!is_array($highlight)) $highlight = array();
             </span>
             
             <span data-show-topic="<?= $post['topic_id'] ?>">
-                <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id']) ?>#<?= $post['topic_id'] ?>">
+                <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id'] .'?'. http_build_query(array('highlight' => $highlight)) ) ?>#<?= $post['topic_id'] ?>">
                 <? if ($show_full_path) : ?>
-                    <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $pos => $path_part) : ?>
-                        <? if ($pos > 1) : ?> &bullet; <? endif ?>
-                        <?= ForumPPHelpers::highlight(htmlReady($path_part['name']), $highlight) ?>
+                    <? $first = true ?>
+                    <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $path_part) : ?>
+                        <? if (!$first) : ?> &gt;&gt; <? endif ?>
+                        <?= ForumPPHelpers::highlight(ForumPPEntry::killFormat($path_part['name']), $highlight) ?>
+                        <? $first = false ?>
                     <? endforeach ?>
                 <? else : ?>
                 <span data-topic-name="<?= $post['topic_id'] ?>">
