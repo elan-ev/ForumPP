@@ -27,6 +27,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.26
+* Bugfix: Icons färbten sich auf seltsame Weise manchmal unsinnigerweise rot, das tun sie nun nicht mehr
+
 ## Version 2.0.25
 * Bugfix: Infobox verschwindet jetzt nur noch im Forum
 * Bugfix: Blättern in der Suche funktioniert nun (wieder)

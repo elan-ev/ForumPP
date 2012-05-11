@@ -125,9 +125,11 @@ class ForumPPVisit {
         $constraints = ForumPPEntry::getConstraints($topic_id);
         
         $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
-            WHERE lft > ? AND rgt < ? AND mkdate >= ? AND user_id != ?");
+            WHERE lft > ? AND rgt < ? AND mkdate >= ? AND user_id != ?
+                AND seminar_id = ?");
         $stmt->execute(array($constraints['lft'], $constraints['rgt'], 
-            self::get($user_id, $topic_id, $constraints['seminar_id']), $user_id));
+            self::get($user_id, $topic_id, $constraints['seminar_id']),
+            $user_id, $constraints['seminar_id']));
         
         $num_entries['abo'] = $stmt->fetchColumn();
        
