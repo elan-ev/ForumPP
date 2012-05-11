@@ -333,21 +333,25 @@ STUDIP.ForumPP = {
     forwardEntry: function(topic_id) {
         var title   = 'Re: ' + jQuery('span[data-edit-topic=' + topic_id +'] input[name=name]').val();
         var content = jQuery('span[data-edit-topic=' + topic_id +'] textarea[name=content]').val();
+        var text    = 'Die Senderin/der Sender dieser Nachricht möchte Sie auf den folgenden Beitrag aufmerksam machen. '
+                    + "\n\n" + 'Link zum Beitrag: ';
         
         STUDIP.ForumPP.postToUrl(STUDIP.URLHelper.getURL('sms_send.php'), {
-            'message' : '**' + title + "**\n\n" + content + "\n\n"
+            'message' :  text.toLocaleString()
                 + STUDIP.URLHelper.getURL('plugins.php/forumpp/index/index/'
-                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '&again=yes#' + topic_id),
+                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '&again=yes#' + topic_id)
+                + "\n\n" + '**' + title + "**\n\n" + content + "\n\n",
             'sms_source_page' : 'plugins.php/forumpp/index/index/'
-                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '#' + topic_id
+                + topic_id + '?cid=' + STUDIP.ForumPP.seminar_id + '#' + topic_id,
+            'messagesubject': 'WG: ' + title
         });
     },
 
     postToUrl: function(path, params) {
         // create a form
-        var form = jQuery('<form method="post" action="' + path + '">');
+        var form = jQuery('<form method="post" action="' + path + '" style="display: none">');
         for (var key in params) {
-            jQuery(form).append('<input type="hidden" name="' + key + '" value="' + params[key] + '">');
+            jQuery(form).append('<textarea name="' + key + '">' + params[key] + '</textarea>');
         }
 
         // append it to the body-element
