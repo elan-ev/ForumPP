@@ -39,6 +39,7 @@
 
         <td class="areaentry icon">
             <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
+                <? $jump_to_topic_id = $entry['topic_id'] ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!')
                 )) ?>

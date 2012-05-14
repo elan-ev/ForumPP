@@ -55,9 +55,9 @@ class ForumPPVisit {
             
             $stmt = DBManager::get()->prepare("INSERT INTO forumpp_visits
                 (user_id, topic_id, seminar_id, visitdate, last_visitdate)
-                VALUES (?, ?, ?, UNIX_TIMESTAMP(), ?)");
+                VALUES (?, ?, ?, UNIX_TIMESTAMP(), 0)");
 
-            $stmt->execute($new_data = array($user_id, $topic_id, $seminar_id, $visitdate));
+            $stmt->execute($new_data = array($user_id, $topic_id, $seminar_id));
         } else {
            // visitdate is always set to the latest visit
             $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
@@ -124,33 +124,46 @@ class ForumPPVisit {
     static function getCount($user_id, $topic_id) {
         $constraints = ForumPPEntry::getConstraints($topic_id);
         
-        $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
-            WHERE lft > ? AND rgt < ? AND mkdate >= ? AND user_id != ?
-                AND seminar_id = ?");
-        $stmt->execute(array($constraints['lft'], $constraints['rgt'], 
-            self::get($user_id, $topic_id, $constraints['seminar_id']),
-            $user_id, $constraints['seminar_id']));
+        // count all new_entries including sub-entries
+        $stmt = DBManager::get()->prepare($query = "SELECT SUM((SELECT COUNT(*)
+                FROM forumpp_entries
+                WHERE lft > fe.lft AND rgt < fe.rgt AND mkdate >= fv.visitdate
+                    AND seminar_id = fe.seminar_id)) as c
+            FROM forumpp_entries AS fe
+            LEFT JOIN forumpp_visits AS fv ON (fe.topic_id = fv.topic_id AND fv.user_id = :user_id)
+            WHERE lft >= :lft AND rgt <= :rgt AND fe.user_id != :user_id
+                AND fe.seminar_id = :seminar_id");
+
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':lft', $constraints['lft']);
+        $stmt->bindParam(':rgt', $constraints['rgt']);
+        $stmt->bindParam(':seminar_id', $constraints['seminar_id']);
+        $stmt->execute();
+        
         
         $num_entries['abo'] = $stmt->fetchColumn();
-       
-        // get additionally the number of new entries since last visit
-        if ($constraints['depth'] <= 2) {
-            $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries as fe
+
+        // get additionally the number of new areas since last visit
+        $num_entries['new'] = 0;
+
+        if ($constraints['area']) {
+            $stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries as fe
                 LEFT JOIN forumpp_visits as fv ON (fe.topic_id = fv.topic_id 
-                    AND fe.seminar_id = fv.seminar_id 
                     AND fv.user_id = ?)
                 WHERE fv.topic_id IS NULL 
                     AND fe.lft > ? 
                     AND fe.rgt < ? 
                     AND fe.depth = ?
                     AND fe.seminar_id = ?
-                    AND mkdate >= fv.last_visitdate");
-            $stmt->execute(array($user_id, $constraints['lft'], $constraints['rgt'],
+                    AND (mkdate >= fv.visitdate OR fv.visitdate IS NULL)");
+            $stmt->execute($data = array($user_id, $constraints['lft'], $constraints['rgt'],
                 $constraints['depth'] + 1, $constraints['seminar_id']));
+            
+            $num_entries['new'] = $stmt->fetchColumn();
         }
         
-        $num_entries['new'] = $stmt->fetchColumn();
-
+        
+        
         return $num_entries;
     }
 

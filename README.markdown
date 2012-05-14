@@ -27,6 +27,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.27
+* Bugfix: Rotfärbung der Icons berücksichtigt nun auch korrekt die Unterbereiche/-themen
+
 ## Version 2.0.26
 * Bugfix: Icons färbten sich auf seltsame Weise manchmal unsinnigerweise rot, das tun sie nun nicht mehr
 * Verbesserungen für die Funktion "Beitrag weiterleiten"
