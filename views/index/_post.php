@@ -1,4 +1,7 @@
 <? if (!is_array($highlight)) $highlight = array(); ?>
+<? $is_new =  ((isset($visitdate) && $post['mkdate'] >= $visitdate 
+        && $post['owner_id'] != $GLOBALS['user']->id
+    ) || !(isset($visitdate))) ?>
 <!-- Anker, um zu diesem Posting springen zu können -->
 <a name="<?= $post['topic_id'] ?>"></a>
 
@@ -15,8 +18,7 @@
     <div class="postbody">
         <div class="title">
 
-            <? if ((isset($visitdate) && $post['mkdate'] >= $visitdate && $post['owner_id'] != $GLOBALS['user']->id) 
-                || !(isset($visitdate))) : ?>
+            <? if ($is_new && trim(ForumPPEntry::killFormat($post['name']))): ?>
             <span class="new_posting">
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
@@ -46,6 +48,11 @@
             </span>
 
             <p class="author">
+                <? if ($is_new && !trim(ForumPPEntry::killFormat($post['name']))): ?>
+                    <?= Assets::img('icons/16/red/new/forum.png', array(
+                        'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
+                    )) ?>
+                <? endif ?>
                 von <strong><a href="<?= URLHelper::getLink('about.php?username='. get_username($post['owner_id'])) ?>">
                     <?= ForumPPHelpers::highlight(htmlReady($post['author']), $highlight) ?>
                 </a></strong>
