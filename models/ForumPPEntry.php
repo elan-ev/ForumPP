@@ -616,6 +616,8 @@ class ForumPPEntry {
         $stmt->execute(array($data['topic_id'], $data['seminar_id'], $data['user_id'],
             $data['name'], $data['content'], $data['author'], $data['author_host'],
             $constraint['rgt'], $constraint['rgt'] + 1, $constraint['depth'] + 1, 0));
+        
+        NotificationCenter::postNotification('ForumPPAfterInsert', $data['topic_id'], $data);
     }
 
 
@@ -645,8 +647,9 @@ class ForumPPEntry {
      * @return void
      */
     function delete($topic_id) {
+        NotificationCenter::postNotification('ForumPPBeforeDelete', $topic_id);
+        
         $constraints = ForumPPEntry::getConstraints($topic_id);
-        ForumPPVisit::entryDelete($topic_id);
 
         // #TODO: Zusammenfassen in eine Transaktion!!!
         // get all entry-ids to delete them from the category-reference-table

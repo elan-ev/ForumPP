@@ -41,6 +41,8 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
         // add the navigation next to the traditional forum
         Navigation::insertItem('/course/forum2', $navigation, 'members');
+        NotificationCenter::addObserver('ForumPPVisit', 'addEntry', 'ForumPPAfterInsert');
+        NotificationCenter::addObserver('ForumPPVisit', 'deleteEntry', 'ForumPPBeforeDelete');
 
         // TODO: remove development-rand from poduction-code
         PageLayout::addScript($this->getPluginURL() . '/javascript/forumpp.js?rand='. floor(time() / 100));
