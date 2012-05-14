@@ -15,7 +15,8 @@
     <div class="postbody">
         <div class="title">
 
-            <? if (isset($visitdate) && $post['mkdate'] >= $visitdate && $post['owner_id'] != $GLOBALS['user']->id) : ?>
+            <? if ((isset($visitdate) && $post['mkdate'] >= $visitdate && $post['owner_id'] != $GLOBALS['user']->id) 
+                || !(isset($visitdate))) : ?>
             <span class="new_posting">
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _("Dieser Beitrag ist seit Ihrem letzten Besuch hinzugekommen.")
