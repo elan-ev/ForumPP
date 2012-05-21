@@ -145,7 +145,7 @@ class ForumPPVisit {
             // count all new_entries including sub-entries
             $stmt = DBManager::get()->prepare($query = "SELECT SUM((SELECT COUNT(*)
                     FROM forumpp_entries
-                    WHERE lft > fe.lft AND rgt < fe.rgt AND mkdate >= fv.visitdate
+                    WHERE lft > fe.lft AND rgt < fe.rgt AND mkdate > fv.visitdate
                         AND seminar_id = fe.seminar_id)) as c
                 FROM forumpp_entries AS fe
                 LEFT JOIN forumpp_visits AS fv ON (fe.topic_id = fv.topic_id AND fv.user_id = :user_id)
