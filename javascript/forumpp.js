@@ -302,7 +302,6 @@ STUDIP.ForumPP = {
 
         if (title) {
             title = 'Re: ' + title;
-            console.log(title);
             // sum the Re's and display them as Re^x:
             var count   = title.match(/Re:/g).length;       // number of Re: occurrences
             var matches = title.match(/Re:?\^(\d+):?/);     // check for occurrence of Re^x

@@ -27,6 +27,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.28
+* Bugfix: Debug-Code im JavaScript entfernt
+
 ## Version 2.0.27
 * Bugfix: Rotfärbung der Icons berücksichtigt nun auch korrekt die Unterbereiche/-themen
 * Verwenden des Caches für die ansonsten langsame Darstellung der roten Icons
