@@ -29,6 +29,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 ## Version 2.0.28
 * Bugfix: Debug-Code im JavaScript entfernt
+* Bugfix: Scrollen nach Klick auf "Beitrag zitieren" funktioniert nun auch im Chrome und Safari
 
 ## Version 2.0.27
 * Bugfix: Rotfärbung der Icons berücksichtigt nun auch korrekt die Unterbereiche/-themen

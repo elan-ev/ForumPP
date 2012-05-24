@@ -90,6 +90,7 @@ STUDIP.ForumPP = {
     newEntry: function() {
         jQuery('#new_entry_button').hide();
         jQuery('#new_entry_box').show();
+        jQuery('body').animate({scrollTop: jQuery(document).height()}, 'slow');
         jQuery('html').animate({scrollTop: jQuery(document).height()}, 'slow');
     },
 
