@@ -27,6 +27,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.29
+* Bugfix: Beiträge in der Suchansicht und bei den gemerkten Beiträgen erhalten kein rotes Icon mehr
+
 ## Version 2.0.28
 * Bugfix: Debug-Code im JavaScript entfernt
 * Bugfix: Scrollen nach Klick auf "Beitrag zitieren" funktioniert nun auch im Chrome und Safari

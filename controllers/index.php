@@ -221,6 +221,9 @@ class IndexController extends StudipController
             $this->no_entries = true;
         }
 
+        // #TODO: set the visitdate of the seminar as the last visitdate
+        # $this->visitdate = ?
+
         $this->render_action('index');
     }
 
@@ -250,6 +253,9 @@ class IndexController extends StudipController
         if (empty($this->postings)) {
             $this->no_entries = true;
         }
+
+        // exploit the visitdate for this view
+        $this->visitdate = time();
 
         $this->render_action('index');
     }
@@ -294,6 +300,9 @@ class IndexController extends StudipController
         // set default layout
         $layout = $GLOBALS['template_factory']->open('layouts/base');
         $this->set_layout($layout);
+
+        // exploit the visitdate for this view
+        $this->visitdate = time();
 
         $this->render_action('index');
     }
