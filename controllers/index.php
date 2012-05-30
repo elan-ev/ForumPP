@@ -221,8 +221,8 @@ class IndexController extends StudipController
             $this->no_entries = true;
         }
 
-        // #TODO: set the visitdate of the seminar as the last visitdate
-        # $this->visitdate = ?
+        // set the visitdate of the seminar as the last visitdate
+        $this->visitdate = object_get_visit($this->getId(), 'sem');
 
         $this->render_action('index');
     }

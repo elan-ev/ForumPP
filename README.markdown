@@ -29,6 +29,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 ## Version 2.0.29
 * Bugfix: Beiträge in der Suchansicht und bei den gemerkten Beiträgen erhalten kein rotes Icon mehr
+* Feature: Seit dem letzen betreten der VA hinzugekommene Beiträge werden rot markiert
 
 ## Version 2.0.28
 * Bugfix: Debug-Code im JavaScript entfernt
