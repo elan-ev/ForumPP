@@ -140,17 +140,19 @@ class ForumPPVisit {
         $num_entries = unserialize($cache->read($cache_key_user));
         $topic_last_change = $cache->read($cache_key_topic);
         
-        // if now cached entry is found, or if the cached entry is outdated, rebuild
+        // if no cached entry is found, or if the cached entry is outdated, rebuild
         if (!$num_entries || $num_entries['mkdate'] < $topic_last_change) {
             // count all new_entries including sub-entries
-            $stmt = DBManager::get()->prepare($query = "SELECT SUM((SELECT COUNT(*)
-                    FROM forumpp_entries
-                    WHERE lft > fe.lft AND rgt < fe.rgt AND mkdate > fv.visitdate
-                        AND seminar_id = fe.seminar_id)) as c
+            $stmt = DBManager::get()->prepare("SELECT SUM((SELECT COUNT(*)
+                    FROM forumpp_entries AS fe2
+                    WHERE fe2.lft > fe.lft AND fe2.rgt < fe.rgt AND fe2.mkdate > fv.visitdate
+                        AND fe2.user_id != :user_id
+                        AND fe2.seminar_id = fe.seminar_id)) as c
                 FROM forumpp_entries AS fe
                 LEFT JOIN forumpp_visits AS fv ON (fe.topic_id = fv.topic_id AND fv.user_id = :user_id)
                 WHERE lft >= :lft AND rgt <= :rgt AND fe.user_id != :user_id
-                    AND fe.seminar_id = :seminar_id");
+                    AND fe.seminar_id = :seminar_id
+                    AND depth <= 2");
 
             $stmt->bindParam(':user_id', $user_id);
             $stmt->bindParam(':lft', $constraints['lft']);
@@ -158,23 +160,22 @@ class ForumPPVisit {
             $stmt->bindParam(':seminar_id', $constraints['seminar_id']);
             $stmt->execute();
 
-
             $num_entries['abo'] = $stmt->fetchColumn();
 
             // get additionally the number of new areas since last visit
             $num_entries['new'] = 0;
 
-            if ($constraints['area']) {
-                $stmt = DBManager::get()->prepare($query = "SELECT COUNT(*) FROM forumpp_entries as fe
+            if ($constraints['area'] || $constraints['depth'] == 0) {
+                $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries as fe
                     LEFT JOIN forumpp_visits as fv ON (fe.topic_id = fv.topic_id 
                         AND fv.user_id = ?)
                     WHERE fv.topic_id IS NULL 
                         AND fe.lft > ? 
                         AND fe.rgt < ? 
-                        AND fe.depth = ?
+                        AND fe.depth >= ? AND fe.depth <= 2
                         AND fe.seminar_id = ?
                         AND (mkdate >= fv.visitdate OR fv.visitdate IS NULL)");
-                $stmt->execute($data = array($user_id, $constraints['lft'], $constraints['rgt'],
+                $stmt->execute(array($user_id, $constraints['lft'], $constraints['rgt'],
                     $constraints['depth'] + 1, $constraints['seminar_id']));
 
                 $num_entries['new'] = $stmt->fetchColumn();
@@ -183,7 +184,7 @@ class ForumPPVisit {
             $num_entries['mkdate'] = time();
             $cache->write($cache_key_user, serialize($num_entries), 604800); // 604800 = one week
         }
-        
+
         return $num_entries;
     }
 

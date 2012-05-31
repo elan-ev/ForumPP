@@ -174,7 +174,11 @@ class ForumPPHelpers {
                 $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Antworten/Themen'), $num_entries['abo']);
             }
         } else if ($num_entries['new'] > 0) {
-            $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche'), $num_entries['new']);
+            if ($depth >= 0) {
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Themen'), $num_entries['new']);
+            } else {
+                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche/Themen'), $num_entries['new']);
+            }
         } else {
             if ($depth >= 1) {
                 $text = sprintf(_('Seit ihrem letzten Besuch gab es nichts neues.'
