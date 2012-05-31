@@ -307,6 +307,11 @@ class IndexController extends StudipController
         $this->render_action('index');
     }
 
+    function delete_cache_action()
+    {
+        ForumPPVisit::updateAllCaches($this->getId());
+        $this->render_text('cache deleted...');
+    }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * *   P O S T I N G - A C T I O N S     * * * */

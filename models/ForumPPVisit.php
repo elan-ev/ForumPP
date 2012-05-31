@@ -259,7 +259,20 @@ class ForumPPVisit {
             $constraints['seminar_id']));
         
         while ($topic_id = $stmt->fetchColumn()) {
-            $cache->write($key = 'forumpp/'. $topic_id, time());
+            $cache->write('forumpp/'. $topic_id, time());
+        }
+    }
+    
+    static function updateAllCaches($seminar_id)
+    {
+        $cache = StudipCacheFactory::getCache();
+        
+        $stmt = DBManager::get()->prepare("SELECT topic_id FROM forumpp_entries
+            WHERE seminar_id = ?");
+        $stmt->execute(array($seminar_id));
+        
+        while ($topic_id = $stmt->fetchColumn()) {
+            $cache->write('forumpp/'. $topic_id, time());
         }
     }
 }
