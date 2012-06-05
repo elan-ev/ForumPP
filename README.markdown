@@ -27,6 +27,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 
 # Changelog
 
+## Version 2.0.30
+* Feature: Das Forum integriert sich nun in die neue "alles als gelesen markieren"-Funktionalität von Stud.IP
+
 ## Version 2.0.29
 * Bugfix: Beiträge in der Suchansicht und bei den gemerkten Beiträgen erhalten kein rotes Icon mehr
 * Bugfix: Icon färbt sich nicht mehr rot bei eigenen Beiträgen und zeigt nun auch sets korrekte Werte an

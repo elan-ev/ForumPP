@@ -18,6 +18,9 @@ require_once 'models/ForumPPEntry.php';
 require_once 'models/ForumPPHelpers.php';
 require_once 'models/ForumPPVisit.php';
 
+// Notifications
+NotificationCenter::addObserver('ForumPP', 'coursesDidClearVisits', "CoursesDidClearVisits");
+
 class ForumPP extends StudipPlugin implements StandardPlugin
 {
 
@@ -62,10 +65,12 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
     }
 
-    function getIconNavigation($course_id, $last_visit) {
+    function getIconNavigation($course_id, $last_visit)
+    {
         $num_entries = ForumPPVisit::getCount($GLOBALS['user']->id, $course_id);
 
         $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/enter_seminar'));
+        $navigation->setBadgeNumber($num_entries['abo'] + $num_entries['new']);
 
         $text = ForumPPHelpers::getVisitText($num_entries, $course_id);
 
@@ -78,7 +83,17 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         return $navigation;
     }
 
-    function getInfoTemplate($course_id) {
+    
+    function coursesDidClearVisits($notification, $user_id)
+    {
+        $stmt = DBManager::get()->prepare("UPDATE forumpp_visits 
+            SET visitdate = UNIX_TIMESTAMP()
+            WHERE user_id = ?");
+        $stmt->execute(array($user_id));
+    }
+    
+    function getInfoTemplate($course_id)
+    {
         return null;
     }
 }
