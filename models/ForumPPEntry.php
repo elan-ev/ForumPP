@@ -436,7 +436,7 @@ class ForumPPEntry {
 
         switch ($type) {
             case 'area':
-                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', 0, 100);
+                $list = ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITHOUT_CHILDS, '', 'DESC', 0, 1000);
                 $postings = $list['list'];
 
                 $postings = ForumPPEntry::getLastPostings($postings);
