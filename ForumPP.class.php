@@ -32,18 +32,10 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         parent::__construct();
 
         // do nothing if plugin is deactivated in this seminar/institute
-        if (!PluginManager::isPluginActivated($this->getPluginId(), Request::get('cid', $GLOBALS['SessSemName'][1]))) return;
+        if (!$this->isActivated()) {
+            return;
+        }
 
-        $navigation = new Navigation(_('Forum 2'), PluginEngine::getLink('forumpp/index'));
-        $navigation->setImage('icons/16/white/forum.png');
-
-        // add main third-level navigation-item
-        $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
-        $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
-        $navigation->addSubNavigation('latest',    new Navigation(_("Neueste Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
-
-        // add the navigation next to the traditional forum
-        Navigation::insertItem('/course/forum2', $navigation, 'members');
         NotificationCenter::addObserver('ForumPPVisit', 'addEntry', 'ForumPPAfterInsert');
         NotificationCenter::addObserver('ForumPPVisit', 'deleteEntry', 'ForumPPBeforeDelete');
 
@@ -51,6 +43,17 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         PageLayout::addScript($this->getPluginURL() . '/javascript/forumpp.js?rand='. floor(time() / 100));
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/forumpp.css?rand='. floor(time() / 100));
     }
+	
+	public function getTabNavigation($course_id) {
+		$navigation = new Navigation(_('Forum 2'), PluginEngine::getLink('forumpp/index'));
+        $navigation->setImage('icons/16/white/forum.png');
+
+        // add main third-level navigation-item
+        $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
+        $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
+        $navigation->addSubNavigation('latest',    new Navigation(_("Neueste Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
+		return array('forum2' => $navigation);
+	}
 
     /**
      * This method dispatches all actions.
