@@ -13,7 +13,8 @@
  * @license     http://www.gnu.org/licenses/gpl-3.0.html GPL version 3
  * @category    Stud.IP
  */
-require_once('lib/statusgruppen.inc.php');
+require_once 'lib/statusgruppen.inc.php';
+
 
 class ForumPPPerm {
     static function has($perm, $seminar_id, $user_id = null) {
@@ -71,7 +72,18 @@ class ForumPPPerm {
 
         return false;
     }
- 
+
+    /*
+     * Returns an map of key/value pairs namly id as key and name as value,
+     * for the selected seminar.
+     */
+    static function getGroups($seminar_id){
+        $query = "SELECT statusgruppe_id AS id, name FROM statusgruppen WHERE range_id = ?";
+        $statement = DBManager::get()->prepare($query);
+        $statement->execute(array($seminar_id));
+        return $statement->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
     function check($perm, $seminar_id, $user_id = null) {
         if (!self::has($perm, $seminar_id, $user_id)) {
             throw new AccessDeniedException(sprintf(
