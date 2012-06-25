@@ -26,6 +26,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+## Version 2.0.31
+* Anpassung an neue Sem-Klassen-API der 2.4
+* Feature: Tour durch die Funktionen auf der Haupseite (dank Joyride, ein jQuery-Plugin)
 
 ## Version 2.0.30
 * Feature: Das Forum integriert sich nun in die neue "alles als gelesen markieren"-Funktionalität von Stud.IP

@@ -382,6 +382,19 @@ STUDIP.ForumPP = {
     loadAction: function(element, action) {
         jQuery(element).load(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/'
             + action + '?cid=' + STUDIP.ForumPP.seminar_id))
+    },
+    
+    disableTour: function() {
+        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/disable_tour'));
+        jQuery('a.joyride-close-tip').click();
+    },
+    
+    hideTour: function(id) {
+        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/hide_tour/' + id));
+    },
+    
+    closeTour: function() {
+        jQuery('a.joyride-close-tip').click();
     }
 };
 

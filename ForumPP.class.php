@@ -19,7 +19,7 @@ require_once 'models/ForumPPHelpers.php';
 require_once 'models/ForumPPVisit.php';
 
 // Notifications
-NotificationCenter::addObserver('ForumPP', 'coursesDidClearVisits', "CoursesDidClearVisits");
+#NotificationCenter::addObserver('ForumPP', 'coursesDidClearVisits', "CoursesDidClearVisits");
 
 class ForumPP extends StudipPlugin implements StandardPlugin
 {
@@ -42,18 +42,28 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // TODO: remove development-rand from poduction-code
         PageLayout::addScript($this->getPluginURL() . '/javascript/forumpp.js?rand='. floor(time() / 100));
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/forumpp.css?rand='. floor(time() / 100));
+        
+        // JQuery-Tutor JoyRide JS and CSS
+        PageLayout::addScript($this->getPluginURL() . '/javascript/jquery.joyride.js');
+        PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/joyride.css');
+
+        if (!version_compare($GLOBALS['SOFTWARE_VERSION'], '2.3', '>')) {
+            $navigation = $this->getTabNavigation(Request::get('cid', $GLOBALS['SessSemName'][1]));
+            Navigation::insertItem('/course/forum2', $navigation['forum2'], 'members'); 
+        }        
     }
-	
-	public function getTabNavigation($course_id) {
-		$navigation = new Navigation(_('Forum 2'), PluginEngine::getLink('forumpp/index'));
+
+    public function getTabNavigation($course_id)
+    {
+        $navigation = new Navigation(_('Forum 2'), PluginEngine::getLink('forumpp/index'));
         $navigation->setImage('icons/16/white/forum.png');
 
         // add main third-level navigation-item
         $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
         $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
         $navigation->addSubNavigation('latest',    new Navigation(_("Neueste Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
-		return array('forum2' => $navigation);
-	}
+        return array('forum2' => $navigation);
+    }
 
     /**
      * This method dispatches all actions.

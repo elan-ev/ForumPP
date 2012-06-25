@@ -1,4 +1,4 @@
-<div style="float: left">
+<div style="float: left" id="tutorBreadcrumb">
     <?= _('Sie befinden sich hier:') ?>
     <span style="font-weight: bold">
     <? if ($section == 'search') : ?>

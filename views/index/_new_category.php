@@ -1,6 +1,6 @@
 <? if ($has_perms) : ?>
 <a name="create"></a>
-<form action="<?= PluginEngine::getLink('forumpp/index/add_category') ?>" method="post">
+<form action="<?= PluginEngine::getLink('forumpp/index/add_category') ?>" method="post" id="tutorAddCategory">
     <?= CSRFProtection::tokenTag() ?>
     <div class="forum_header">
         <span class="corners-top"><span></span></span>

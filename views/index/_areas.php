@@ -2,7 +2,7 @@
 <div id="sortable_areas">
 <? foreach ($list as $category_id => $entries) : ?>
 <table class="forum <?= $has_perms && $category_id != $seminar_id ? 'movable' : '' ?>" data-category-id="<?= $category_id ?>">
-    <thead>
+    <thead id="tutorCategory">
     <tr>
         <td class="forum_header <?= ForumPPPerm::has('sort_category', $seminar_id) && $category_id != $seminar_id ? 'handle' : '' ?>" colspan="3">
             <a name="cat_<?= $category_id ?>"></a>
@@ -33,7 +33,7 @@
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
             <? if (ForumPPPerm::has('edit_category', $seminar_id) || ForumPPPerm::has('remove_category', $seminar_id)) : ?>
-            <span style="float: right; padding-right: 5px;">
+            <span style="float: right; padding-right: 5px;" id="tutorCategoryIcons">
                 <? if ($category_id == $seminar_id) : ?>
                 <?= Assets::img('icons/16/blue/info.png', array(
                     'onClick' => "alert('" . _('Vordefinierte Kategorie, kann nicht bearbeitet oder gelöscht werden.' . '\n'
@@ -68,29 +68,32 @@
     <? if (!empty($entries)) foreach ($entries as $entry) :
         $jump_to_topic_id = $entry['topic_id']; ?>
 
-    <tr data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms) ? 'class="movable"' : '' ?>>
+    <tr id="tutorArea" data-area-id="<?= $entry['topic_id'] ?>" <?= ($has_perms) ? 'class="movable"' : '' ?>>
 
         <td class="areaborder"> </td>
 
         <td class="areaentry icon">
             <? if (ForumPPPerm::has('sort_area', $seminar_id)) : ?>
-            <img src="<?= $picturepath ?>/move.png" class="handle">
+            <img src="<?= $picturepath ?>/move.png" class="handle" id="tutorMoveArea">
             <? endif ?>
 
             <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
-                    'title' => _('Dieser Eintrag ist neu!')
+                    'title' => _('Dieser Eintrag ist neu!'),
+                    'id'    => 'tutorNotificationIcon'
                 )) ?>
             <? else : ?>
                 <? $num_postings = ForumPPVisit::getCount($GLOBALS['user']->id, $entry['topic_id']) ?>
                 <? $text = ForumPPHelpers::getVisitText($num_postings, $entry['topic_id'], $constraint['depth']) ?>
                 <? if ($num_postings['abo'] > 0 || $num_postings['new'] > 0) : ?>
                     <?= Assets::img('icons/16/red/forum.png', array(
-                        'title' => $text
+                        'title' => $text,
+                        'id'    => 'tutorNotificationIcon'
                     )) ?>
                 <? else : ?>
                     <?= Assets::img('icons/16/black/forum.png', array(
-                        'title' => $text
+                        'title' => $text,
+                        'id'    => 'tutorNotificationIcon'
                     )) ?>
                 <? endif ?>
             <? endif ?>
@@ -137,7 +140,7 @@
                 <? endif ?>
 
                 
-                <span class="action-icons">
+                <span class="action-icons" id="tutorAreaIcons">
                     <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
                     <a href="javascript:STUDIP.ForumPP.editArea('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png',
@@ -156,7 +159,9 @@
         </td>
 
         <td class="areaentry postings">
-            <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
+            <span id="tutorNumPostings">
+                <?= ($entry['num_postings'] > 0) ? ($entry['num_postings'] - 1) : 0 ?>
+            </span>
         </td>
 
         <td class="areaentry answer">
@@ -167,7 +172,7 @@
             </a><br>
             <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
             <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
-                <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
+                <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."), 'id' => 'tutorLatestAnswer')) ?>
             </a>
             <? else: ?>
             <br>
@@ -184,7 +189,7 @@
     <tr class="add_area">
         <td class="areaborder" colspan="7">
             <div class="add_area" title="<?= _('Neuen Bereich zu dieser Kategorie hinzufügen.') ?>">
-                <?= Assets::img('icons/16/black/plus.png') ?>
+                <?= Assets::img('icons/16/black/plus.png', array('id' => 'tutorAddArea')) ?>
             </div>
         </td>
     </tr>
@@ -235,3 +240,5 @@
     )) ?>
     <? /* createQuestion() */ ?>
 </div>
+
+<?= $this->render_partial('joyride/areas.php') ?>
