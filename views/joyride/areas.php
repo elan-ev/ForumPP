@@ -124,7 +124,9 @@
 <script type="text/javascript">
     $(window).load(function() {
         $(this).joyride({
-            'postRideCallback': STUDIP.ForumPP.hideTour('areas')
+            'postRideCallback': function() {
+                STUDIP.ForumPP.hideTour('areas');
+            }
         });
     });
 </script>

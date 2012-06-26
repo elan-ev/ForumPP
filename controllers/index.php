@@ -192,9 +192,7 @@ class IndexController extends StudipController
             $this->highlight = Request::getArray('highlight');
         }
         
-        var_dump($GLOBALS['my_messaging_settings']['forumpp']);
-        //$this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
-        //var_dump($this->joyride);
+        $this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
     }
 
     function latest_action($page = null)

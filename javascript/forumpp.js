@@ -394,7 +394,7 @@ STUDIP.ForumPP = {
     },
     
     closeTour: function() {
-        jQuery('a.joyride-close-tip').click();
+        jQuery('a.joyride-close-tip:visible').click();
     }
 };
 
