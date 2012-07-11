@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>ForumPP by tgloeggl</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">ForumPP</h1>
+        <p class="header">Forum-Plugin for Stud.IP</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/tgloeggl/ForumPP/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/tgloeggl/ForumPP/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/tgloeggl/ForumPP">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/tgloeggl">tgloeggl</a></p>
+
+
+      </header>
+      <section>
+        <h1>Features</h1>
+
+<h2>Grunlegendes Konzept</h2>
+
+<p>Das Forum hat 3 Hierarchieebenen + 1 Metaebene:</p>
+
+<ul>
+<li>Es gibt sog. "Bereiche", in denen die einzelnen Themen und darin die Postings enthalten sind.</li>
+<li>Außerdem können die Bereiche in "Kategorien" zusammengefasst werden. 
+Standardmäßig befinden sich alle Bereich in der vordefinierten Kategorie "Allgemeines"</li>
+</ul><h2>Funktionsliste</h2>
+
+<ul>
+<li>Erstellen/Löschen/Bearbeiten einer Kategorie (bis auf die Standardkategorie "Allgemeines")</li>
+<li>Erstellen/Löschen/Bearbeiten eines Bereiches</li>
+<li>Drag'n'Drop zum sortieren von Bereichen und Kategorien</li>
+<li>Erstellen/Löschen eines Themas</li>
+<li>Bearbeiten eines Postings</li>
+<li>Anworten auf ein Thema</li>
+<li>Zitieren aus einem Posting</li>
+<li>Löschen eines Postings</li>
+<li>+1 / -1 (Gefällt mir / Gefällt mir nicht mehr) für ein Posting</li>
+<li>Ein Posting als Favoriten markieren</li>
+<li>neue Beiträge - zeigt Beiträge, die seit meinem letzten Besuch dazugekommen sind, neuester zuerst</li>
+<li>letzte Beiträge - zeigt alle Beiträge in chronologischer Reihenfolge, neueste zuerst</li>
+<li>Suchen innerhalb aller Beiträge und "highlight" der Suchergebnisse in einer Trefferliste</li>
+<li>Direktes Springen zum neuesten Beitrage eines Bereichs / eines Themas</li>
+<li>Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.</li>
+</ul><h1>Changelog</h1>
+
+<h2>Version 2.0.31</h2>
+
+<ul>
+<li>Anpassung an neue Sem-Klassen-API der 2.4</li>
+<li>Feature: Tour durch die Funktionen auf der Haupseite (dank Joyride, ein jQuery-Plugin)</li>
+</ul><h2>Version 2.0.30</h2>
+
+<ul>
+<li>Feature: Das Forum integriert sich nun in die neue "alles als gelesen markieren"-Funktionalität von Stud.IP</li>
+</ul><h2>Version 2.0.29</h2>
+
+<ul>
+<li>Bugfix: Beiträge in der Suchansicht und bei den gemerkten Beiträgen erhalten kein rotes Icon mehr</li>
+<li>Bugfix: Icon färbt sich nicht mehr rot bei eigenen Beiträgen und zeigt nun auch sets korrekte Werte an</li>
+<li>Feature: Seit dem letzen betreten der VA hinzugekommene Beiträge werden rot markiert</li>
+</ul><h2>Version 2.0.28</h2>
+
+<ul>
+<li>Bugfix: Debug-Code im JavaScript entfernt</li>
+<li>Bugfix: Scrollen nach Klick auf "Beitrag zitieren" funktioniert nun auch im Chrome und Safari</li>
+</ul><h2>Version 2.0.27</h2>
+
+<ul>
+<li>Bugfix: Rotfärbung der Icons berücksichtigt nun auch korrekt die Unterbereiche/-themen</li>
+<li>Verwenden des Caches für die ansonsten langsame Darstellung der roten Icons</li>
+</ul><h2>Version 2.0.26</h2>
+
+<ul>
+<li>Bugfix: Icons färbten sich auf seltsame Weise manchmal unsinnigerweise rot, das tun sie nun nicht mehr</li>
+<li>Verbesserungen für die Funktion "Beitrag weiterleiten"</li>
+</ul><h2>Version 2.0.25</h2>
+
+<ul>
+<li>Bugfix: Infobox verschwindet jetzt nur noch im Forum</li>
+<li>Bugfix: Blättern in der Suche funktioniert nun (wieder)</li>
+<li>Einige kleinere Anpassungen und Fehlerbehebungen</li>
+</ul><h2>Version 2.0.24</h2>
+
+<ul>
+<li>Bugfix: Springen zu einer Seite  die es nicht gibt führt nun nicht mehr zu einem Fehler. Es
+wird stattdessen auf die letzte Seite des Themas / der Liste gesprungen</li>
+</ul><h2>Version 2.0.23</h2>
+
+<ul>
+<li>Feature: Beiträge können nun als interne Nachricht weitergeleitet werden</li>
+<li>Bugfix: Interne Nachrichten über neue Beiträge werden auch dann als E-Mail weitergeleitet,
+wenn in den Einstellungen "nur, wenn vom Absender gewünscht" ausgewählt ist und der Ersteller
+des Beitrages erhält keine Nachricht mehr.</li>
+<li>Bugfix: Beitrag weiterleiten wird nun über ein form-post gelöst. Schickt man die Nachricht ab oder klickt
+auf Abbrechen, landet man wieder im Forum beim Beitrag.</li>
+</ul><h2>Version 2.0.22</h2>
+
+<ul>
+<li>Feature: Zusammenfassen der Re:-Angaben im Titel bei Zitaten durch Re^x</li>
+</ul><h2>Version 2.0.21</h2>
+
+<ul>
+<li>Bugfix: Nach dem Anlegen einer neuen Kategorie mittels Anker zu dieser springen</li>
+</ul><h2>Version 2.0.20</h2>
+
+<ul>
+<li>Bugfix: Klicken auf ein Thema führt nun zum letzten ungelesen Beitrag</li>
+<li>Verbesserungen und Bugfixes für die Benachrichtigung über neue Inhalte (Rotfärbung der Icons)</li>
+</ul><h2>Version 2.0.19</h2>
+
+<ul>
+<li>Feature: Bereich können nun einen maximal 2 Zeilen langen Infotext haben</li>
+<li>Feature: Media-queries für das Stylesheet: Wird das Browserfenster schmaler als ein Fixwert,
+wird die Infobox ausgeblendet und die Suchleiste am Anfang der Seite angezeigt.
+Der Abo-Link ist nun ein Button am Ende der Themenliste / der Beitragsliste</li>
+</ul><h2>Version 2.0.18</h2>
+
+<ul>
+<li>Feature: Abonnieren von Bereichen / Themen. Dafür wurde ein experimenteller Bulk-Mailer hinzugefügt,
+um Performance-Probleme beim versenden der Mails nach erstellen eines Beitrags zu minimieren.</li>
+</ul>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+		
+  </body>
+</html>
