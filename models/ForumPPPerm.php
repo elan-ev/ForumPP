@@ -14,7 +14,7 @@
  * @category    Stud.IP
  */
 
-require_once 'lib/statusgruppe.inc.php';
+#require_once 'lib/statusgruppe.inc.php';
 
 class ForumPPPerm {
     static function has($perm, $seminar_id, $user_id = null) {
@@ -56,6 +56,7 @@ class ForumPPPerm {
         return false;
     }
 
+/*
     static function is_member($user_id=null, $group_id=null) {
         if(is_null($group_id)){
             return true;
@@ -72,17 +73,19 @@ class ForumPPPerm {
 
         return false;
     }
-
+*/
     /*
      * Returns an map of key/value pairs namly id as key and name as value,
      * for the selected seminar.
      */
+ /*
     static function getGroups($seminar_id){
         $query = "SELECT statusgruppe_id AS id, name FROM statusgruppen WHERE range_id = ?";
         $statement = DBManager::get()->prepare($query);
         $statement->execute(array($seminar_id));
         return $statement->fetchAll(PDO::FETCH_KEY_PAIR);
     }
+*/
 
     function check($perm, $seminar_id, $user_id = null) {
         if (!self::has($perm, $seminar_id, $user_id)) {

@@ -83,7 +83,9 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         $num_entries = ForumPPVisit::getCount($GLOBALS['user']->id, $course_id);
 
         $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/enter_seminar'));
-        $navigation->setBadgeNumber($num_entries['abo'] + $num_entries['new']);
+        if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.3', '>')) {
+            $navigation->setBadgeNumber($num_entries['abo'] + $num_entries['new']);
+        }
 
         $text = ForumPPHelpers::getVisitText($num_entries, $course_id);
 
