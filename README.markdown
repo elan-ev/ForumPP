@@ -1,3 +1,9 @@
+# ForumPP - Plugin für Stud.IP
+
+Die Projektseite befindet sich unter http://tgloeggl.github.com/ForumPP
+
+Das ForumPP ist ein Forenplugin für Stud.IP -> http://studip.de
+
 # Features
 
 ## Grunlegendes Konzept
