@@ -144,7 +144,8 @@ class ForumPPEntry {
      * 
      * @return string the topic_id of the parent element or false
      */
-    static function getParentTopicId($topic_id) {
+    static function getParentTopicId($topic_id)
+    {
         $path = ForumPPEntry::getPathToPosting($topic_id);
         array_pop($path);
         $data = array_pop($path);
@@ -159,7 +160,8 @@ class ForumPPEntry {
      * @param string $topic_id the topic_id to find the childs for
      * @return array a list if topic_ids
      */
-    static function getChildTopicIds($topic_id) {
+    static function getChildTopicIds($topic_id)
+    {
         $constraints = ForumPPEntry::getConstraints($topic_id);
         
         $stmt = DBManager::get()->prepare("SELECT topic_id
@@ -169,7 +171,8 @@ class ForumPPEntry {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    static function hasEditPerms($topic_id) {
+    static function hasEditPerms($topic_id)
+    {
         static $perms = array();
 
         if (!$perms[$topic_id]) {
@@ -210,7 +213,8 @@ class ForumPPEntry {
       * @param  string  $topic_id
       * @return  int
       */
-    static function getPostingPage($topic_id) {
+    static function getPostingPage($topic_id)
+    {
         $constraint = ForumPPEntry::getConstraints($topic_id);
         if ($parent_id = ForumPPEntry::getParentTopicId($topic_id)) {
             $parent_constraint = ForumPPEntry::getConstraints($parent_id);
@@ -221,11 +225,12 @@ class ForumPPEntry {
         return 0;
     }
 
-    static function getLastUnread($parent_id) {
+    static function getLastUnread($parent_id)
+    {
         $constraint = ForumPPEntry::getConstraints($parent_id);
         
         // take users visitdate into account
-        $visitdate = ForumPPVisit::get($GLOBALS['user']->id, $parent_id, $constraint['seminar_id']);
+        $visitdate = ForumPPVisit::getLastVisit($constraint['seminar_id']);
         
         // get the first unread entry
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
@@ -245,7 +250,8 @@ class ForumPPEntry {
      * @param string $parent_id the node to lookup the childs in
      * @return mixed the data for the latest postings or false
      */
-    static function getLatestPosting($parent_id) {
+    static function getLatestPosting($parent_id)
+    {
         $constraint = ForumPPEntry::getConstraints($parent_id);
 
         // get last entry
@@ -261,7 +267,16 @@ class ForumPPEntry {
         return $data;
     }
 
-    static function getPathToPosting($topic_id) {
+    /**
+     * returns a hashmap with arrays containing id and name with the entries
+     * which lead to the passed topic
+     * 
+     * @param string $topic_id the topic to get the path for
+     * 
+     * @return array
+     */
+    static function getPathToPosting($topic_id)
+    {
         $data = ForumPPEntry::getConstraints($topic_id);
 
         $stmt = DBManager::get()->prepare("SELECT * FROM forumpp_entries
@@ -275,6 +290,32 @@ class ForumPPEntry {
             );
         }
 
+        return $ret;
+    }
+    
+    /**
+     * returns a hashmap where key is topic_id and value a posting-titel from the
+     * entries which lead to the passed topic.
+     * 
+     * WARNING: This function ommits postings with an empty titel. For a full
+     * list please use getPathToPosting in the same class!
+     * 
+     * @param string $topic_id the topic to get the path for
+     * 
+     * @return array
+     */    
+    static function getFlatPathToPosting($topic_id)
+    {
+        $postings = self::getPathToPosting($topic_id);
+        
+        // var_dump($postings);
+        
+        foreach ($postings as $post) {
+            if ($post['name']) {
+                $ret[$post['id']] = $post['name'];
+            }
+        }
+        
         return $ret;
     }
 
@@ -358,7 +399,7 @@ class ForumPPEntry {
         }
         
         if ($with_childs) {
-            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.topic_id, 'fav', NULL) as fav
+            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.topic_id IS NOT NULL, 'fav', NULL) as fav
                     FROM forumpp_entries
                 LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE (forumpp_entries.seminar_id = ?
@@ -370,7 +411,7 @@ class ForumPPEntry {
                 . ($limit ? " LIMIT $start, $limit" : ''));
             $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $constraint['lft'], $constraint['rgt']));
         } else {
-            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.topic_id, 'fav', NULL) as fav
+            $stmt = DBManager::get()->prepare("SELECT forumpp_entries.*, IF(ou.topic_id IS NOT NULL, 'fav', NULL) as fav
                     FROM forumpp_entries
                 LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = ?)
                 WHERE ((depth = ? AND forumpp_entries.seminar_id = ?
@@ -449,7 +490,7 @@ class ForumPPEntry {
 
                 // purpose of the following query is to retrieve the threads
                 // for an area ordered by the mkdate of their latest posting
-                $stmt = DBManager::get()->prepare("SELECT topic_id as en_topic_id,
+                $stmt = DBManager::get()->prepare("SELECT fe.topic_id as en_topic_id,
                         IF (
                             (SELECT MAX(f1.mkdate) FROM forumpp_entries as f1
                                 WHERE fe.seminar_id = :seminar_id
@@ -458,9 +499,10 @@ class ForumPPEntry {
                                 FROM forumpp_entries as f1
                                 WHERE fe.seminar_id = :seminar_id
                                     AND f1.lft > fe.lft AND f1.rgt < fe.rgt)
-                            ) as en_mkdate, f2.*
+                            ) as en_mkdate, f2.*, IF(ou.topic_id IS NOT NULL, 'fav', NULL) as fav
                     FROM forumpp_entries AS fe
                     LEFT JOIN forumpp_entries f2 USING (topic_id)
+                    LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = f2.topic_id AND ou.user_id = :user_id)
                     WHERE fe.seminar_id = :seminar_id AND fe.lft > :left
                         AND fe.rgt < :right AND fe.depth = 2
                     ORDER BY en_mkdate DESC
@@ -468,6 +510,7 @@ class ForumPPEntry {
                 $stmt->bindParam(':seminar_id', $constraint['seminar_id']);
                 $stmt->bindParam(':left', $constraint['lft']);
                 $stmt->bindParam(':right', $constraint['rgt']);
+                $stmt->bindParam(':user_id', $GLOBALS['user']->id);
                 $stmt->execute();
 
                 $postings = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -487,7 +530,46 @@ class ForumPPEntry {
                 break;
 
             case 'latest':
-                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, $add, 'DESC', $start);
+                $constraint = ForumPPEntry::getConstraints($parent_id);
+
+                // get postings
+                $stmt = DBManager::get()->prepare($query = "SELECT forumpp_entries.*, IF(ou.topic_id IS NOT NULL, 'fav', NULL) as fav
+                    FROM forumpp_entries
+                    LEFT JOIN forumpp_favorites as ou ON (ou.topic_id = forumpp_entries.topic_id AND ou.user_id = :user_id)
+                    WHERE seminar_id = :seminar_id AND lft > :left
+                        AND rgt < :right AND mkdate >= :mkdate
+                    ORDER BY mkdate ASC
+                    LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+                
+                $stmt->bindParam(':seminar_id', $constraint['seminar_id']);
+                $stmt->bindParam(':left', $constraint['lft']);
+                $stmt->bindParam(':right', $constraint['rgt']);
+                $stmt->bindParam(':mkdate', ForumPPVisit::getLastVisit($constraint['seminar_id']));
+                $stmt->bindParam(':user_id', $GLOBALS['user']->id);
+                $stmt->execute();
+                
+                $postings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $postings = ForumPPEntry::parseEntries($postings);
+                // var_dump($postings);
+
+                // count found postings
+                $stmt_count = DBManager::get()->prepare("SELECT COUNT(*)
+                    FROM forumpp_entries
+                    WHERE seminar_id = :seminar_id AND lft > :left
+                        AND rgt < :right AND mkdate >= :mkdate
+                    ORDER BY mkdate ASC
+                    LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+                
+                $stmt_count->bindParam(':seminar_id', $constraint['seminar_id']);
+                $stmt_count->bindParam(':left', $constraint['lft']);
+                $stmt_count->bindParam(':right', $constraint['rgt']);
+                $stmt_count->bindParam(':mkdate', ForumPPVisit::getLastVisit($constraint['seminar_id']));
+                $stmt_count->execute();
+
+
+                // return results
+                return array('list' => $postings, 'count' => $stmt_count->fetchColumn());
                 break;
 
             case 'favorites':

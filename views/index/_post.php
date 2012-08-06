@@ -1,13 +1,11 @@
 <? if (!is_array($highlight)) $highlight = array(); ?>
-<? $is_new =  ((isset($visitdate) && $post['mkdate'] >= $visitdate 
-        && $post['owner_id'] != $GLOBALS['user']->id
-    ) || !(isset($visitdate))) ?>
+<? $is_new =  ((isset($visitdate) && $post['mkdate'] >= $visitdate) || !(isset($visitdate))) ?>
 <!-- Anker, um zu diesem Posting springen zu können -->
 <a name="<?= $post['topic_id'] ?>"></a>
 
 <form method="post" data-topicid="<?= $post['topic_id'] ?>">
     <?= CSRFProtection::tokenTag() ?>
-
+    
 <div class="posting <?=($zebra) ? 'bg1' : 'bg2'?>" style="position: relative;">
     <span class="corners-top"><span></span></span>
 
@@ -33,12 +31,7 @@
             <span data-show-topic="<?= $post['topic_id'] ?>">
                 <a href="<?= PluginEngine::getLink('forumpp/index/index/' . $post['topic_id'] .'?'. http_build_query(array('highlight' => $highlight)) ) ?>#<?= $post['topic_id'] ?>">
                 <? if ($show_full_path) : ?>
-                    <? $first = true ?>
-                    <? foreach (ForumPPEntry::getPathToPosting($post['topic_id']) as $path_part) : ?>
-                        <? if (!$first) : ?> &gt;&gt; <? endif ?>
-                        <?= ForumPPHelpers::highlight(ForumPPEntry::killFormat($path_part['name']), $highlight) ?>
-                        <? $first = false ?>
-                    <? endforeach ?>
+                    <?= ForumPPHelpers::highlight(ForumPPEntry::killFormat(implode(' &gt;&gt; ', ForumPPEntry::getFlatPathToPosting($post['topic_id']))), $highlight) ?>
                 <? else : ?>
                 <span data-topic-name="<?= $post['topic_id'] ?>">
                     <?= ($post['name']) ? ForumPPHelpers::highlight($post['name'], $highlight) : ''?>
@@ -136,7 +129,6 @@
     </span>
 
     <!-- Buttons for this Posting -->
-    <? if ($section == 'index') : ?>
     <div class="buttons">
         <div class="button-group">
     <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
@@ -153,15 +145,15 @@
     <span data-show-topic="<?= $post['topic_id'] ?>">
         <!-- Aktions-Buttons für diesen Beitrag -->
             
-        <? if (ForumPPPerm::has('add_entry', $seminar_id)) : ?>
+        <? if ($section == 'index' && ForumPPPerm::has('add_entry', $seminar_id)) : ?>
         <?= Studip\LinkButton::create('Beitrag zitieren', "javascript:STUDIP.ForumPP.citeEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
-        
-        <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
+
+        <? if ($section == 'index' && ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
             <?= Studip\LinkButton::create('Beitrag bearbeiten', "javascript:STUDIP.ForumPP.editEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
 
-        <? if (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id)) : ?>
+        <? if ($section == 'index' && (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id))) : ?>
             <? if ($constraint['depth'] == $post['depth']) : /* this is not only a posting, but a thread */ ?>
                 <?= Studip\LinkButton::create('Thema löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
                     array('onClick' => "return confirm('". _('Wenn Sie diesen Beitrag löschen wird ebenfalls das gesamte Thema gelöscht.\n'
@@ -183,7 +175,6 @@
     </span>
         </div>
     </div>
-    <? endif ?>
 
   <span class="corners-bottom"><span></span></span>
 </div>

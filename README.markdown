@@ -32,6 +32,12 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+## Version 2.0.32
+* Feature: Neue Rotfärbelogik: Orientiert sich nun am Datum des letzten betretens der Veranstaltung und verhält sich damit analog zum alten Forum.
+* Feature: Auch bei den Posting-Listen sind nun ausgewählte Aktionen verfügbar (Antworten/Zitieren folgt später)
+* Bugfix: Leere Titel führten zu einem unnötigen Doppelpfeil, wenn der Pfad zu einem Posting angezeigt wird
+* Bugfix: Gemerkte Beiträge wurden nicht korrekt erkannt
+
 ## Version 2.0.31
 * Anpassung an neue Sem-Klassen-API der 2.4
 * Feature: Tour durch die Funktionen auf der Haupseite (dank Joyride, ein jQuery-Plugin)

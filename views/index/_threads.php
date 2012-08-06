@@ -38,15 +38,15 @@
         <td class="areaborder"> </td>
 
         <td class="areaentry icon">
-            <? if (!ForumPPVisit::hasEntry($GLOBALS['user']->id, $entry['topic_id']) && $entry['owner_id'] != $GLOBALS['user']->id): ?>
+            <? if ($entry['chdate'] >= $visitdate && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <? $jump_to_topic_id = $entry['topic_id'] ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!')
                 )) ?>
             <? else : ?>
-                <? $num_postings = ForumPPVisit::getCount($GLOBALS['user']->id, $entry['topic_id']) ?>
+                <? $num_postings = ForumPPVisit::getCount($entry['topic_id'], $visitdate) ?>
                 <? $text = ForumPPHelpers::getVisitText($num_postings, $entry['topic_id'], $constraint['depth']) ?>
-                <? if ($num_postings['abo'] > 0 || $num_postings['new'] > 0) : ?>
+                <? if ($num_postings > 0) : ?>
                     <?= Assets::img('icons/16/red/forum.png', array(
                         'title' => $text
                     )) ?>

@@ -8,7 +8,7 @@
         </a>
     <? elseif ($section == 'latest') : ?>
         <a href="<?= PluginEngine::getURL('forumpp/index/latest') ?>">
-            <?= _('Neueste Beiträge') ?>
+            <?= _('Neue Beiträge') ?>
         </a>
     <? elseif ($section == 'favorites') : ?>
         <a href="<?= PluginEngine::getURL('forumpp/index/latest') ?>">

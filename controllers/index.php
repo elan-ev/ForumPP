@@ -67,17 +67,6 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     
     /**
-     * this action is called when the user enters the seminar. It removes the
-     * the last_visitdates (sets it to zero) for immediate recalculation
-     * of new entries
-     */
-    function enter_seminar_action() {
-        ForumPPVisit::updateVisitedEntries($GLOBALS['user']->id, $this->getId());
-
-        $this->redirect(PluginEngine::getLink('forumpp/index/index/'));
-    }
-
-    /**
      * the main action for the forum. May be called with a topic_id to be displayed
      * and optionally the page to display
      * 
@@ -182,9 +171,8 @@ class IndexController extends StudipController
         }
 
         // set the visit-date and get the stored last_visitdate
-        ForumPPVisit::set($GLOBALS['user']->id, $this->topic_id, $this->getId());
-        $this->visitdate = ForumPPVisit::get($GLOBALS['user']->id, $this->topic_id, $this->getId(), true);
-
+        $this->visitdate = ForumPPVisit::getLastVisit($this->getId());
+        
         $this->seminar_id = $this->getId();
 
         // highlight text if passed some words to highlight
@@ -207,8 +195,11 @@ class IndexController extends StudipController
         }
 
         $this->section = 'latest';
-
+        $this->seminar_id = $this->getId();
         $this->topic_id = $this->getId();
+
+        // set the visitdate of the seminar as the last visitdate
+        $this->visitdate = ForumPPVisit::getLastVisit($this->getId());
 
         $list = ForumPPEntry::getList('latest', $this->topic_id);
         $this->postings          = $list['list'];
@@ -222,9 +213,6 @@ class IndexController extends StudipController
         if (empty($this->postings)) {
             $this->no_entries = true;
         }
-
-        // set the visitdate of the seminar as the last visitdate
-        $this->visitdate = object_get_visit($this->getId(), 'sem');
 
         $this->render_action('index');
     }
@@ -241,8 +229,9 @@ class IndexController extends StudipController
         }
 
         $this->section = 'favorites';
-
+        $this->seminar_id = $this->getId();
         $this->topic_id = $this->getId();
+
         $list = ForumPPEntry::getList('favorites', $this->topic_id);
         $this->postings          = $list['list'];
         $this->number_of_entries = $list['count'];
@@ -257,7 +246,7 @@ class IndexController extends StudipController
         }
 
         // exploit the visitdate for this view
-        $this->visitdate = time();
+        $this->visitdate = ForumPPVisit::getLastVisit($this->getId());
 
         $this->render_action('index');
     }
@@ -274,7 +263,9 @@ class IndexController extends StudipController
         if ($page) {
             ForumPPHelpers::setPage($page);
         }
+
         $this->section = 'search';
+        $this->seminar_id = $this->getId();
         $this->topic_id = $this->getId();
         $this->show_full_path    = true;
 
@@ -304,7 +295,7 @@ class IndexController extends StudipController
         $this->set_layout($layout);
 
         // exploit the visitdate for this view
-        $this->visitdate = time();
+        $this->visitdate = ForumPPVisit::getLastVisit($this->getId());
 
         $this->render_action('index');
     }

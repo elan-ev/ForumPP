@@ -36,9 +36,6 @@ class ForumPP extends StudipPlugin implements StandardPlugin
             return;
         }
 
-        NotificationCenter::addObserver('ForumPPVisit', 'addEntry', 'ForumPPAfterInsert');
-        NotificationCenter::addObserver('ForumPPVisit', 'deleteEntry', 'ForumPPBeforeDelete');
-
         // TODO: remove development-rand from poduction-code
         PageLayout::addScript($this->getPluginURL() . '/javascript/forumpp.js?rand='. floor(time() / 100));
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/forumpp.css?rand='. floor(time() / 100));
@@ -61,7 +58,12 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // add main third-level navigation-item
         $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
         $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
-        $navigation->addSubNavigation('latest',    new Navigation(_("Neueste Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
+        
+        $visitdate = ForumPPVisit::getLastVisit($course_id);
+        if (ForumPPVisit::getCount($course_id, $last_visit) > 0) {
+            $navigation->addSubNavigation('latest', new Navigation(_("Neue Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
+        }
+
         return array('forum2' => $navigation);
     }
 
@@ -80,16 +82,17 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
     function getIconNavigation($course_id, $last_visit)
     {
-        $num_entries = ForumPPVisit::getCount($GLOBALS['user']->id, $course_id);
+        $num_entries = ForumPPVisit::getCount($course_id, $last_visit);
+        
 
-        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/enter_seminar'));
+        $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/index'));
         if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.3', '>')) {
-            $navigation->setBadgeNumber($num_entries['abo'] + $num_entries['new']);
+            $navigation->setBadgeNumber($num_entries);
         }
 
         $text = ForumPPHelpers::getVisitText($num_entries, $course_id);
 
-        if ($num_entries['abo'] > 0 || $num_entries['new'] > 0) {
+        if ($num_entries > 0) {
             $navigation->setImage('icons/16/red/new/forum.png', array('title' => $text));
         } else {
             $navigation->setImage('icons/16/grey/forum.png', array('title' => $text));

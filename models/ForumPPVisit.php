@@ -21,258 +21,49 @@ class ForumPPVisit {
     const LAST_VISIT_MAX = 7776000; // 90 days
 
     /**
-     * Number of seconds before the last_visitdate will be overwritten if a
-     * thread / area is opened
-     */
-    const LAST_VISIT_LIFETIME = 3600;
-
-    /**
-     * update the visitdate or set it initially for the passed topic
-     * and return the last stored visitdate
-     *
-     * @param type $user_id
-     * @param type $topic_id
-     * @param type $seminar_id
-     */
-    static function set($user_id, $topic_id, $seminar_id)
-    {
-        $cache = StudipCacheFactory::getCache();
-        $cache_key = 'forumpp/'. $user_id .'/'. $topic_id;
-        $cache->expire($cache_key);
-        
-        // update visits older than one hour. Not the optimal place here
-        self::updateVisitedEntries($user_id, $seminar_id, time() - self::LAST_VISIT_LIFETIME);
-
-        // check, if there is already an entry in the db
-        $stmt = DBManager::get()->prepare("SELECT visitdate, last_visitdate FROM
-            forumpp_visits WHERE user_id = ?
-                AND topic_id = ? AND seminar_id = ?");
-        $stmt->execute(array($user_id, $topic_id, $seminar_id));
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // if no entry exists, create one. Future visits will then mark new entries as unread
-        if (!$data) {
-            $visitdate = time() - self::LAST_VISIT_MAX;
-            // use the parents last_visitdate as a starting point (if any)
-            if ($parent_topic_id = ForumPPEntry::getParentTopicId($topic_id)) {
-                $visitdate = self::get($user_id, $parent_topic_id, $seminar_id);
-            }
-            
-            $stmt = DBManager::get()->prepare("INSERT INTO forumpp_visits
-                (user_id, topic_id, seminar_id, visitdate, last_visitdate)
-                VALUES (?, ?, ?, UNIX_TIMESTAMP(), 0)");
-
-            $stmt->execute($new_data = array($user_id, $topic_id, $seminar_id));
-        } else {
-           // visitdate is always set to the latest visit
-            $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-                SET visitdate = UNIX_TIMESTAMP() , visited = 1
-                WHERE user_id = ? AND topic_id = ? AND seminar_id = ?");
-            $stmt->execute(array($user_id, $topic_id, $seminar_id));
-        }
-    }
-    
-    /**
-     * updates all last_visitdates, which are used to display new postings
-     * in the posting-view
-     * 
-     * @param string $user_id
-     * @param string $seminar_id
-     * @param int $since optional, constraint the update to entries older then this
-     */
-    static function updateVisitedEntries($user_id, $seminar_id, $since = false)
-    {
-        if ($since) {
-            $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-                SET last_visitdate = visitdate
-                WHERE user_id = ? AND seminar_id = ?
-                    AND visited = 1 AND last_visitdate <= ". $since);
-        } else {
-            $stmt = DBManager::get()->prepare("UPDATE forumpp_visits
-                SET last_visitdate = visitdate, visited = 0
-                WHERE user_id = ? AND seminar_id = ?
-                    AND visited = 1");
-        }
-        $stmt->execute(array($user_id, $seminar_id));
-    }
-
-    /**
-     * get the (last_)visitdate for the passed topic
-     *
-     * @param type $user_id
-     * @param type $topic_id
-     * @param type $seminar_id
-     * @param bool $last_visitdate defaults to false, returns the last_visitdate
-     *                             if true, visitdate if false
-     * @return int the visitdate
-     */
-    static function get($user_id, $topic_id, $seminar_id, $last_visitdate = false)
-    {
-        $stmt = DBManager::get()->prepare("SELECT last_visitdate, visitdate FROM forumpp_visits
-            WHERE user_id = ? AND topic_id = ? AND seminar_id = ?");
-
-        $stmt->execute(array($user_id, $topic_id, $seminar_id));
-        $dates = $stmt->fetch();
-        
-        if (!$dates) {
-            return time() - self::LAST_VISIT_MAX;
-        }
-
-        return $last_visitdate ? $dates['last_visitdate'] : $dates['visitdate'];
-    }
-
-    /**
      * return number of new entries since last visit up to 3 month ago
      *
-     * @param type $user_id the user_id for the entries
-     * @param type $seminar_id the seminar_id for the entries
+     * @param string $seminar_id the seminar_id for the entries
+     * @param string $visitdate count all entries newer than this timestamp
+     * 
      * @return int the number of entries
      */
-    static function getCount($user_id, $topic_id)
+    static function getCount($seminar_id, $visitdate)
     {
-        $constraints = ForumPPEntry::getConstraints($topic_id);
-
-        // use cached entries if possible
-        $cache = StudipCacheFactory::getCache();
-        $cache_key_user = 'forumpp/'. $user_id .'/'. $topic_id;     // sql-result-cache
-        $cache_key_topic = 'forumpp/'. $topic_id;                   // last modification of topic
-        
-        $num_entries = unserialize($cache->read($cache_key_user));
-        $topic_last_change = $cache->read($cache_key_topic);
-        
-        // if no cached entry is found, or if the cached entry is outdated, rebuild
-        if (!$num_entries || $num_entries['mkdate'] < $topic_last_change) {
-            // count all new_entries including sub-entries
-            $stmt = DBManager::get()->prepare("SELECT SUM((SELECT COUNT(*)
-                    FROM forumpp_entries AS fe2
-                    WHERE fe2.lft > fe.lft AND fe2.rgt < fe.rgt AND fe2.mkdate > fv.visitdate
-                        AND fe2.user_id != :user_id
-                        AND fe2.seminar_id = fe.seminar_id)) as c
-                FROM forumpp_entries AS fe
-                LEFT JOIN forumpp_visits AS fv ON (fe.topic_id = fv.topic_id AND fv.user_id = :user_id)
-                WHERE lft >= :lft AND rgt <= :rgt AND fe.user_id != :user_id
-                    AND fe.seminar_id = :seminar_id
-                    AND depth <= 2");
-
-            $stmt->bindParam(':user_id', $user_id);
-            $stmt->bindParam(':lft', $constraints['lft']);
-            $stmt->bindParam(':rgt', $constraints['rgt']);
-            $stmt->bindParam(':seminar_id', $constraints['seminar_id']);
-            $stmt->execute();
-
-            $num_entries['abo'] = $stmt->fetchColumn();
-
-            // get additionally the number of new areas since last visit
-            $num_entries['new'] = 0;
-
-            if ($constraints['area'] || $constraints['depth'] == 0) {
-                $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries as fe
-                    LEFT JOIN forumpp_visits as fv ON (fe.topic_id = fv.topic_id 
-                        AND fv.user_id = ?)
-                    WHERE fv.topic_id IS NULL 
-                        AND fe.lft > ? 
-                        AND fe.rgt < ? 
-                        AND fe.depth >= ? AND fe.depth <= 2
-                        AND fe.seminar_id = ?
-                        AND (mkdate >= fv.visitdate OR fv.visitdate IS NULL)");
-                $stmt->execute(array($user_id, $constraints['lft'], $constraints['rgt'],
-                    $constraints['depth'] + 1, $constraints['seminar_id']));
-
-                $num_entries['new'] = $stmt->fetchColumn();
-            }
-            
-            $num_entries['mkdate'] = time();
-            $cache->write($cache_key_user, serialize($num_entries), 604800); // 604800 = one week
+        if ($visitdate < time() - ForumPPVisit::LAST_VISIT_MAX) {
+            $visitdate = time() - ForumPPVisit::LAST_VISIT_MAX;
         }
 
-        return $num_entries;
-    }
+        $constraints = ForumPPEntry::getConstraints($seminar_id);
 
-    /**
-     * delete all entries in forumpp_visits for the passed topic and all childs
-     * 
-     * @param type $topic_id 
-     */
-    static function deleteEntry($event, $topic_id)
-    {
-        // get all topic_ids to remove
-        $constraints = ForumPPEntry::getConstraints($topic_id);
-
-        $stmt = DBManager::get()->prepare("SELECT topic_id FROM forumpp_entries
-            WHERE lft >= ? AND rgt <= ? AND seminar_id = ?");
-        $stmt->execute(array($constraints['lft'], $constraints['rgt'], $constraints['seminar_id']));
-        $topic_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        // delete all found entries
-        $stmt = DBManager::get()->prepare("DELETE FROM forumpp_visits
-            WHERE topic_id IN (:topic_ids)");
-        $stmt->bindParam(':topic_ids', $topic_ids, StudipPDO::PARAM_ARRAY);
+        $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_entries
+            WHERE lft >= :lft AND rgt <= :rgt AND user_id != :user_id
+                AND seminar_id = :seminar_id
+                AND chdate > :lastvisit");
+        
+        $stmt->bindParam(':user_id', $GLOBALS['user']->id);
+        $stmt->bindParam(':lft', $constraints['lft']);
+        $stmt->bindParam(':rgt', $constraints['rgt']);
+        $stmt->bindParam(':seminar_id', $constraints['seminar_id']);
+        $stmt->bindParam(':lastvisit', $visitdate);
+        
         $stmt->execute();
         
-        ForumPPVisit::updateCache($topic_id);
-        $cache = StudipCacheFactory::getCache();
-        $cache->expire('forumpp/'. $topic_id);
+        return $stmt->fetchColumn();
     }
     
-    /**
-     * returns true if there is an entry in the db for the passed user + topic
-     * 
-     * @param type $user_id
-     * @param type $topic_id
-     * @return bool
-     */
-    static function hasEntry($user_id, $topic_id)
+    static function getLastVisit($seminar_id)
     {
-        $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_visits
-            WHERE user_id = ? AND topic_id = ?");
-        $stmt->execute(array($user_id, $topic_id));
+        static $last_visit = array();
         
-        return $stmt->fetchColumn() > 0;
-    }
-
-    /**
-     * called, whenever a new posting is created
-     * 
-     * @param type $event the name of the notification
-     * @param type $topic_id the topic_id of the new entry
-     */
-    static function addEntry($event, $topic_id)
-    {
-        ForumPPVisit::updateCache($topic_id);
-    }
-
-    /**
-     * update the visitdate in the cache for all parents of the passed topic_id
-     * 
-     * @param string $topic_id the topic_id of the entry
-     */
-    static function updateCache($topic_id)
-    {
-        $constraints = ForumPPEntry::getConstraints($topic_id);
-        $cache = StudipCacheFactory::getCache();
-        
-        $stmt = DBManager::get()->prepare("SELECT topic_id
-            FROM forumpp_entries
-            WHERE lft < ? AND rgt > ?
-                AND seminar_id = ?");
-        $stmt->execute(array($constraints['lft'], $constraints['rgt'],
-            $constraints['seminar_id']));
-        
-        while ($topic_id = $stmt->fetchColumn()) {
-            $cache->write('forumpp/'. $topic_id, time());
+        if (!$last_visit[$seminar_id]) {
+            $last_visit[$seminar_id] = object_get_visit($seminar_id, 'sem');
+            
+            if ($last_visit[$seminar_id] < time() - ForumPPVisit::LAST_VISIT_MAX) {
+                $last_visit[$seminar_id] = time() - ForumPPVisit::LAST_VISIT_MAX;
+            }
         }
-    }
-    
-    static function updateAllCaches($seminar_id)
-    {
-        $cache = StudipCacheFactory::getCache();
         
-        $stmt = DBManager::get()->prepare("SELECT topic_id FROM forumpp_entries
-            WHERE seminar_id = ?");
-        $stmt->execute(array($seminar_id));
-        
-        while ($topic_id = $stmt->fetchColumn()) {
-            $cache->write('forumpp/'. $topic_id, time());
-        }
+        return $last_visit[$seminar_id];
     }
 }

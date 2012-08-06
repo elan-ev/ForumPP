@@ -158,34 +158,20 @@ class ForumPPHelpers {
         self::$page = $page_num;
     }
     
-    static function getVisitText($num_entries, $topic_id, $depth = -1) {
-        if ($num_entries['abo'] > 0 && $num_entries['new'] > 0) {
-            if ($depth > -1) {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche'
-                    . ' und %s neue Einträge/Themen in den bisherigen Bereichen'), $num_entries['new'], $num_entries['abo']);
-            } else {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Themen'
-                    . ' und %s neue Einträge bei den bisherigen Themen'), $num_entries['new'], $num_entries['abo']);
-            }
-        } else if ($num_entries['abo'] > 0) {
-            if ($depth > 0) {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Antworten'), $num_entries['abo']);
-            } else {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Antworten/Themen'), $num_entries['abo']);
-            }
-        } else if ($num_entries['new'] > 0) {
-            if ($depth >= 0) {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Themen'), $num_entries['new']);
-            } else {
-                $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Bereiche/Themen'), $num_entries['new']);
-            }
+    static function getVisitText($num_entries, $topic_id) {
+        
+        if ($num_entries > 0) {
+            $text = sprintf(_('Seit ihrem letzten Besuch gibt es %s neue Beiträge'), $num_entries);
         } else {
-            if ($depth >= 1) {
+            $all_entries = max(ForumPPEntry::countEntries($topic_id) - 1, 0);
+            if ($all_entries == 0) {
+                $text = sprintf(_('Es gibt bisher keine Beiträge.'));
+            } else if ($all_entries == 1) {
                 $text = sprintf(_('Seit ihrem letzten Besuch gab es nichts neues.'
-                    . ' Es gibt insgesamt %s Antworten zu diesem Thema.'), max(ForumPPEntry::countEntries($topic_id) - 1, 0));
+                      . ' Es ist ein alter Beitrag vorhanden.'));
             } else {
                 $text = sprintf(_('Seit ihrem letzten Besuch gab es nichts neues.'
-                    . ' Es gibt insgesamt %s Beiträge in diesem Forum.'), max(ForumPPEntry::countEntries($topic_id) - 1, 0));            
+                      . ' Es sind %s alte Beiträge vorhanden.'), $all_entries);
             }
         }
         
