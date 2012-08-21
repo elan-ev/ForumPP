@@ -17,6 +17,7 @@
 
 class RemoveTopicIdFromVisits extends DBMigration {
     function up() {
+        DBManager::get()->exec("DELETE FROM `forumpp_visits` WHERE seminar_id != topic_id");
         DBManager::get()->exec("ALTER TABLE `forumpp_visits` DROP `topic_id`");
         DBManager::get()->exec("ALTER TABLE `forumpp_visits` DROP `visited`");
     }

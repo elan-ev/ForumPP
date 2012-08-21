@@ -52,29 +52,90 @@ class ForumPPVisit {
         return $stmt->fetchColumn();
     }
     
+    /**
+     * Stores the visitdate in last_visitdate and sets the current time for as new visitdate
+     * 
+     * @param string $seminar_id the seminar that has been entered
+     */
     static function enter_seminar($seminar_id) {
+        $stmt = DBManager::get()->prepare('SELECT visitdate FROM forumpp_visits
+            WHERE user_id = ? AND seminar_id = ?');
+        $stmt->execute(array($GLOBALS['user']->id, $seminar_id));
+        $visitdate = $stmt->fetchColumn();
+        
         $stmt = DBManager::get()->prepare("REPLACE INTO forumpp_visits
             (user_id, seminar_id, visitdate, last_visitdate)
-            VALUES (?, ?, UNIX_TIMESTAMP(), visitdate)");
-        $stmt->execute(array($GLOBALS['user']->id, $seminar_id));
+            VALUES (?, ?, UNIX_TIMESTAMP(), ?)");
+        $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $visitdate));
     }
 
-    static function getLastVisit($seminar_id)
+    
+    /**
+     * returns visitdate and last_visitdate for the passed seminar and the
+     * currently logged in user
+     * 
+     * @staticvar array $visit
+     * 
+     * @param string $seminar_id the seminar to fetch the visitdates for
+     * @return mixed an array containing visitdate and last_visitdate
+     */
+    private static function getVisitDates($seminar_id)
     {
-        static $last_visit = array();
+        static $visit = array();
         
-        if (!$last_visit[$seminar_id]) {
+        if (!$visit[$seminar_id]) {
             // $last_visit[$seminar_id] = object_get_visit($seminar_id, 'sem');
-            $stmt = DBManager::get()->prepare("SELECT last_visitdate FROM forumpp_visits
+            $stmt = DBManager::get()->prepare("SELECT visitdate, last_visitdate FROM forumpp_visits
                 WHERE seminar_id = ? AND user_id = ?");
             $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
-            $last_visit[$seminar_id] = $stmt->fetchColumn();
+            $visit[$seminar_id] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // no entry for this seminar yet present, create a new one
+            if (!$visit[$seminar_id]) { 
+                $stmt = DBManager::get()->prepare("INSERT INTO forumpp_visits
+                    (seminar_id, user_id, visitdate, last_visitdate) VALUES
+                    (?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())");
+                $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
             
-            if ($last_visit[$seminar_id] < time() - ForumPPVisit::LAST_VISIT_MAX) {
-                $last_visit[$seminar_id] = time() - ForumPPVisit::LAST_VISIT_MAX;
+                // set visitdate to current time
+                $visit[$seminar_id] = array(
+                    'visit'      => time() - ForumPPVisit::LAST_VISIT_MAX,
+                    'last_visit' => time() - ForumPPVisit::LAST_VISIT_MAX
+                );
+            }
+            
+            // prevent visit-dates from being older than LAST_VISIT_MAX allows
+            foreach ($visit[$seminar_id] as $type => $date) {
+                if ($date < time() - ForumPPVisit::LAST_VISIT_MAX) {
+                    $visit[$seminar_id][$type] = time() - ForumPPVisit::LAST_VISIT_MAX;
+                }
             }
         }
         
-        return $last_visit[$seminar_id];
+        return $visit[$seminar_id];
+    }
+      
+    /**
+     * return the last_visitdate for the passed seminar and currently logged in user
+     * 
+     * @param type $seminar_id the seminar to get the last_visitdate for
+     * @return int a timestamp 
+     */
+    static function getLastVisit($seminar_id)
+    { 
+        $visit = self::getVisitDates($seminar_id);
+        return $visit['last_visitdate'];
+    }
+    
+    /**
+     * return the visitdate for the passed seminar and currently logged in user
+     * 
+     * @param type $seminar_id the seminar to get the visitdate for
+     * @return int a timestamp 
+     */
+    static function getVisit($seminar_id)
+    {
+        $visit = self::getVisitDates($seminar_id);
+        return $visit['visitdate'];
     }
 }

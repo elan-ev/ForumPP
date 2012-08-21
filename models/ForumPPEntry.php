@@ -558,8 +558,7 @@ class ForumPPEntry {
                     FROM forumpp_entries
                     WHERE seminar_id = :seminar_id AND lft > :left
                         AND rgt < :right AND mkdate >= :mkdate
-                    ORDER BY mkdate ASC
-                    LIMIT $start, ". ForumPPEntry::POSTINGS_PER_PAGE);
+                    ORDER BY mkdate ASC");
                 
                 $stmt_count->bindParam(':seminar_id', $constraint['seminar_id']);
                 $stmt_count->bindParam(':left', $constraint['lft']);

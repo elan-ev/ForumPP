@@ -69,7 +69,11 @@ class IndexController extends StudipController
     function enter_seminar_action() {
         ForumPPVisit::enter_seminar($this->getId());
 
-        $this->redirect(PluginEngine::getLink('forumpp/index/index'));
+        if (ForumPPVisit::getCount($this->getId(), ForumPPVisit::getLastVisit($this->getId())) > 0) {
+            $this->redirect(PluginEngine::getLink('forumpp/index/latest'));
+        } else {
+            $this->redirect(PluginEngine::getLink('forumpp/index/index'));
+        }
     }
 
     /**

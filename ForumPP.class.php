@@ -19,7 +19,7 @@ require_once 'models/ForumPPHelpers.php';
 require_once 'models/ForumPPVisit.php';
 
 // Notifications
-#NotificationCenter::addObserver('ForumPP', 'coursesDidClearVisits', "CoursesDidClearVisits");
+NotificationCenter::addObserver('ForumPP', 'overviewDidClear', "OverviewDidClear");
 
 class ForumPP extends StudipPlugin implements StandardPlugin
 {
@@ -50,6 +50,20 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         }        
     }
 
+    /**
+     * This method dispatches all actions.
+     *
+     * @param string   part of the dispatch path that was not consumed
+     */
+    function perform($unconsumed_path)
+    {
+        $trails_root = $this->getPluginPath();
+        $dispatcher = new Trails_Dispatcher($trails_root, PluginEngine::getUrl('forumpp/index'), 'index');
+        $dispatcher->dispatch($unconsumed_path);
+
+    }
+    
+    /* interface method */
     public function getTabNavigation($course_id)
     {
         $navigation = new Navigation(_('Forum 2'), PluginEngine::getLink('forumpp/index'));
@@ -67,22 +81,14 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         return array('forum2' => $navigation);
     }
 
-    /**
-     * This method dispatches all actions.
-     *
-     * @param string   part of the dispatch path that was not consumed
-     */
-    function perform($unconsumed_path)
-    {
-        $trails_root = $this->getPluginPath();
-        $dispatcher = new Trails_Dispatcher($trails_root, PluginEngine::getUrl('forumpp/index'), 'index');
-        $dispatcher->dispatch($unconsumed_path);
-
-    }
-
+    /* interface method */
     function getIconNavigation($course_id, $last_visit)
     {
-        $num_entries = ForumPPVisit::getCount($course_id, $last_visit);
+        if (!$this->isActivated($course_id)) {
+            return;
+        }
+
+        $num_entries = ForumPPVisit::getCount($course_id, ForumPPVisit::getVisit($course_id));
         
         $navigation = new Navigation('forumpp', PluginEngine::getLink('forumpp/index/enter_seminar'));
         if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.3', '>')) {
@@ -100,11 +106,12 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         return $navigation;
     }
 
-    
-    function coursesDidClearVisits($notification, $user_id)
+ 
+    /* notification */
+    function overviewDidClear($notification, $user_id)
     {
         $stmt = DBManager::get()->prepare("UPDATE forumpp_visits 
-            SET visitdate = UNIX_TIMESTAMP()
+            SET visitdate = UNIX_TIMESTAMP(), last_visitdate = UNIX_TIMESTAMP()
             WHERE user_id = ?");
         $stmt->execute(array($user_id));
     }
