@@ -65,7 +65,13 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /*  V   I   E   W   -   A   C   T   I   O   N   S  */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
-    
+
+    function enter_seminar_action() {
+        ForumPPVisit::enter_seminar($this->getId());
+
+        $this->redirect(PluginEngine::getLink('forumpp/index/index'));
+    }
+
     /**
      * the main action for the forum. May be called with a topic_id to be displayed
      * and optionally the page to display
@@ -177,7 +183,7 @@ class IndexController extends StudipController
 
         // highlight text if passed some words to highlight
         if (Request::getArray('highlight')) {
-            $this->highlight = Request::getArray('highlight');
+            $this->highlight = Request::optionArray('highlight');
         }
         
         $this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
@@ -276,7 +282,7 @@ class IndexController extends StudipController
         
         $this->searchfor = Request::get('searchfor');
         if (strlen($this->searchfor) < 3) {
-            $this->flash['messages'] = array('error' => _('Ihr Suchbegriff muss mindestens 3 Zeichen lang sein!'));
+            $this->flash['messages'] = array('error' => _('Ihr Suchbegriff muss mindestens 3 Zeichen lang sein und darf nur Buchstaben und Zahlen enthalten!'));
         } else {
             // get search-results
             $list = ForumPPEntry::getSearchResults($this->getId(), $this->searchfor, $this->options);
@@ -443,10 +449,11 @@ class IndexController extends StudipController
                 $optionlist = array();
 
                 foreach (array('search_title', 'search_content', 'search_author') as $option) {
-                    if (Request::get($option)) {
+                    if (Request::option($option)) {
                         $optionlist[] = $option .'='. 1;
                     }
                 }
+
                 $this->redirect(PluginEngine::getURL('forumpp/index/'. $section .'/'. (int)$page 
                     .'/?searchfor='. Request::get('searchfor') .'&'. implode('&', $optionlist)));
                 break;
@@ -763,11 +770,11 @@ class IndexController extends StudipController
         if ($_REQUEST['token'] != $this->token)
             die;
 
-        header('Content-Type: ' . $this->FEED_FORMATS[Request::get('format')]);
+        header('Content-Type: ' . $this->FEED_FORMATS[Request::option('format')]);
         // $this->last_visit = time();
         $this->output_format = 'feed';
         $this->POSTINGS_PER_PAGE = $this->FEED_POSTINGS;
 
-        $this->loadView();
+        // $this->loadView();
     }
 }

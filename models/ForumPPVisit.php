@@ -52,12 +52,23 @@ class ForumPPVisit {
         return $stmt->fetchColumn();
     }
     
+    static function enter_seminar($seminar_id) {
+        $stmt = DBManager::get()->prepare("REPLACE INTO forumpp_visits
+            (user_id, seminar_id, visitdate, last_visitdate)
+            VALUES (?, ?, UNIX_TIMESTAMP(), visitdate)");
+        $stmt->execute(array($GLOBALS['user']->id, $seminar_id));
+    }
+
     static function getLastVisit($seminar_id)
     {
         static $last_visit = array();
         
         if (!$last_visit[$seminar_id]) {
-            $last_visit[$seminar_id] = object_get_visit($seminar_id, 'sem');
+            // $last_visit[$seminar_id] = object_get_visit($seminar_id, 'sem');
+            $stmt = DBManager::get()->prepare("SELECT last_visitdate FROM forumpp_visits
+                WHERE seminar_id = ? AND user_id = ?");
+            $stmt->execute(array($seminar_id, $GLOBALS['user']->id));
+            $last_visit[$seminar_id] = $stmt->fetchColumn();
             
             if ($last_visit[$seminar_id] < time() - ForumPPVisit::LAST_VISIT_MAX) {
                 $last_visit[$seminar_id] = time() - ForumPPVisit::LAST_VISIT_MAX;

@@ -606,19 +606,17 @@ class ForumPPEntry {
             if (!$val) {
                 unset($_searchfor[$key]);
             } else {
-                $_searchfor[$key] = str_replace('"', '', str_replace("'", '', $val));
-                $val = trim(str_replace('"', '', str_replace("'", '', $val)));
-
+                $search_word = '%'. $val .'%';
                 if ($options['search_title']) {
-                    $search_string[] .= "name LIKE '%$val%'";
+                    $search_string[] .= "name LIKE " . DBManager::get()->quote($search_word);
                 }
 
                 if ($options['search_content']) {
-                    $search_string[] .= "content LIKE '%$val%'";
+                    $search_string[] .= "content LIKE " . DBManager::get()->quote($search_word);
                 }
 
                 if ($options['search_author']) {
-                    $search_string[] .= "author LIKE '%$val%'";
+                    $search_string[] .= "author LIKE " . DBManager::get()->quote($search_word);
                 }
             }
         }

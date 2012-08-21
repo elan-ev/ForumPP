@@ -37,6 +37,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Feature: Auch bei den Posting-Listen sind nun ausgewählte Aktionen verfügbar (Antworten/Zitieren folgt später)
 * Bugfix: Leere Titel führten zu einem unnötigen Doppelpfeil, wenn der Pfad zu einem Posting angezeigt wird
 * Bugfix: Gemerkte Beiträge wurden nicht korrekt erkannt
+* Bugfix: Suche kommt nun mit allen Sonderzeichen klar
 
 ## Version 2.0.31
 * Anpassung an neue Sem-Klassen-API der 2.4
