@@ -304,6 +304,7 @@ a.buttons {
 
 a.github {
 	background: url(../images/octocat-small.png) no-repeat 1px;
+    padding-left: 18px;
 }
 
 a.buttons:hover {
@@ -514,4 +515,16 @@ img.thumb {
 
 a.clickbox p {
 	margin-bottom: 3px;
+}
+
+
+p.news {
+    padding-left: 40px;
+    background: url('../images/info.png') no-repeat 0px 4px;
+    font-size: 18px;
+}
+
+p.news span {
+    display: block;
+    font-size: 14px;
 }
