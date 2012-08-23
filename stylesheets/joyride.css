@@ -20,6 +20,11 @@ body {
   -webkit-border-radius: 4px;
           border-radius: 4px;
 }
+
+.joyride-tip-guide p {
+  color: #fff;
+}
+
 /* Add a little css triangle pip, older browser just miss out on the fanciness of it */
 .joyride-tip-guide span.joyride-nub {
   display: block;

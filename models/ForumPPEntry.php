@@ -5,8 +5,6 @@
  * @author Till Glöggler <tgloeggl@uos.de>
  */
 
-require_once 'app/models/smiley.php';
-
 class ForumPPEntry {
     const WITH_CHILDS = true;
     const WITHOUT_CHILDS = false;

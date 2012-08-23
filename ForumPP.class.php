@@ -18,6 +18,15 @@ require_once 'models/ForumPPEntry.php';
 require_once 'models/ForumPPHelpers.php';
 require_once 'models/ForumPPVisit.php';
 
+if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.2', '>')) { 
+    require_once 'app/models/smiley.php';
+} else {
+    require_once('models/Interactable.class.php');
+    require_once('models/LinkButton.class.php');
+    require_once('models/Button.class.php');
+}
+
+
 // Notifications
 NotificationCenter::addObserver('ForumPP', 'overviewDidClear', "OverviewDidClear");
 
@@ -43,6 +52,10 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // JQuery-Tutor JoyRide JS and CSS
         PageLayout::addScript($this->getPluginURL() . '/javascript/jquery.joyride.js');
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/joyride.css');
+        
+        if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.2', '<=')) { 
+            PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/buttons.css');
+        }
 
         if (!version_compare($GLOBALS['SOFTWARE_VERSION'], '2.3', '>')) {
             $navigation = $this->getTabNavigation(Request::get('cid', $GLOBALS['SessSemName'][1]));
