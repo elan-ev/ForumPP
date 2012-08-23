@@ -36,7 +36,8 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Feature: Kompatibilität nun ab Stud.IP-Version 2.1 (PHP 5.3 bleibt Voraussetzung!)
 * Feature: Neue Rotfärbelogik: Orientiert sich nun am Datum des letzten betretens der Veranstaltung und verhält sich damit analog zum alten Forum.
 * Feature: Auch bei den Posting-Listen sind nun ausgewählte Aktionen verfügbar (Antworten/Zitieren folgt später)
-* Feautre: Ab Stud.IP Version 2.4 entfärbt sich das rote Icon nach einem Klick auf "Alles als gelesen markieren" auf der Seite "Meine Veranstaltungen"
+* Feature: Ab Stud.IP Version 2.4 entfärbt sich das rote Icon nach einem Klick auf "Alles als gelesen markieren" auf der Seite "Meine Veranstaltungen"
+* Feature: Menüpunkte umsortiert, "letzte Beiträge" hinzugefügt
 * Bugfix: Leere Titel führten zu einem unnötigen Doppelpfeil, wenn der Pfad zu einem Posting angezeigt wird
 * Bugfix: Gemerkte Beiträge wurden nicht korrekt erkannt
 * Bugfix: Suche kommt nun mit allen Sonderzeichen klar

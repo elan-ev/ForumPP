@@ -527,7 +527,7 @@ class ForumPPEntry {
                 return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, '', 'ASC', $start);
                 break;
 
-            case 'latest':
+            case 'newest':
                 $constraint = ForumPPEntry::getConstraints($parent_id);
 
                 // get postings
@@ -567,6 +567,10 @@ class ForumPPEntry {
 
                 // return results
                 return array('list' => $postings, 'count' => $stmt_count->fetchColumn());
+                break;
+
+            case 'latest':
+                return ForumPPEntry::getEntries($parent_id, ForumPPEntry::WITH_CHILDS, '', 'DESC', $start);
                 break;
 
             case 'favorites':

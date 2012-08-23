@@ -52,12 +52,18 @@ class ForumPPVisit {
         return $stmt->fetchColumn();
     }
     
+    static function setVisit($seminar_id) {
+        if (self::getLastVisit($seminar_id) < object_get_visit($seminar_id, 'sem', false, false)) {
+            self::setVisitDates($seminar_id);
+        }
+    }
+
     /**
      * Stores the visitdate in last_visitdate and sets the current time for as new visitdate
      * 
      * @param string $seminar_id the seminar that has been entered
      */
-    static function enter_seminar($seminar_id) {
+    static function setVisitdates($seminar_id) {
         $stmt = DBManager::get()->prepare('SELECT visitdate FROM forumpp_visits
             WHERE user_id = ? AND seminar_id = ?');
         $stmt->execute(array($GLOBALS['user']->id, $seminar_id));
@@ -67,6 +73,7 @@ class ForumPPVisit {
             (user_id, seminar_id, visitdate, last_visitdate)
             VALUES (?, ?, UNIX_TIMESTAMP(), ?)");
         $stmt->execute(array($GLOBALS['user']->id, $seminar_id, $visitdate));
+        
     }
 
     
@@ -84,7 +91,6 @@ class ForumPPVisit {
         static $visit = array();
         
         if (!$visit[$seminar_id]) {
-            // $last_visit[$seminar_id] = object_get_visit($seminar_id, 'sem');
             $stmt = DBManager::get()->prepare("SELECT visitdate, last_visitdate FROM forumpp_visits
                 WHERE seminar_id = ? AND user_id = ?");
             $stmt->execute(array($seminar_id, $GLOBALS['user']->id));

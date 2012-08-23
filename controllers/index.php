@@ -67,10 +67,10 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
     function enter_seminar_action() {
-        ForumPPVisit::enter_seminar($this->getId());
+        ForumPPVisit::setVisitDates($this->getId());
 
         if (ForumPPVisit::getCount($this->getId(), ForumPPVisit::getLastVisit($this->getId())) > 0) {
-            $this->redirect(PluginEngine::getLink('forumpp/index/latest'));
+            $this->redirect(PluginEngine::getLink('forumpp/index/newest'));
         } else {
             $this->redirect(PluginEngine::getLink('forumpp/index/index'));
         }
@@ -192,6 +192,41 @@ class IndexController extends StudipController
         
         $this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
     }
+
+    function newest_action($page = null)
+    {
+        $nav = Navigation::getItem('course/forum2');
+        $nav->setImage('icons/16/black/forum.png');
+        Navigation::activateItem('course/forum2/newest');
+        
+        // set page to which we shall jump
+        if ($page) {
+            ForumPPHelpers::setPage($page);
+        }
+
+        $this->section = 'newest';
+        $this->seminar_id = $this->getId();
+        $this->topic_id = $this->getId();
+
+        // set the visitdate of the seminar as the last visitdate
+        $this->visitdate = ForumPPVisit::getLastVisit($this->getId());
+
+        $list = ForumPPEntry::getList('newest', $this->topic_id);
+        $this->postings          = $list['list'];
+        $this->number_of_entries = $list['count'];
+        $this->show_full_path    = true;
+
+        // set default layout
+        $layout = $GLOBALS['template_factory']->open('layouts/base');
+        $this->set_layout($layout);
+
+        if (empty($this->postings)) {
+            $this->no_entries = true;
+        }
+
+        $this->render_action('index');
+    }
+    
 
     function latest_action($page = null)
     {
@@ -676,7 +711,7 @@ class IndexController extends StudipController
         //$this->check_token();
         $this->check_write_and_edit();
 
-        object_set_visit($this->getId(), 'forum');
+        ForumPPVisit::setVisit($this->getId());
     }
 
     function check_write_and_edit()
