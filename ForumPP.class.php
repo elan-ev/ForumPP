@@ -84,14 +84,8 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
         // add main third-level navigation-item
         $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
-        
-        $visitdate = ForumPPVisit::getLastVisit($course_id);
-        if (ForumPPVisit::getCount($course_id, ForumPPVisit::getLastVisit($course_id)) > 0) {
-            $navigation->addSubNavigation('newest', new Navigation(_("Neue Beiträge"), PluginEngine::getLink('forumpp/index/newest')));
-        }
-        
+        $navigation->addSubNavigation('newest', new Navigation(_("Neue Beiträge"), PluginEngine::getLink('forumpp/index/newest')));
         $navigation->addSubNavigation('latest', new Navigation(_("Letzte Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
-
         $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
 
         return array('forum2' => $navigation);
@@ -121,6 +115,13 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
         return $navigation;
     }
+
+    /*
+    function getNotificationObjects($course_id, $since, $user_id)
+    {
+        return array();
+    }
+    */
 
  
     /* notification */

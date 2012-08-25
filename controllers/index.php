@@ -381,8 +381,8 @@ class IndexController extends StudipController
             'topic_id'    => $new_id,
             'seminar_id'  => $this->getId(),
             'user_id'     => $GLOBALS['user']->id,
-            'name'        => Request::get('name', _('Kein Titel')),
-            'content'     => Request::get('content', _('Keine Beschreibung')),
+            'name'        => Request::get('name') ?: _('Kein Titel'),
+            'content'     => Request::get('content'),
             'author'      => get_fullname($GLOBALS['user']->id),
             'author_host' => getenv('REMOTE_ADDR')
         ), Request::option('parent'));
