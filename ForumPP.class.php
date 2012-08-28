@@ -92,7 +92,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
     }
 
     /* interface method */
-    function getIconNavigation($course_id, $last_visit)
+    function getIconNavigation($course_id, $last_visit, $user_id)
     {
         if (!$this->isActivated($course_id)) {
             return;
@@ -116,12 +116,11 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         return $navigation;
     }
 
-    /*
+    /* interface method */
     function getNotificationObjects($course_id, $since, $user_id)
     {
         return array();
     }
-    */
 
  
     /* notification */

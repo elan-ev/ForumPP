@@ -67,8 +67,6 @@ class IndexController extends StudipController
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
 
     function enter_seminar_action() {
-        ForumPPVisit::setVisitDates($this->getId());
-
         if (ForumPPVisit::getCount($this->getId(), ForumPPVisit::getLastVisit($this->getId())) > 0) {
             $this->redirect(PluginEngine::getLink('forumpp/index/newest'));
         } else {

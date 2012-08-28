@@ -53,8 +53,8 @@ class ForumPPVisit {
     }
     
     static function setVisit($seminar_id) {
-        if (self::getLastVisit($seminar_id) < object_get_visit($seminar_id, 'sem', false, false)) {
-            self::setVisitDates($seminar_id);
+        if (self::getVisit($seminar_id) < object_get_visit($seminar_id, 'sem', false, false)) {
+            self::setVisitdates($seminar_id);
         }
     }
 
