@@ -29,7 +29,7 @@
             <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
-        <td class="forum_header" colspan="2">
+        <td class="forum_header" colspan="3">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
             <? if (ForumPPPerm::has('edit_category', $seminar_id) || ForumPPPerm::has('remove_category', $seminar_id)) : ?>
@@ -74,13 +74,14 @@
 
         <td class="areaentry icon">
             <? if (ForumPPPerm::has('sort_area', $seminar_id)) : ?>
-            <img src="<?= $picturepath ?>/move.png" class="handle" id="tutorMoveArea">
+            <img src="<?= $picturepath ?>/anfasser_48.png" class="handle" id="tutorMoveArea">
             <? endif ?>
 
             <? if ($entry['chdate'] >= $visitdate && $entry['owner_id'] != $GLOBALS['user']->id): ?>
                 <?= Assets::img('icons/16/red/new/forum.png', array(
                     'title' => _('Dieser Eintrag ist neu!'),
-                    'id'    => 'tutorNotificationIcon'
+                    'id'    => 'tutorNotificationIcon',
+                    'style' => 'margin-bottom: 15px;'
                 )) ?>
             <? else : ?>
                 <? $num_postings = ForumPPVisit::getCount($entry['topic_id'], $visitdate) ?>
@@ -88,12 +89,14 @@
                 <? if ($num_postings > 0) : ?>
                     <?= Assets::img('icons/16/red/forum.png', array(
                         'title' => $text,
-                        'id'    => 'tutorNotificationIcon'
+                        'id'    => 'tutorNotificationIcon',
+                        'style' => 'margin-bottom: 15px;'
                     )) ?>
                 <? else : ?>
                     <?= Assets::img('icons/16/black/forum.png', array(
                         'title' => $text,
-                        'id'    => 'tutorNotificationIcon'
+                        'id'    => 'tutorNotificationIcon',
+                        'style' => 'margin-bottom: 15px;'
                     )) ?>
                 <? endif ?>
             <? endif ?>
@@ -179,6 +182,13 @@
             <?= _('keine Antworten') ?>
             <? endif; ?>
         </td>
+        
+        <td class="areaentry icon" style="text-align: right; padding-right: 2px;">
+            <? if (ForumPPPerm::has('sort_area', $seminar_id)) : ?>
+            <img src="<?= $picturepath ?>/anfasser_48.png" class="handle" id="tutorMoveArea">
+            <? endif ?>
+        </td>
+
         <td class="areaborder"> </td>
     </tr>
     <? endforeach; ?>

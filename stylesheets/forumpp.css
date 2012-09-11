@@ -122,13 +122,12 @@
   cursor: pointer;
 }
 #forumpp .icon {
-  padding: 8px 0 0 0;
+  padding: 0;
   margin: 0pt;
   width: 30px;
   height: 50px;
   white-space: nowrap;
   text-align: center;
-  vertical-align: top;
 }
 #forumpp .icon_thread {
   padding: 0pt;
