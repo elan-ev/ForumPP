@@ -61,7 +61,7 @@
         <h2>Kategorie bearbeiten</h2>
         <p>
             Mit diesen Icons kann der Name der Kategorie geändert oder aber die
-            gesamte Kategorie gelöscht werden - keine Sorge, die Bereich werden in
+            gesamte Kategorie gelöscht werden - keine Sorge, die Bereiche werden in
             diesem Fall in die Standardkategorie "Allgemein" verschoben und bleiben
             somit erhalten.
         </p>
