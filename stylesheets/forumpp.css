@@ -22,7 +22,6 @@
   height: 5px;
   margin: 0pt;
   padding: 0pt;
-  background-image: url('../img/corners_right.png');
   background-position: 100% 0pt;
 }
 #forumpp form {
@@ -243,7 +242,6 @@
   height: 5px;
   margin: 0pt;
   padding: 0pt;
-  background-image: url('../img/corners_left.png');
   background-position: 0pt 0pt;
 }
 #forumpp span.corners-bottom {
@@ -252,7 +250,6 @@
   height: 5px;
   margin: 0pt;
   padding: 0pt;
-  background-image: url('../img/corners_left.png');
   background-position: 0pt -7px;
   clear: both;
 }
@@ -262,7 +259,6 @@
   height: 5px;
   margin: 0pt;
   padding: 0pt;
-  background-image: url('../img/corners_right.png');
   background-position: 100% -7px;
 }
 #forumpp span.no-corner {
