@@ -1,10 +1,4 @@
-<?php
-// use old smiley-management, if Stud.IP is 2.2 or less
-if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.3', '<')) : ?>
-   <?= $this->render_partial('index/_old_smileys.php'); return; ?>
-<? endif;
-
-require_once('app/models/smiley.php');
+<?
 $sm = new SmileyFavorites($GLOBALS['user']->id);
 ?>
 <div class="smiley_favorites">

@@ -118,7 +118,6 @@
                 Beiträge:
                 <?= ForumPPEntry::countUserEntries($post['owner_id']) ?>
             </dd>
-            <? if (version_compare($GLOBALS['SOFTWARE_VERSION'], '2.2', '>')) : ?>
             <? foreach (PluginEngine::sendMessage('PostingApplet', 'getHTML', $post['name_raw'], $post['content_raw'],
                     PluginEngine::getLink('forumpp/index/index/' . $post['topic_id'] .'#'. $post['topic_id']),
                     $post['owner_id']) as $applet_data) : ?>
@@ -126,7 +125,6 @@
                 <?= $applet_data ?>
             </dd>
             <? endforeach ?>
-            <? endif ?>
         </dl>
     </span>
 
