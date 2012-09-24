@@ -244,7 +244,7 @@
     <span id="question_delete_category" style="display: none"><?= _('Sind sie sicher, dass Sie die Kategorie <%- category %> entfernen möchten? '
          . 'Alle Bereiche werden dann nach "Allgemein" verschoben!') ?></span>
     <?= $GLOBALS['template_factory']->open('shared/question')->render(array(
-        'question'        => '',
+        'question'        => 'Sind sie sicher?',
         'approvalLink'    => "javascript:STUDIP.ForumPP.approveDelete()",
         'disapprovalLink' => "javascript:STUDIP.ForumPP.disapproveDelete()"
     )) ?>
