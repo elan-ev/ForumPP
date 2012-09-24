@@ -407,6 +407,10 @@ footer {
 		display:block;
 	}
 
+    header, section, footer {
+        min-width: 240px;
+    }
+
 }
 
 @media print {
