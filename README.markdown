@@ -32,6 +32,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+## Version 2.0.33
+* Feature: Man darf nun seinen eigenen Beiträgen immer bearbeiten
+
 ## Version 2.0.32
 * Feature: Statt des hässlichen Vierfach-Pfeils gibt es nun "Anfasser" links und rechts zum Sortieren von Bereichen
 
