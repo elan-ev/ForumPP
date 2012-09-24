@@ -17,7 +17,9 @@
 #require_once 'lib/statusgruppe.inc.php';
 
 class ForumPPPerm {
-    static function has($perm, $seminar_id, $user_id = null) {
+
+    static function has($perm, $seminar_id, $user_id = null)
+    {
         static $permissions = array();
 
         // if no user-id is passed, use the current user (for your convenience)
@@ -56,38 +58,8 @@ class ForumPPPerm {
         return false;
     }
 
-/*
-    static function is_member($user_id=null, $group_id=null) {
-        if(is_null($group_id)){
-            return true;
-        }
-        // if no user-id is passed, use the current user (for your convenience)
-        if (!$user_id) {
-            $user_id = $GLOBALS['user']->id;
-        }
-
-        //Check if User is part of group
-        if(CheckUserStatusgruppe($group_id, $user_id) == 1){
-            return true;
-        }
-
-        return false;
-    }
-*/
-    /*
-     * Returns an map of key/value pairs namly id as key and name as value,
-     * for the selected seminar.
-     */
- /*
-    static function getGroups($seminar_id){
-        $query = "SELECT statusgruppe_id AS id, name FROM statusgruppen WHERE range_id = ?";
-        $statement = DBManager::get()->prepare($query);
-        $statement->execute(array($seminar_id));
-        return $statement->fetchAll(PDO::FETCH_KEY_PAIR);
-    }
-*/
-
-    function check($perm, $seminar_id, $user_id = null) {
+    function check($perm, $seminar_id, $user_id = null)
+    {
         if (!self::has($perm, $seminar_id, $user_id)) {
             throw new AccessDeniedException(sprintf(
                 _("Sie haben keine Berechtigung für diese Aktion! Benötigte Berechtigung: %s"),
@@ -95,4 +67,34 @@ class ForumPPPerm {
             );
         }
     }
+    
+    /**
+     * check, if the current user is allowed the edit the topic denoted by the passed id
+     * 
+     * @staticvar array $perms
+     * 
+     * @param string $topic_id the id for the topic to check for
+     * 
+     * @return bool true if the user has the necessary perms, false otherwise
+     */
+    static function hasEditPerms($topic_id)
+    {
+        static $perms = array();
+
+        if (!$perms[$topic_id]) {
+            // find out if the posting is the last in the thread
+            $constraints = ForumPPEntry::getConstraints($topic_id);
+            
+            $stmt = DBManager::get()->prepare("SELECT user_id, seminar_id
+                FROM forumpp_entries WHERE topic_id = ?");
+            $stmt->execute(array($topic_id));
+
+            $data = $stmt->fetch();
+
+            $perms[$topic_id] = (($GLOBALS['user']->id == $data['user_id']) ||
+                ForumPPPerm::has('edit_entry', $constraints['seminar_id']));
+        }
+
+        return $perms[$topic_id];
+    }    
 }
