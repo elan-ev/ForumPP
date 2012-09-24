@@ -21,28 +21,28 @@ class ForumPPAbo {
     static function add($topic_id, $user_id = null)
     {
         if (!$user_id) $user_id = $GLOBALS['user']->id;
-        
+
         $stmt = DBManager::get()->prepare("REPLACE INTO forumpp_abo_users
             (topic_id, user_id) VALUEs (?, ?)");
         $stmt->execute(array($topic_id, $user_id));
     }
-    
+
     static function delete($topic_id, $user_id = null)
     {
         if (!$user_id) $user_id = $GLOBALS['user']->id;
-        
+
         $stmt = DBManager::get()->prepare("DELETE FROM forumpp_abo_users
             WHERE topic_id = ? AND user_id = ?");
         $stmt->execute(array($topic_id, $user_id));
     }
-    
+
     static function has($topic_id, $user_id = null) {
         if (!$user_id) $user_id = $GLOBALS['user']->id;
-        
+
         $stmt = DBManager::get()->prepare("SELECT COUNT(*) FROM forumpp_abo_users
             WHERE topic_id = ? AND user_id = ?");
         $stmt->execute(array($topic_id, $user_id));
-        
+
         return $stmt->fetchColumn() > 0 ? true : false;
     }
 
@@ -56,21 +56,25 @@ class ForumPPAbo {
         // get all parent topic-ids, to find out which users to notify
         $path = ForumPPEntry::getPathToPosting($topic_id);
 
+        $data = array();
+        foreach (array_keys($path) as $val) {
+            $data[] = DBManager::get()->quote($val);
+        }
+
         // fetch all users to notify, exlcude current user
         $stmt = $db->prepare("SELECT DISTINCT user_id
             FROM forumpp_abo_users
-            WHERE topic_id IN (:topic_ids)
+            WHERE topic_id IN (". implode(', ', $data) .")
                 AND user_id != :user_id");
-        $stmt->bindParam(':topic_ids', array_keys($path), StudipPDO::PARAM_ARRAY);
         $stmt->bindParam(':user_id', $GLOBALS['user']->id);
         $stmt->execute();
-        
+
         // get details for topic
         $topic = ForumPPEntry::getConstraints($topic_id);
-        
+
         $template_factory = new Flexi_TemplateFactory(dirname(__FILE__) . '/../views');
         $template = $template_factory->open('index/_mail_notification');
-        
+
         // notify users
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user_id = $data['user_id'];
@@ -80,7 +84,7 @@ class ForumPPAbo {
             $subject = addslashes(_('[Forum]') . ' ' . ($topic['name'] ? $topic['name'] : _('Neuer Eintrag')));
             $message = addslashes($template->render(compact('user_id', 'topic', 'path')));
             restoreLanguage();
-            
+
             // check if user wants an email for selected messages only
             $force_email = false;
             if ($messaging->user_wants_email($user_id) == 3) {
@@ -91,7 +95,7 @@ class ForumPPAbo {
             $messaging->insert_message($message, get_username($user_id),
                 "____%system%____", false, false, false, false, $subject, $force_email);
         }
-        
+
         $messaging->bulkSend();
     }
 }

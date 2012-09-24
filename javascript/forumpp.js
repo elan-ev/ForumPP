@@ -79,8 +79,8 @@ STUDIP.ForumPP = {
         });
 
         // compile template
-        STUDIP.ForumPP.deleteAreaTemplate     = _.template(jQuery('#question_delete_area').text());
-        STUDIP.ForumPP.deleteCategoryTemplate = _.template(jQuery('#question_delete_category').text());
+        //STUDIP.ForumPP.deleteAreaTemplate     = _.template(jQuery('#question_delete_area').text());
+        //STUDIP.ForumPP.deleteCategoryTemplate = _.template(jQuery('#question_delete_category').text());
     },
 
     insertSmiley: function(textarea_id, element) {
@@ -138,9 +138,9 @@ STUDIP.ForumPP = {
     },
 
     deleteArea: function (element, area_id) {
-        jQuery('#modalquestion').text(STUDIP.ForumPP.deleteAreaTemplate({
-            area: jQuery(element).parent().parent().find('span.areaname').text()
-        }));
+        // jQuery('#modalquestion').text(STUDIP.ForumPP.deleteAreaTemplate({
+        //    area: jQuery(element).parent().parent().find('span.areaname').text()
+        //}));
 
         STUDIP.ForumPP.current_area_id = area_id;
 
@@ -158,9 +158,9 @@ STUDIP.ForumPP = {
     },
 
     deleteCategory: function (category_id, name) {
-        jQuery('#modalquestion').text(STUDIP.ForumPP.deleteCategoryTemplate({
-            category: name
-        }));
+        //jQuery('#modalquestion').text(STUDIP.ForumPP.deleteCategoryTemplate({
+        //    category: name
+        //}));
 
         STUDIP.ForumPP.current_category_id = category_id;
         jQuery('#question').show();

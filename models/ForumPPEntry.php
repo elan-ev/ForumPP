@@ -742,10 +742,14 @@ class ForumPPEntry {
         if (strlen($ids) == 32 && !is_array($ids)) $ids = array($ids);        
 
         if (!empty($ids)) {
-            $stmt = DBManager::get()->prepare("DELETE FROM forumpp_categories_entries
-                WHERE topic_id IN (:ids)");
-            $stmt->bindParam(':ids', $ids, StudipPDO::PARAM_ARRAY);
-            $stmt->execute();
+            $data = array();
+
+            foreach ($ids as $id) {
+                $data[] = DBManager::get()->quote($id);
+            }
+
+            $stmt = DBManager::get()->exec("DELETE FROM forumpp_categories_entries
+                WHERE topic_id IN (". implode(', ', $data) .")");
         }
 
         // delete all entries
