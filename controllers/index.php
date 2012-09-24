@@ -416,7 +416,7 @@ class IndexController extends StudipController
         // get the page of the posting to be able to jump there again
         $page = ForumPPEntry::getPostingPage($topic_id);
         
-        if (ForumPPEntry::hasEditPerms($topic_id) || ForumPPPerm::has('remove_entry', $seminar_id)) {
+        if (ForumPPPerm::hasEditPerms($topic_id) || ForumPPPerm::has('remove_entry', $seminar_id)) {
             $path = ForumPPEntry::getPathToPosting($topic_id);
             $topic  = array_pop($path);
             $parent = array_pop($path);
@@ -437,7 +437,7 @@ class IndexController extends StudipController
         $name    = studip_utf8decode(Request::get('name', _('Kein Titel')));
         $content = studip_utf8decode(Request::get('content', _('Keine Beschreibung')));
 
-        if (ForumPPEntry::hasEditPerms($topic_id)) {
+        if (ForumPPPerm::hasEditPerms($topic_id)) {
             ForumPPEntry::update($topic_id, $name, $content);
         } else {
             $this->flash['messages']['error'] = 'Keine Berechtigung!';

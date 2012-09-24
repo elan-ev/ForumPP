@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
+    <? if (ForumPPPerm::hasEditPerms($post['topic_id'])) : ?>
     <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
         <dl class="postprofile">
             <dt>
@@ -131,7 +131,7 @@
     <!-- Buttons for this Posting -->
     <div class="buttons">
         <div class="button-group">
-    <? if (ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
+    <? if (ForumPPPerm::hasEditPerms($post['topic_id'])) : ?>
     <span data-edit-topic="<?= $post['topic_id'] ?>" style="display: none">
         <!-- Buttons für den Bearbeitungsmodus -->
         <?= Studip\LinkButton::createAccept('Änderungen speichern', "javascript:STUDIP.ForumPP.saveEntry('". $post['topic_id'] ."')") ?>
@@ -149,11 +149,11 @@
         <?= Studip\LinkButton::create('Beitrag zitieren', "javascript:STUDIP.ForumPP.citeEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
 
-        <? if ($section == 'index' && ForumPPEntry::hasEditPerms($post['topic_id'])) : ?>
+        <? if ($section == 'index' && ForumPPPerm::hasEditPerms($post['topic_id'])) : ?>
             <?= Studip\LinkButton::create('Beitrag bearbeiten', "javascript:STUDIP.ForumPP.editEntry('". $post['topic_id'] ."')") ?>
         <? endif ?>
 
-        <? if ($section == 'index' && (ForumPPEntry::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id))) : ?>
+        <? if ($section == 'index' && (ForumPPPerm::hasEditPerms($post['topic_id']) || ForumPPPerm::has('remove_entry', $seminar_id))) : ?>
             <? if ($constraint['depth'] == $post['depth']) : /* this is not only a posting, but a thread */ ?>
                 <?= Studip\LinkButton::create('Thema löschen', PluginEngine::getURL('forumpp/index/delete_entry/' . $post['topic_id']),
                     array('onClick' => "return confirm('". _('Wenn Sie diesen Beitrag löschen wird ebenfalls das gesamte Thema gelöscht.\n'
