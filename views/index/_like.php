@@ -1,4 +1,6 @@
 <?
+if (!ForumPPPerm::has('like_entry', $seminar_id)) return;
+
 $likes = ForumPPLike::getLikes($topic_id);
 shuffle($likes);
 ?>
