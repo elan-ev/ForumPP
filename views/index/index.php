@@ -29,23 +29,6 @@ if (ForumPPPerm::has('search', $seminar_id)) :
     );
 endif;
 
-if (ForumPPPerm::has('version', $seminar_id)) :
-    $infobox_content[] = array(
-        'kategorie' => _('Version'),
-        'eintrag'   => array(
-            array(
-                'icon' => 'icons/16/grey/info.png',
-                'text' => 'Installierte Version: ' . ForumPPVersion::getCurrent()
-            ),
-
-            array(
-                'icon' => 'icons/16/grey/info.png',
-                'text' => 'Neueste Version: ' . ForumPPVersion::getLatest()
-            )
-        )
-    );
-endif;
-
 // show the infobox only if it contains elements
 if (!empty($infobox_content)) :
     $infobox = array('picture' => 'infobox/schedules.jpg', 'content' => $infobox_content);

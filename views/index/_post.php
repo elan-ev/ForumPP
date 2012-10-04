@@ -165,10 +165,12 @@
             <? endif ?>
         <? endif ?>
 
-        <? if (!$post['fav']) : ?>
-            <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getURL('forumpp/index/set_favorite/' . $post['topic_id'])) ?>
-        <? else : ?>
-            <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getURL('forumpp/index/unset_favorite/' . $post['topic_id'])) ?>
+        <? if (ForumPPPerm::has('fav_entry', $seminar_id)) : ?>
+            <? if (!$post['fav']) : ?>
+                <?= Studip\LinkButton::create('Beitrag merken', PluginEngine::getURL('forumpp/index/set_favorite/' . $post['topic_id'])) ?>
+            <? else : ?>
+                <?= Studip\LinkButton::create('Beitrag vernachlässigen', PluginEngine::getURL('forumpp/index/unset_favorite/' . $post['topic_id'])) ?>
+            <? endif ?>
         <? endif ?>
         
         <?= Studip\LinkButton::create('Beitrag weiterleiten', "javascript:STUDIP.ForumPP.forwardEntry('". $post['topic_id'] ."')") ?>

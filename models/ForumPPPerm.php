@@ -34,6 +34,11 @@ class ForumPPPerm {
         
         $status = $permissions[$seminar_id][$user_id];
         
+        // take care of the not logged in user
+        if ($user_id == 'nobody') {
+            $status = 'user';
+        }
+        
         // root and admins have all possible perms
         if (in_array($status, words('root admin')) !== false) {
             return true;
@@ -43,14 +48,14 @@ class ForumPPPerm {
         if ($status == 'dozent' && in_array($perm,
             words('edit_category add_category remove_category sort_category '
             . 'edit_area add_area remove_area sort_area '
-            . 'search edit_entry add_entry remove_entry move_thread version abo')
+            . 'search edit_entry add_entry remove_entry fav_entry like_entry move_thread abo')
         ) !== false) {
             return true;
-        } else if ($status == 'tutor' && in_array($perm, words('search add_entry version abo')) !== false) {
+        } else if ($status == 'tutor' && in_array($perm, words('search add_entry fav_entry like_entry abo')) !== false) {
             return true;
-        } else if ($status == 'autor' && in_array($perm, words('search add_entry version abo')) !== false) {
+        } else if ($status == 'autor' && in_array($perm, words('search add_entry fav_entry like_entry abo')) !== false) {
             return true;
-        } else if ($status == 'user' && in_array($perm, words('')) !== false) {
+        } else if ($status == 'user' && in_array($perm, words('search add_entry')) !== false) {
             return true;
         }
         

@@ -17,6 +17,7 @@ require_once 'vendor/trails/trails.php';
 require_once 'models/ForumPPEntry.php';
 require_once 'models/ForumPPHelpers.php';
 require_once 'models/ForumPPVisit.php';
+require_once 'models/ForumPPPerm.php';
 
 require_once 'app/models/smiley.php';
 
@@ -68,9 +69,12 @@ class ForumPP extends StudipPlugin implements StandardPlugin
 
         // add main third-level navigation-item
         $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
-        $navigation->addSubNavigation('newest', new Navigation(_("Neue Beiträge"), PluginEngine::getLink('forumpp/index/newest')));
-        $navigation->addSubNavigation('latest', new Navigation(_("Letzte Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
-        $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
+        
+        if (ForumPPPerm::has('fav_entry', $seminar_id)) {
+            $navigation->addSubNavigation('newest', new Navigation(_("Neue Beiträge"), PluginEngine::getLink('forumpp/index/newest')));
+            $navigation->addSubNavigation('latest', new Navigation(_("Letzte Beiträge"), PluginEngine::getLink('forumpp/index/latest')));
+            $navigation->addSubNavigation('favorites', new Navigation(_('Gemerkte Beiträge'), PluginEngine::getLink('forumpp/index/favorites')));
+        }
 
         return array('forum2' => $navigation);
     }

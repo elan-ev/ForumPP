@@ -24,7 +24,6 @@ require_once $this->trails_root .'/models/ForumPPPerm.php';
 require_once $this->trails_root .'/models/ForumPPHelpers.php';
 require_once $this->trails_root .'/models/ForumPPCat.php';
 require_once $this->trails_root .'/models/ForumPPLike.php';
-require_once $this->trails_root .'/models/ForumPPVersion.php';
 require_once $this->trails_root .'/models/ForumPPVisit.php';
 require_once $this->trails_root .'/models/ForumPPFavorite.php';
 require_once $this->trails_root .'/models/ForumPPAbo.php';
@@ -188,7 +187,11 @@ class IndexController extends StudipController
             $this->highlight = Request::optionArray('highlight');
         }
         
-        $this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
+        if (!empty($GLOBALS['my_messaging_settings']['forumpp'])) {
+            $this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
+        } else {
+            $this->joyride = array('tour_disabled' => true);
+        }
     }
 
     function newest_action($page = null)
