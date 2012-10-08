@@ -32,6 +32,9 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+## Version 2.0.35
+* Bugfix: Fehlende Menüeinträge tauchen wieder auf
+
 ## Version 2.0.34
 * Bugfix: Das Forum funktioniert nun auch für Veranstaltungen mit "freiem Zugang".
 * Bugfix: Die problematische Anzeige von Versionsinformationen in der Infobox wurde komplett entfernt.
