@@ -513,7 +513,8 @@ class IndexController extends StudipController
         ForumPPLike::like($topic_id);
 
         if (Request::isAjax()) {
-            $this->topic_id = $topic_id;
+            $this->topic_id   = $topic_id;
+            $this->seminar_id = $this->getId();
             $this->render_template('index/_like');
         } else {
             $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
@@ -525,7 +526,8 @@ class IndexController extends StudipController
         ForumPPLike::dislike($topic_id);
         
         if (Request::isAjax()) {
-            $this->topic_id = $topic_id;
+            $this->topic_id   = $topic_id;
+            $this->seminar_id = $this->getId();
             $this->render_template('index/_like');
         } else {
             $this->redirect(PluginEngine::getLink('forumpp/index/index/' . $topic_id .'#'. $topic_id));
