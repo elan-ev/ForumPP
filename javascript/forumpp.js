@@ -294,6 +294,7 @@ STUDIP.ForumPP = {
         jQuery('#new_entry_box').hide();
         
         jQuery('#new_entry_box textarea, #new_entry_box input[name=name]').val('');
+        jQuery('#forumpp_new_entry').data('validator').reset();
         return false;
     },
     

@@ -1,6 +1,6 @@
 <? if ($has_rights) : ?>
 <a name="create"></a>
-<form action="<?= PluginEngine::getLink('forumpp/index/add_entry/'. ($child_topic ? $child_topic : $topic_id)) ?>" method="post">
+<form action="<?= PluginEngine::getLink('forumpp/index/add_entry/'. ($child_topic ? $child_topic : $topic_id)) ?>" method="post" id="forumpp_new_entry">
     <div class="posting bg2">
         <span class="corners-top"><span></span></span>
 
@@ -44,7 +44,7 @@
             <div class="button-group">
                 <?= Studip\Button::createAccept('Beitrag erstellen', array('tabindex' => '3')) ?>
 
-                <?= Studip\Button::createCancel('Abbrechen', array(
+                <?= Studip\LinkButton::createCancel('Abbrechen', 'javascript:', array(
                     'onClick' => "STUDIP.ForumPP.cancelNewEntry();",
                     'tabindex' => '4')) ?>
 
