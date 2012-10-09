@@ -27,6 +27,16 @@ if (ForumPPPerm::has('search', $seminar_id)) :
             )
         )
     );
+
+    $infobox_content[] = array(
+        'kategorie' => _('Version'),
+        'eintrag'   => array(
+            array(
+                'icon' => 'icons/16/black/info.png',
+                'text' => 'Aktuelle Version: ' . $ini_file['version']
+            )
+        )
+    );
 endif;
 
 // show the infobox only if it contains elements

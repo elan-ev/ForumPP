@@ -83,6 +83,10 @@ class IndexController extends StudipController
      */
     function index_action($topic_id = null, $page = null)
     {
+        // get plugin-version
+        $this->ini_file = parse_ini_file(dirname(__FILE__) .'/../plugin.manifest');
+        
+        
         $nav = Navigation::getItem('course/forum2');
         $nav->setImage('icons/16/black/forum.png');
         Navigation::activateItem('course/forum2/index');

@@ -32,6 +32,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+* 2.0.37 - Feature: (Nur) die aktuelle Plugin-Version anzeigen
 * 2.0.36 - Bugfix: Erkennung der Pflichtfelder beim Anlegen/Editieren von Beiträgen behoben
 
 ## Version 2.0.35
