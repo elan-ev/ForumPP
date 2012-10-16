@@ -11,6 +11,9 @@
         #layout_sidebar {
             display: none;
         }
+        #layout_content {
+            margin-right: 0;
+        }
     }
 </style>
 
