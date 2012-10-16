@@ -11,6 +11,9 @@
     display: none;
   }
 }
+#forumpp {
+  overflow: auto;
+}
 #forumpp img.button,
 #forumpp input[type=image] {
   vertical-align: middle;
