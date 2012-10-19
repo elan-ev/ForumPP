@@ -80,7 +80,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
     }
 
     /* interface method */
-    function getIconNavigation($course_id, $last_visit, $user_id)
+    function getIconNavigation($course_id, $last_visit, $user_id = null)
     {
         if (!$this->isActivated($course_id)) {
             return;
