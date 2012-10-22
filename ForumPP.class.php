@@ -46,6 +46,11 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         // JQuery-Tutor JoyRide JS and CSS
         PageLayout::addScript($this->getPluginURL() . '/javascript/jquery.joyride.js');
         PageLayout::addStylesheet($this->getPluginURL() . '/stylesheets/joyride.css');
+
+        if (Navigation::hasItem("/course") && version_compare($GLOBALS['SOFTWARE_VERSION'], "2.3", '>=')) {
+            $navigation = $this->getTabNavigation(Request::get('cid', $GLOBALS['SessSemName'][1]));
+            Navigation::insertItem('/course/forum2', $navigation['forum2'], 'members'); 
+        }
     }
 
     /**
@@ -80,7 +85,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
     }
 
     /* interface method */
-    function getIconNavigation($course_id, $last_visit, $user_id)
+    function getIconNavigation($course_id, $last_visit, $user_id = null)
     {
         if (!$this->isActivated($course_id)) {
             return;
