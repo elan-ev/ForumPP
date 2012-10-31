@@ -6,17 +6,6 @@
     });
 </script>
 
-<style>
-    @media screen and (max-width: 1299px) {
-        #layout_sidebar {
-            display: none;
-        }
-        #layout_content {
-            margin-right: 0;
-        }
-    }
-</style>
-
 <!-- set a CSS "namespace" for forumpp -->
 <div id="forumpp">
 <? 
@@ -52,7 +41,7 @@ endif;
 <?= $this->render_partial('index/_breadcrumb') ?>
 
 <!-- Seitenwähler (bei Bedarf) am oberen Rand anzeigen -->
-<div style="float: right; padding-right: 10px;">
+<div style="float: right; padding-right: 10px;" data-type="page_chooser">
     <? if ($constraint['depth'] > 0 || !isset($constraint)) : ?>
     <?= $pagechooser = $GLOBALS['template_factory']->render('shared/pagechooser', array(
         'page'         => ForumPPHelpers::getPage() + 1,
@@ -99,7 +88,7 @@ endif;
 
 <!-- Seitenwähler (bei Bedarf) am unteren Rand anzeigen -->
 <? if ($pagechooser) : ?>
-<div style="float: right; padding-right: 10px;">
+<div style="float: right; padding-right: 10px;" data-type="page_chooser">
     <?= $pagechooser ?>
 </div>
 <? endif ?>

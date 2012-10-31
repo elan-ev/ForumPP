@@ -32,6 +32,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+* 2.0.39 - Feature: Optimierte Darstellung für Smartphones / Geräte mit kleinem Display
 * 2.0.38 - Bugfix: Gefällt mir (nicht mehr) wird wieder korrekt angezeigt
 * 2.0.37 - Feature: (Nur) die aktuelle Plugin-Version anzeigen
 * 2.0.36 - Bugfix: Erkennung der Pflichtfelder beim Anlegen/Editieren von Beiträgen behoben

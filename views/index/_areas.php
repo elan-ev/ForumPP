@@ -24,12 +24,12 @@
             </span>
         </td>
 
-        <td class="forum_header">
+        <td class="forum_header" data-type="answers">
             <span class="no-corner"></span>
             <span class="heading"><?= _("Beiträge") ?></span>
         </td>
 
-        <td class="forum_header" colspan="3">
+        <td class="forum_header" colspan="3" data-type="last_posting">
             <span class="corners-top-right"></span>
             <span class="heading" style="float: left"><?= _("letzte Antwort") ?></span>
             <? if (ForumPPPerm::has('edit_category', $seminar_id) || ForumPPPerm::has('remove_category', $seminar_id)) : ?>

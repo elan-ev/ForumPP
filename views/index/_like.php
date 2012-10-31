@@ -7,47 +7,48 @@ shuffle($likes);
 
 <!-- the likes for this post -->
 <? if (!empty($likes)) : ?>
-<? // set the current user to the front
-$pos = array_search($GLOBALS['user']->id, $likes);
-if ($pos !== false) :
-    unset($likes[$pos]);
-    array_unshift($likes, $GLOBALS['user']->id);
-endif;
-
-$i = 0;
-foreach ($likes as $user_id) :
-    if ($i > 4) break;
-
-    if ($user_id == $GLOBALS['user']->id) :
-        $name = 'Dir';
-    else :
-        $name = get_fullname($user_id);
+    <? // set the current user to the front
+    $pos = array_search($GLOBALS['user']->id, $likes);
+    if ($pos !== false) :
+        unset($likes[$pos]);
+        array_unshift($likes, $GLOBALS['user']->id);
     endif;
 
-    $username = get_username($user_id);
-    $links[] = '<a href="'. URLHelper::getLink('about.php?username='. $username) .'">'. $name .'</a>';
-    $i++;
-endforeach ?>
+    $i = 0;
+    foreach ($likes as $user_id) :
+        if ($i > 4) break;
 
-<? if (sizeof($likes) > 4) : ?>
-    <?= implode(', ', $links) ?>
-    <? if ((sizeof($likes) - 4) > 1) : ?>
-    und <?= sizeof($likes) - 4 ?> weiteren
-    <? else: ?>
-    und einem weiteren
+        if ($user_id == $GLOBALS['user']->id) :
+            $name = 'Dir';
+        else :
+            $name = get_fullname($user_id);
+        endif;
+
+        $username = get_username($user_id);
+        $links[] = '<a href="'. URLHelper::getLink('about.php?username='. $username) .'">'. $name .'</a>';
+        $i++;
+    endforeach ?>
+
+    <span data-type="persons_like">
+    <? if (sizeof($likes) > 4) : ?>
+        <?= implode(', ', $links) ?>
+        <? if ((sizeof($likes) - 4) > 1) : ?>
+        und <?= sizeof($likes) - 4 ?> weiteren
+        <? else: ?>
+        und einem weiteren
+        <? endif ?>
+    <? else : ?>
+        <? if (sizeof($links) > 1) : ?>
+        <?= implode(', ', array_slice($links, 0, sizeof($links) - 1)) ?>
+        und
+        <? endif ?>
+
+        <?= end($links) ?>
     <? endif ?>
-<? else : ?>
-    <? if (sizeof($links) > 1) : ?>
-    <?= implode(', ', array_slice($links, 0, sizeof($links) - 1)) ?>
-    und
-    <? endif ?>
 
-    <?= end($links) ?>
+    <?= _('gefällt das.') ?> |
+    </span>
 <? endif ?>
-
-<?= _('gefällt das.') ?> |
-<? endif ?>
-
 
 <!-- like/dislike links -->
 <? if (!in_array($GLOBALS['user']->id, $likes)) : ?>
