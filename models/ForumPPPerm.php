@@ -36,7 +36,16 @@ class ForumPPPerm {
         
         // take care of the not logged in user
         if ($user_id == 'nobody') {
-            $status = 'user';
+            // which status has nobody - read only or read/write?
+            $sem = Seminar::getInstance($seminar_id);
+
+            if ($sem->read_level == 0) {
+                $status = 'user';
+            } else if ($sem->write_level == 0) {
+                $status = 'autor';
+            } else {
+                return false;
+            }
         }
         
         // root and admins have all possible perms
