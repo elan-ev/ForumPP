@@ -115,10 +115,6 @@
   #forumpp div.postbody {
     width: 100%;
   }
-  #forumpp .bg1,
-  #forumpp .bg2 {
-    background-color: none !important;
-  }
 }
 #forumpp {
   overflow: auto;
@@ -389,8 +385,7 @@
   display: none;
 }
 #forumpp textarea {
-  width: 100% ! important;
-  margin-top: 37px ! important;
+  width: 100%;
   height: 20em;
 }
 #forumpp .handle {

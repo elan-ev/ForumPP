@@ -138,7 +138,7 @@ STUDIP.ForumPP = {
     },
 
     deleteArea: function (element, area_id) {
-        jQuery('#modalquestion').text(STUDIP.ForumPP.deleteAreaTemplate({
+        jQuery('.messagebox .content:first-child, #modalquestion').text(STUDIP.ForumPP.deleteAreaTemplate({
             area: jQuery(element).parent().parent().find('span.areaname').text()
         }));
 
@@ -158,7 +158,7 @@ STUDIP.ForumPP = {
     },
 
     deleteCategory: function (category_id, name) {
-        jQuery('#modalquestion').text(STUDIP.ForumPP.deleteCategoryTemplate({
+        jQuery('.messagebox .content:first-child, #modalquestion').text(STUDIP.ForumPP.deleteCategoryTemplate({
             category: name
         }));
 

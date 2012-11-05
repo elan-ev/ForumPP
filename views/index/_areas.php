@@ -110,11 +110,13 @@
                     </a>
                     <div class="areacontent"><?= htmlReady(ForumPPEntry::killEdit($entry['content_raw'])) ?></div>
 
+                    <? /*
                     <?= _("von") ?>
                     <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
                         <?= htmlReady($entry['author']) ?>
                     </a>
                     <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
+                     */ ?>
                 </span>
 
                 <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
