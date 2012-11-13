@@ -26,46 +26,48 @@ class ForumPPBulkMail extends Messaging {
 
         $db4 = new DB_Seminar("SELECT user_id, Email FROM auth_user_md5 WHERE user_id = '$rec_user_id';");
         $db4->next_record();
-        $to = $db4->f("Email");
-        $rec_fullname = 'Sie';
 
-        setTempLanguage($db4->f("user_id"));
+        if ($to = $db4->f("Email")) {
+            $rec_fullname = 'Sie';
 
-        if (empty($this->bulk_mail[md5($message)][getenv('LANG')])) {
+            setTempLanguage($db4->f("user_id"));
 
-            $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] ".stripslashes(kill_format(str_replace(array("\r","\n"), '', $subject)));
+            if (empty($this->bulk_mail[md5($message)][getenv('LANG')])) {
 
-            if ($snd_user_id != "____%system%____") {
-                $snd_fullname = get_fullname($snd_user_id);
-                $db4->query("SELECT Email FROM auth_user_md5 WHERE user_id = '$user->id'");
-                $db4->next_record();
-                $reply_to = $db4->f("Email");
+                $title = "[Stud.IP - " . $GLOBALS['UNI_NAME_CLEAN'] . "] ".stripslashes(kill_format(str_replace(array("\r","\n"), '', $subject)));
+
+                if ($snd_user_id != "____%system%____") {
+                    $snd_fullname = get_fullname($snd_user_id);
+                    $db4->query("SELECT Email FROM auth_user_md5 WHERE user_id = '$user->id'");
+                    $db4->next_record();
+                    $reply_to = $db4->f("Email");
+                }
+
+                $template = $GLOBALS['template_factory']->open('mail/text');
+                $template->set_attribute('message', kill_format(stripslashes($message)));
+                $template->set_attribute('rec_fullname', $rec_fullname);
+                $mailmessage = $template->render();
+
+                $template = $GLOBALS['template_factory']->open('mail/html');
+                $template->set_attribute('lang', getUserLanguagePath($rec_user_id));
+                $template->set_attribute('message', stripslashes($message));
+                $template->set_attribute('rec_fullname', $rec_fullname);
+                $mailhtml = $template->render();
+
+                $this->bulk_mail[md5($message)][getenv('LANG')] = array(
+                    'text'       => $mailmessage,
+                    'html'       => $mailhtml,
+                    'title'      => $title,
+                    'reply_to'   => $reply_to,
+                    'message_id' => $message_id,
+                    'users'      => array()
+                );
             }
 
-            $template = $GLOBALS['template_factory']->open('mail/text');
-            $template->set_attribute('message', kill_format(stripslashes($message)));
-            $template->set_attribute('rec_fullname', $rec_fullname);
-            $mailmessage = $template->render();
+            $this->bulk_mail[md5($message)][getenv('LANG')]['users'][$db4->f('user_id')] = $to;
 
-            $template = $GLOBALS['template_factory']->open('mail/html');
-            $template->set_attribute('lang', getUserLanguagePath($rec_user_id));
-            $template->set_attribute('message', stripslashes($message));
-            $template->set_attribute('rec_fullname', $rec_fullname);
-            $mailhtml = $template->render();
-
-            $this->bulk_mail[md5($message)][getenv('LANG')] = array(
-                'text'       => $mailmessage,
-                'html'       => $mailhtml,
-                'title'      => $title,
-                'reply_to'   => $reply_to,
-                'message_id' => $message_id,
-                'users'      => array()
-            );
+            restoreLanguage();
         }
-
-        $this->bulk_mail[md5($message)][getenv('LANG')]['users'][$db4->f('user_id')] = $to;
-
-        restoreLanguage();
     }
     
 
@@ -80,7 +82,6 @@ class ForumPPBulkMail extends Messaging {
                 $mail = new StudipMail();
                 $mail->setSubject($data['title']);
 
-                $mail->addRecipient($data['reply_to'], 'undisclosed recipients');
                 foreach ($data['users'] as $user_id => $to) {
                     $mail->addRecipient($to, get_fullname($user_id), 'Bcc');
                 }
