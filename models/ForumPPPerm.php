@@ -37,12 +37,16 @@ class ForumPPPerm {
         // take care of the not logged in user
         if ($user_id == 'nobody') {
             // which status has nobody - read only or read/write?
-            $sem = Seminar::getInstance($seminar_id);
+            if (get_object_type($seminar_id) == 'sem') {
+                $sem = Seminar::getInstance($seminar_id);
 
-            if ($sem->write_level == 0) {
-                $status = 'nobody_write';
-            } else if ($sem->read_level == 0) {
-                $status = 'nobody_read';
+                if ($sem->write_level == 0) {
+                    $status = 'nobody_write';
+                } else if ($sem->read_level == 0) {
+                    $status = 'nobody_read';
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }

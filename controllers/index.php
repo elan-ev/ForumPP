@@ -714,14 +714,15 @@ class IndexController extends StudipController
          * 2 - nur mit Passwort
          */
 
-        $seminar = Seminar::getInstance($this->getId());
-
         // This is a separate view on rights, nobody should not be able to edit posts from other nobodys
         $this->editable = $GLOBALS['perm']->have_studip_perm('user', $this->getId());
         if ($GLOBALS['perm']->have_studip_perm('user', $this->getId())) {
             $this->writable = true;
-        } else if ($seminar->write_level == 0) {
-            $this->writable = true;
+        } else if (get_object_type($this->getId()) == 'sem') {
+            $seminar = Seminar::getInstance($this->getId());
+            if ($seminar->write_level == 0) {
+                $this->writable = true;
+            }
         }
     }
 
