@@ -109,14 +109,6 @@
                         <br>
                     </a>
                     <div class="areacontent"><?= htmlReady(ForumPPEntry::killEdit($entry['content_raw'])) ?></div>
-
-                    <? /*
-                    <?= _("von") ?>
-                    <a href="<?= UrlHelper::getLink('about.php?username='. get_username($entry['owner_id'])) ?>">
-                        <?= htmlReady($entry['author']) ?>
-                    </a>
-                    <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['mkdate']) ?>
-                     */ ?>
                 </span>
 
                 <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
@@ -176,7 +168,7 @@
                     <?= htmlReady($entry['last_posting']['user_fullname']) ?>
             </a><br>
             <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
-            <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
                 <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."), 'id' => 'tutorLatestAnswer')) ?>
             </a>
             <? else: ?>
@@ -210,7 +202,7 @@
         <td class="areaborder"></td>
         <td class="areaentry"></td>
         <td class="areaentry">
-            <form class="add_area_form" style="display: bgnone" method="post" action="<?= PluginEngine::getLink('/forumpp/index/add_area/' . $category_id) ?>">
+            <form class="add_area_form" style="display: bgnone" method="post" action="<?= PluginEngine::getLink('forumpp/index/add_area/' . $category_id) ?>">
                 <?= CSRFProtection::tokenTag() ?>
                 <input type="text" name="name" size="50" style="width: 99%;" placeholder="<?= _('Name des neuen Bereiches') ?>" required><br>
                 <textarea name="content" style="height: 3em; width: 99%;" placeholder="<?= _('Optionale Beschreibung des neuen Bereiches') ?>"></textarea>

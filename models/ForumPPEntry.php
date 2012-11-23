@@ -1,8 +1,15 @@
 <?php
-
-/*
- * this class allows the retrieval and handling of forum-entrys
- * @author Till Glöggler <tgloeggl@uos.de>
+/**
+ * ForumPPEntry.php - Allows the retrieval and handling of forum-entrys
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * @author      Till Glöggler <tgloeggl@uos.de>
+ * @license     http://www.gnu.org/licenses/gpl-3.0.html GPL version 3
+ * @category    Stud.IP
  */
 
 class ForumPPEntry {
@@ -254,6 +261,14 @@ class ForumPPEntry {
                 'id'   => $data['topic_id'],
                 'name' => $data['name']
             );
+        }
+
+        // set the name of the first entry to the name of the category the entry is in
+        if (sizeof($ret) > 1) {
+            reset($ret);
+            $area = array_pop(array_slice($ret, 1, 1));
+            $top  = current($ret);
+            $ret[$top['id']]['name'] = ForumPPCat::getCategoryNameForArea($area['id']);
         }
 
         return $ret;

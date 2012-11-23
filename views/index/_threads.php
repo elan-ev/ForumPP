@@ -78,7 +78,7 @@
                         <? foreach ($areas['list'] as $area_id => $area): ?>
                         <? if ($area_id != $parent['id']) : ?>
                         <div style="font-size: 16px; margin-bottom: 5px;">
-                            <a href="<?= PluginEngine::getLink('/forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
+                            <a href="<?= PluginEngine::getLink('forumpp/index/move_thread/'. $entry['topic_id'].'/'. $area_id) ?>">
                             <?= Assets::img('icons/16/yellow/arr_2right.png') ?>
                             <?= $area['name'] ?>
                             </a>
@@ -125,7 +125,7 @@
                     <?= htmlReady($entry['last_posting']['user_fullname']) ?>
             </a><br>
             <?= _("am") ?> <?= strftime($time_format_string_short, (int)$entry['last_posting']['date']) ?>
-            <a href="<?= PluginEngine::getLink('/forumpp/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
+            <a href="<?= PluginEngine::getLink('forumpp/index/index/'. $entry['last_posting']['topic_id']) ?>#<?= $entry['last_posting']['topic_id'] ?>" alt="<?= $infotext ?>" title="<?= $infotext ?>">
                 <?= Assets::img('icons/16/blue/link-intern.png', array('title' => $infotext = _("Direkt zum Beitrag..."))) ?>
             </a>
             <? else: ?>

@@ -1,9 +1,6 @@
 <?php
-
 /**
- * ForumPPBulkMail.php - Short description for ForumPPBulkMail
- *
- * Long description for file (if any)...
+ * ForumPPBulkMail.php - Experimental mailer to handle large amounts of mails at high speed
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as

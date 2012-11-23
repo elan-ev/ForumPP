@@ -32,6 +32,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+* 2.0.42 - Bugfix: Doppelter Slash in Links entfernt, Kategorie wird in Breadcrumb angezeigt 
 * 2.0.41 - Bugfix: Experimenteller Bulk-Mailer setzt keinen invaliden To-Header mehr und Nutzer ohne Mailadresse werden rausgefiltert
 * 2.0.40 - Bugfix: Anpassungen an Modifikationen im Kernsystem
 * 2.0.39 - Feature: Optimierte Darstellung für Smartphones / Geräte mit kleinem Display
