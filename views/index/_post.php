@@ -173,7 +173,9 @@
             <? endif ?>
         <? endif ?>
         
+        <? if (ForumPPPerm::has('forward_entry', $seminar_id)) : ?>
         <?= Studip\LinkButton::create('Beitrag weiterleiten', "javascript:STUDIP.ForumPP.forwardEntry('". $post['topic_id'] ."')") ?>
+        <? endif ?>
     </span>
         </div>
     </div>

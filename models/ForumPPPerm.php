@@ -36,7 +36,16 @@ class ForumPPPerm {
         
         // take care of the not logged in user
         if ($user_id == 'nobody') {
-            $status = 'user';
+            // which status has nobody - read only or read/write?
+            $sem = Seminar::getInstance($seminar_id);
+
+            if ($sem->write_level == 0) {
+                $status = 'nobody_write';
+            } else if ($sem->read_level == 0) {
+                $status = 'nobody_read';
+            } else {
+                return false;
+            }
         }
         
         // root and admins have all possible perms
@@ -48,14 +57,19 @@ class ForumPPPerm {
         if ($status == 'dozent' && in_array($perm,
             words('edit_category add_category remove_category sort_category '
             . 'edit_area add_area remove_area sort_area '
-            . 'search edit_entry add_entry remove_entry fav_entry like_entry move_thread abo')
+            . 'search edit_entry add_entry remove_entry fav_entry like_entry move_thread '
+            . 'abo forward_entry')
         ) !== false) {
             return true;
-        } else if ($status == 'tutor' && in_array($perm, words('search add_entry fav_entry like_entry abo')) !== false) {
+        } else if ($status == 'tutor' && in_array($perm, words('search add_entry fav_entry like_entry forward_entry abo')) !== false) {
             return true;
-        } else if ($status == 'autor' && in_array($perm, words('search add_entry fav_entry like_entry abo')) !== false) {
+        } else if ($status == 'autor' && in_array($perm, words('search add_entry fav_entry like_entry forward_entry abo')) !== false) {
             return true;
-        } else if ($status == 'user' && in_array($perm, words('search add_entry')) !== false) {
+        } else if ($status == 'user' && in_array($perm, words('search add_entry forward_entry')) !== false) {
+            return true;
+        } else if ($status == 'nobody_write' && in_array($perm, words('search add_entry')) !== false) {
+            return true;
+        } else if ($status == 'nobody_read' && in_array($perm, words('search')) !== false) {
             return true;
         }
         
@@ -96,7 +110,7 @@ class ForumPPPerm {
 
             $data = $stmt->fetch();
 
-            $perms[$topic_id] = (($GLOBALS['user']->id == $data['user_id']) ||
+            $perms[$topic_id] = (($GLOBALS['user']->id == $data['user_id'] && $GLOBALS['user']->id != 'nobody') ||
                 ForumPPPerm::has('edit_entry', $constraints['seminar_id']));
         }
 

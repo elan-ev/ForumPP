@@ -73,7 +73,7 @@ class ForumPP extends StudipPlugin implements StandardPlugin
         $navigation->setImage('icons/16/white/forum.png');
 
         // add main third-level navigation-item
-        $navigation->addSubNavigation('index',     new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
+        $navigation->addSubNavigation('index', new Navigation(_('Beiträge'), PluginEngine::getLink('forumpp/index')));
         
         if (ForumPPPerm::has('fav_entry', $course_id)) {
             $navigation->addSubNavigation('newest', new Navigation(_("Neue Beiträge"), PluginEngine::getLink('forumpp/index/newest')));
