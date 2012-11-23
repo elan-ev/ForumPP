@@ -385,17 +385,8 @@ STUDIP.ForumPP = {
             + action + '?cid=' + STUDIP.ForumPP.seminar_id))
     },
     
-    disableTour: function() {
-        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/disable_tour'));
-        jQuery('a.joyride-close-tip').click();
-    },
-    
-    hideTour: function(id) {
-        jQuery.ajax(STUDIP.URLHelper.getURL('plugins.php/forumpp/index/hide_tour/' + id));
-    },
-    
-    closeTour: function() {
-        jQuery('a.joyride-close-tip:visible').click();
+    startTour: function() {
+        $('#joyRideTipContent').joyride();
     }
 };
 

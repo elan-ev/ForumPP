@@ -191,12 +191,6 @@ class IndexController extends StudipController
         if (Request::getArray('highlight')) {
             $this->highlight = Request::optionArray('highlight');
         }
-        
-        if (!empty($GLOBALS['my_messaging_settings']['forumpp'])) {
-            $this->joyride = $GLOBALS['my_messaging_settings']['forumpp'];
-        } else {
-            $this->joyride = array('tour_disabled' => true);
-        }
     }
 
     function newest_action($page = null)
@@ -643,18 +637,6 @@ class IndexController extends StudipController
         $this->render_template('index/_abo_link');
     }
     
-    function hide_tour_action($id)
-    {
-        $GLOBALS['my_messaging_settings']['forumpp']['hidetour'][$id] = time() + 1200;
-        $this->render_nothing();
-    }
-    
-    function disable_tour_action()
-    {
-        $GLOBALS['my_messaging_settings']['forumpp']['tour_disabled'] = true;
-        $this->render_nothing();
-    }
-
     /* * * * * * * * * * * * * * * * * * * * * * * * * */
     /* * * * * H E L P E R   F U N C T I O N S * * * * */
     /* * * * * * * * * * * * * * * * * * * * * * * * * */

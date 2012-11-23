@@ -20,6 +20,18 @@ if (ForumPPPerm::has('search', $seminar_id)) :
         )
     );
 
+    if ($constraint['depth'] == 0) :
+    $infobox_content[] = array(
+        'kategorie' => _('Tour'),
+        'eintrag'   => array(
+            array(
+                'icon' => 'icons/16/black/info.png',
+                'text' => '<a href="javascript:STUDIP.ForumPP.startTour()">Tour starten</a>'
+            )
+        )
+    );
+    endif;
+    
     $infobox_content[] = array(
         'kategorie' => _('Version'),
         'eintrag'   => array(

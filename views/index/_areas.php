@@ -137,7 +137,7 @@
                 <? endif ?>
 
                 
-                <span class="action-icons" id="tutorAreaIcons">
+                <span class="action-icons" <? if(ForumPPPerm::has('edit_area', $seminar_id)) : ?> id="tutorAreaIcons"<? endif ?>>
                     <? if (ForumPPPerm::has('edit_area', $seminar_id)) : ?>
                     <a href="javascript:STUDIP.ForumPP.editArea('<?= $entry['topic_id'] ?>');">
                         <?= Assets::img('icons/16/blue/edit.png',

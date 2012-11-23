@@ -10,10 +10,12 @@ body {
   position: absolute;
   background: #000;
   background: rgba(0,0,0,0.8);
-  padding: 10px 10px 10px 15px;
+  display: none;
   color: #fff;
   width: 300px;
-  z-index: 10;
+  z-index: 101;
+  top: 0; /* keeps the page from scrolling when calculating position */
+  left: 0;
   font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica", Helvetica, Arial, Lucida, sans-serif;
   font-weight: normal;
      -moz-border-radius: 4px;
@@ -21,9 +23,24 @@ body {
           border-radius: 4px;
 }
 
-.joyride-tip-guide p {
-  color: #fff;
+.joyride-content-wrapper {
+  padding: 10px 10px 15px 15px;
 }
+
+/* Mobile */
+@media only screen and (max-width: 767px) {
+  .joyride-tip-guide {
+    width: 95% !important;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+    left: 2.5% !important;
+  }
+  .joyride-tip-guide-wrapper {
+    width: 100%;
+  }
+}
+
 
 /* Add a little css triangle pip, older browser just miss out on the fanciness of it */
 .joyride-tip-guide span.joyride-nub {
@@ -35,25 +52,64 @@ body {
   border: solid 14px;
   border: solid 14px;
 }
+
 .joyride-tip-guide span.joyride-nub.top {
+  /*
+  IE7/IE8 Don't support rgba so we set the fallback
+  border color here. However, IE7/IE8 are also buggy
+  in that the fallback color doesn't work for
+  border-bottom-color so here we set the border-color
+  and override the top,left,right colors below.
+  */
+  border-color: #000;
+  border-color: rgba(0,0,0,0.8);
   border-top-color: transparent !important;
   border-left-color: transparent !important;
   border-right-color: transparent !important;
-  border-bottom-color: #000;
-  border-bottom-color: rgba(0,0,0,0.8);
   top: -28px;
   bottom: none;
 }
+
 .joyride-tip-guide span.joyride-nub.bottom {
+  /*
+  IE7/IE8 Don't support rgba so we set the fallback
+  border color here. However, IE7/IE8 are also buggy
+  in that the fallback color doesn't work for
+  border-top-color so here we set the border-color
+  and override the bottom,left,right colors below.
+  */
+  border-color: #000;
+  border-color: rgba(0,0,0,0.8) !important;
   border-bottom-color: transparent !important;
   border-left-color: transparent !important;
   border-right-color: transparent !important;
-  border-top-color: #000;
-  border-top-color: rgba(0,0,0,0.8) !important;
   bottom: -28px;
   bottom: none;
 }
 
+.joyride-tip-guide span.joyride-nub.right {
+  border-color: #000;
+  border-color: rgba(0,0,0,0.8) !important;
+  border-top-color: transparent !important;
+  border-right-color: transparent !important;
+  border-bottom-color: transparent !important;
+  top: 22px;
+  bottom: none;
+  left: auto;
+  right: -28px;
+}
+
+.joyride-tip-guide span.joyride-nub.left {
+  border-color: #000;
+  border-color: rgba(0,0,0,0.8) !important;
+  border-top-color: transparent !important;
+  border-left-color: transparent !important;
+  border-bottom-color: transparent !important;
+  top: 22px;
+  left: -28px;
+  right: auto;
+  bottom: none;
+}
 
 /* Typography */
 .joyride-tip-guide h1,.joyride-tip-guide h2,.joyride-tip-guide h3,.joyride-tip-guide h4,.joyride-tip-guide h5,.joyride-tip-guide h6 {
@@ -84,17 +140,12 @@ body {
 }
 
 /* Button Style */
-.joyride-tip-guide .joyride-next-tip:after {
-  clear: both;
-}
 .joyride-tip-guide .joyride-next-tip {
   width: auto;
   padding: 6px 18px 4px;
   font-size: 13px;
   text-decoration: none;
   color: rgb(255,255,255);
-  float: left;
-  margin: 0 6px 8px 0px;
   border: solid 1px rgb(0,60,180);
   background: rgb(0,99,255);
   background: -moz-linear-gradient(top, rgb(0,99,255) 0%, rgb(0,85,214) 100%);
@@ -112,6 +163,7 @@ body {
      -moz-box-shadow: 0px 1px 0px rgba(255,255,255,0.3) inset;
           box-shadow: 0px 1px 0px rgba(255,255,255,0.3) inset;
 }
+
 .joyride-next-tip:hover {
   color: rgb(255,255,255) !important;
   border: solid 1px rgb(0,60,180) !important;
@@ -151,6 +203,24 @@ body {
   font-weight: bold;
   border-bottom: none !important;
 }
+
 .joyride-close-tip:hover {
   color: rgba(255,255,255,0.9) !important;
+}
+
+.joyride-modal-bg {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  background: rgb(0,0,0);
+  background: transparent;
+  background: rgba(0,0,0, 0.5);
+  -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+  filter: alpha(opacity=50);
+  opacity: 0.5;
+  z-index: 100;
+  display: none;
+  top: 0;
+  left: 0;
+  cursor: pointer;
 }

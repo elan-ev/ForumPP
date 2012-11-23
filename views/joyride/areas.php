@@ -1,19 +1,18 @@
-<? if ($joyride['tour_disabled'] || $joyride['hidetour']['areas'] > time()) return; ?>
-
 <ol id="joyRideTipContent">
-    <li data-id="tutorBreadcrumb" data-text="Tour starten">
+    <li data-id="tutorBreadcrumb" data-text="Weiter">
         <h2>Feature-Tour</h2>
         <p>
-            Möchten sie sich eine kleine Tour des Forums anschauen? Wählen Sie "Tour starten"!<br>
-            Wenn sie jetzt keine Tour möchten, <a href="javascript:STUDIP.ForumPP.closeTour();">schließen</a> Sie diesen Dialog einfach.<br>
-            Sie können auch die <a href="javascript:STUDIP.ForumPP.disableTour();">Tour ganz abschalten</a>.
+            Sie haben nun die Möglichkeit sich eine Tour der Elemente und Interaktionsmöglichkeiten auf
+            dieser Seite anzuschauen. Um zum nächsten Schritt der Tour zu gelangen klicken Sie unten auf "Weiter".<br>
+            Sie können die Tour auch jederzeit abbrechen, indem Sie auf "x" oben rechts klicken.<br>
+            Viel Spaß!<br>
         </p>
     </li>
     
     <li data-id="tutorBreadcrumb" data-text="Weiter">
         <h2>Breadcrumb-Navigation</h2>
         <p>
-            Das ist die sogenannte "Brotkrumen"-Navigation. Sie zeigt Ihnen,
+            Dies ist die sogenannte "Brotkrumen"-Navigation. Sie zeigt Ihnen,
             wo genau sie sich gerade im Forum aufhalten. Im Moment befinden Sie
             sich auf der Übersichtsseite.
         </p>
@@ -119,14 +118,3 @@
         </p>
     </li>
 </ol>
-
-<!-- Run the plugin -->
-<script type="text/javascript">
-    $(window).load(function() {
-        $(this).joyride({
-            'postRideCallback': function() {
-                STUDIP.ForumPP.hideTour('areas');
-            }
-        });
-    });
-</script>
