@@ -32,6 +32,7 @@ Das Forum hat 3 Hierarchieebenen + 1 Metaebene:
 * Anzalh der bereits Sysmteweit verfassten Beiträge wird bei Nutzerinfos bei den Postings angezeigt.
 
 # Changelog
+* 2.0.45 - Bugfix: Das Forum funktioniert nun auch (wieder) in Einrichtungen
 * 2.0.44 - Feature: Das Forum funktioniert nun auch ohne Anmeldung (sofern für die Veranstaltung erlaubt) 
 * 2.0.43 - Feature: Feature-Tour wird nun nur noch angezeigt, wenn man auf den Link in der Infobox klickt. 
 * 2.0.42 - Bugfix: Doppelter Slash in Links entfernt, Kategorie wird in Breadcrumb angezeigt 
